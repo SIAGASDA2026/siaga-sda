@@ -161,15 +161,16 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle={`${BRAND.tagline} - ${currentUser?.name?.split(' ')[0] || 'Pengguna'} - ${getRoleLabel(currentRole)}`}
       />
-      <div className="space-y-5 p-4 sm:p-5">
-        <section className="siaga-command-band rounded-2xl p-4 text-white shadow-lg shadow-blue-950/10 md:p-5">
+      <div className="space-y-5 p-4 sm:p-5 siaga-aurora-bg">
+        <section className="siaga-command-band relative overflow-hidden rounded-[2rem] border border-white/40 bg-white/70 p-4 text-slate-950 shadow-[0_32px_80px_rgba(13,44,84,0.12)] backdrop-blur-xl md:p-5">
+          <div className="pointer-events-none absolute -left-6 top-6 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl opacity-80 siaga-soft-orb" />
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-100">{BRAND.unit}</div>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-700">{BRAND.unit}</div>
               <h2 className="mt-1 text-2xl font-extrabold leading-tight md:text-3xl">{BRAND.name}</h2>
-              <p className="mt-1 max-w-3xl text-sm text-blue-100">{BRAND.fullName} untuk monitoring proyek dan respons cepat SDA.</p>
+              <p className="mt-1 max-w-3xl text-sm text-slate-700">{BRAND.fullName} untuk monitoring proyek dan respons cepat SDA.</p>
             </div>
-            <Link href="/peta" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#0D47A1] to-[#1976D2] px-4 text-sm font-extrabold text-white shadow-sm hover:from-[#0A3B86] hover:to-[#13589e] focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-200">
+            <Link href="/peta" className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/70 bg-white/15 px-4 text-sm font-extrabold text-slate-900 shadow-sm shadow-cyan-200/20 backdrop-blur-sm transition duration-300 hover:border-cyan-200 hover:bg-white hover:shadow-[0_0_24px_rgba(59,130,246,0.18)] focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:ring-offset-1">
               <MapPin className="h-4 w-4" />
               Buka Peta Monitoring
             </Link>
@@ -213,7 +214,7 @@ export default function DashboardPage() {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`min-h-[72px] rounded-3xl border px-3 py-3 text-left transition ${activeTab === tab.id ? 'border-blue-600 bg-blue-600 text-white shadow-sm' : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50'}`}
+                className={`min-h-[72px] rounded-3xl border px-3 py-3 text-left transition-all duration-300 ease-out ${activeTab === tab.id ? 'border-cyan-200 bg-gradient-to-br from-cyan-500/15 via-sky-100 to-white text-slate-950 shadow-[0_18px_40px_rgba(14,165,233,0.12)]' : 'border-white/70 bg-white/80 text-slate-700 hover:border-cyan-200 hover:bg-cyan-50/70 hover:shadow-[0_12px_28px_rgba(59,130,246,0.08)]'}`}
                 aria-pressed={activeTab === tab.id}
               >
                 <div className="text-sm font-black leading-tight">{tab.label}</div>
@@ -255,7 +256,7 @@ export default function DashboardPage() {
                   <Link
                     key={card.label}
                     href={card.href}
-                    className={`group rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transform-gpu transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.02] hover:shadow-lg ${card.tone === 'blue' ? 'focus:ring-blue-200' : card.tone === 'red' ? 'focus:ring-red-200' : card.tone === 'amber' ? 'focus:ring-amber-200' : card.tone === 'green' ? 'focus:ring-green-200' : 'focus:ring-violet-200'} focus:outline-none focus:ring-2 focus:ring-offset-1 ${card.tone === 'blue' ? 'text-slate-900' : card.tone === 'red' ? 'text-red-700' : card.tone === 'amber' ? 'text-amber-700' : card.tone === 'green' ? 'text-emerald-700' : 'text-violet-700'}`}
+                    className={`group siaga-glass-card transform-gpu transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.02] hover:shadow-lg ${card.tone === 'blue' ? 'focus:ring-blue-200' : card.tone === 'red' ? 'focus:ring-red-200' : card.tone === 'amber' ? 'focus:ring-amber-200' : card.tone === 'green' ? 'focus:ring-green-200' : 'focus:ring-violet-200'} focus:outline-none focus:ring-2 focus:ring-offset-1 ${card.tone === 'blue' ? 'text-slate-900' : card.tone === 'red' ? 'text-red-700' : card.tone === 'amber' ? 'text-amber-700' : card.tone === 'green' ? 'text-emerald-700' : 'text-violet-700'}`}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -284,7 +285,7 @@ export default function DashboardPage() {
               })}
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <div className="siaga-glass-card">
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <div className="text-sm font-extrabold text-slate-900">Akses Cepat</div>
@@ -313,7 +314,7 @@ export default function DashboardPage() {
             </div>
 
             <div className="grid gap-3 lg:grid-cols-3">
-              <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="siaga-glass-card">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm font-extrabold text-slate-900">Warning Center</div>
@@ -338,7 +339,7 @@ export default function DashboardPage() {
                 <div className="mt-4 text-[10px] text-slate-400">Terakhir diperbarui: {formatDateTime(new Date().toISOString())}</div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="siaga-glass-card">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm font-extrabold text-slate-900">Pasang Surut (Ringkasan)</div>
@@ -347,14 +348,14 @@ export default function DashboardPage() {
                   <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Lihat Detail</Link>
                 </div>
                 <div className="mt-4 grid gap-3">
-                  <div className="rounded-3xl bg-slate-50 p-4">
+                  <div className="rounded-3xl border border-white/60 bg-white/80 p-4 shadow-soft">
                     <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Status Saat Ini</div>
                     <div className="mt-2 text-xl font-black text-slate-900">WASPADA</div>
                     <div className="mt-2 text-xs text-slate-500">Tinggi Muka Air</div>
                     <div className="mt-2 text-3xl font-black text-slate-900">+1.42 m</div>
                     <div className="mt-1 text-xs text-slate-500">dari datum</div>
                   </div>
-                  <div className="rounded-3xl bg-slate-50 p-4">
+                  <div className="rounded-3xl border border-white/60 bg-white/80 p-4 shadow-soft">
                     <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Trend</div>
                     <div className="mt-2 flex items-center gap-2 text-2xl font-black text-slate-900">
                       <ArrowRight className="rotate-90 h-5 w-5 text-slate-900" />
@@ -364,10 +365,61 @@ export default function DashboardPage() {
                     <div className="mt-3 text-xs text-slate-500">Perkiraan menuju siaga</div>
                     <div className="mt-1 text-lg font-black text-slate-900">02:35:24</div>
                   </div>
+                  <div className="rounded-3xl border border-white/60 bg-white/80 p-4 shadow-soft">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Jadwal Hari Ini</div>
+                    <div className="mt-4 space-y-3 text-sm text-slate-700">
+                      <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2">
+                        <div>
+                          <div className="font-semibold text-slate-900">00:30</div>
+                          <div className="text-[11px] text-slate-500">Surut minimum</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-black text-slate-900">+0.62 m</div>
+                          <div className="text-[11px] text-slate-500">Aman</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2">
+                        <div>
+                          <div className="font-semibold text-slate-900">06:45</div>
+                          <div className="text-[11px] text-slate-500">Pasang naik</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-black text-slate-900">+1.18 m</div>
+                          <div className="text-[11px] text-amber-600">Waspada</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2">
+                        <div>
+                          <div className="font-semibold text-slate-900">12:00</div>
+                          <div className="text-[11px] text-slate-500">Pasang maksimum</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-black text-slate-900">+1.36 m</div>
+                          <div className="text-[11px] text-red-600">Siaga</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2">
+                        <div>
+                          <div className="font-semibold text-slate-900">18:20</div>
+                          <div className="text-[11px] text-slate-500">Surut turun</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-black text-slate-900">+0.84 m</div>
+                          <div className="text-[11px] text-slate-500">Aman</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="rounded-3xl border border-white/60 bg-white/80 p-4 shadow-soft">
+                    <div className="text-[10px] uppercase tracking-[0.2em] text-slate-400">Gelombang</div>
+                    <div className="mt-4 overflow-hidden rounded-3xl bg-gradient-to-t from-cyan-200/30 to-white p-4">
+                      <div className="siaga-wave h-24 w-full" />
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+              <div className="siaga-glass-card">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm font-extrabold text-slate-900">Peta Monitoring Ringkas</div>
@@ -375,23 +427,36 @@ export default function DashboardPage() {
                   </div>
                   <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
                 </div>
-                <div className="mt-4 rounded-3xl overflow-hidden border border-slate-100 bg-slate-50">
-                  <div className="h-36 bg-[radial-gradient(circle_at_center,_rgba(59,130,246,0.08),_transparent_50%),linear-gradient(180deg,_rgba(255,255,255,0.8),_rgba(249,250,251,0.95))]"></div>
+                <div className="mt-4 overflow-hidden rounded-[26px] border border-white/60 bg-gradient-to-br from-cyan-100 via-slate-100 to-white p-3 shadow-soft">
+                  <div className="relative h-36 overflow-hidden rounded-[22px] bg-gradient-to-br from-sky-100 via-cyan-50 to-white">
+                    <div className="absolute left-5 top-6 h-3.5 w-3.5 rounded-full bg-cyan-500 shadow-[0_0_0_12px_rgba(56,189,248,0.18)] animate-pulse-marker" />
+                    <div className="absolute left-24 top-14 h-3.5 w-3.5 rounded-full bg-amber-400 shadow-[0_0_0_12px_rgba(251,191,36,0.16)] animate-pulse-marker" />
+                    <div className="absolute right-6 top-12 h-3.5 w-3.5 rounded-full bg-rose-400 shadow-[0_0_0_12px_rgba(244,63,94,0.18)] animate-pulse-marker" />
+                    <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-cyan-200/40 to-transparent" />
+                  </div>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-2 text-[12px] text-slate-600">
+                <div className="mt-4 grid gap-2 text-[12px] text-slate-600">
                   <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-red-500"></span>2 Kritis</div>
                   <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500"></span>1 Waspada</div>
                   <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-sky-500"></span>2 Aman</div>
                   <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-slate-400"></span>5 Perlu perhatian</div>
                 </div>
-                <Link href="/peta" className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-2xl bg-gradient-to-r from-[#0D47A1] to-[#1976D2] text-sm font-extrabold text-white hover:from-[#0A3B86] hover:to-[#13589e] focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-200">
+                <div className="mt-3 rounded-3xl bg-white/80 p-3 text-sm text-slate-700 shadow-soft">
+                  <div className="font-semibold text-slate-900">Lokasi Prioritas</div>
+                  <div className="mt-3 grid gap-2">
+                    <div className="rounded-2xl bg-slate-50 px-3 py-2">Sungai Dumai</div>
+                    <div className="rounded-2xl bg-slate-50 px-3 py-2">Drainase Sudirman</div>
+                    <div className="rounded-2xl bg-slate-50 px-3 py-2">Pintu Air Pelintung</div>
+                  </div>
+                </div>
+                <Link href="/peta" className="mt-4 inline-flex h-11 w-full items-center justify-center rounded-2xl border border-white/60 bg-white/90 text-sm font-extrabold text-slate-900 shadow-sm transition duration-300 hover:border-cyan-200 hover:bg-white hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:ring-offset-1">
                   Buka Peta Monitoring
                 </Link>
               </div>
             </div>
 
             <div className="grid gap-3 lg:grid-cols-2">
-              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="siaga-glass-card">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm font-extrabold text-slate-900">Aktivitas Terbaru</div>
@@ -414,7 +479,7 @@ export default function DashboardPage() {
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="siaga-glass-card">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-sm font-extrabold text-slate-900">Jelajah Modul</div>

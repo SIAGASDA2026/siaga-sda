@@ -194,6 +194,85 @@ table {
 .photo-upload-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; }
 .photo-upload-zone:hover { border-color: #1d6fde; background: #eff6ff; }
 
+.siaga-aurora-bg {
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 10% 10%, rgba(56,189,248,0.22), transparent 18%),
+              radial-gradient(circle at 80% 5%, rgba(56,189,248,0.14), transparent 16%),
+              radial-gradient(circle at 50% 90%, rgba(45,212,191,0.12), transparent 18%),
+              linear-gradient(180deg, rgba(248,251,253,1) 0%, rgba(241,248,255,1) 55%, rgba(249,250,251,1) 100%);
+}
+.siaga-aurora-bg::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(circle at 35% 20%, rgba(56,189,248,0.08), transparent 18%),
+              radial-gradient(circle at 80% 40%, rgba(14,165,233,0.06), transparent 20%);
+  opacity: 0.95;
+  animation: aurora-soft 20s ease-in-out infinite;
+  pointer-events: none;
+}
+.siaga-glass-card {
+  border: 1px solid rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.76);
+  box-shadow: 0 24px 60px rgba(15, 55, 96, 0.08);
+  backdrop-filter: blur(18px);
+  border-radius: 24px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease;
+}
+.siaga-glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 32px 80px rgba(15, 55, 96, 0.12);
+  border-color: rgba(56,189,248,0.28);
+}
+.siaga-soft-orb {
+  animation: float-soft 14s ease-in-out infinite;
+}
+.siaga-wave {
+  position: relative;
+  width: 100%;
+  border-radius: 24px;
+  background: radial-gradient(circle at 50% 0%, rgba(56,189,248,0.14), transparent 40%),
+              linear-gradient(180deg, rgba(56,189,248,0.18), rgba(255,255,255,0));
+  overflow: hidden;
+}
+.siaga-wave::before,
+.siaga-wave::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 180%;
+  height: 100%;
+  border-radius: 40%;
+  background: rgba(56,189,248,0.24);
+}
+.siaga-wave::before {
+  bottom: 14px;
+  animation: float-soft 4.6s ease-in-out infinite;
+}
+.siaga-wave::after {
+  bottom: 6px;
+  opacity: 0.7;
+  animation: float-soft 6.2s ease-in-out infinite reverse;
+}
+.siaga-pulse-marker {
+  animation: pulse-soft 2.8s ease-in-out infinite;
+}
+.shadow-soft {
+  box-shadow: 0 16px 40px rgba(15, 55, 96, 0.08);
+}
+@media (prefers-reduced-motion: reduce) {
+  .siaga-aurora-bg::before,
+  .siaga-soft-orb,
+  .siaga-wave::before,
+  .siaga-wave::after,
+  .siaga-pulse-marker {
+    animation: none !important;
+  }
+}
+
 /* ── Animations ──────────────────────────── */
 @keyframes pulse-ring {
   0% { transform: scale(0.8); opacity: 1; }
