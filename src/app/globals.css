@@ -1,0 +1,280 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --dark-navy: #0D2C54;
+  --navy: #0D2C54;
+  --navy-light: #16385c;
+  --primary: #1976D2;
+  --cyan-info: #00ACC1;
+  --sda-green: #43A047;
+  --warning-orange: #FFB300;
+  --danger-red: #E53935;
+  --main-bg: #F4F7FA;
+  --card-bg: #FFFFFF;
+  --soft-gray: #E9EEF5;
+  --text-primary: #1B2430;
+  --text-secondary: #5C6B7A;
+  --text-muted: #8A97A6;
+}
+
+/* ── Reset & Base ─────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  /* Cegah zoom otomatis di iOS saat klik input */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* Viewport yang benar untuk semua HP */
+  height: -webkit-fill-available;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--main-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+}
+
+/* ── Elemen dasar ─────────────────────────── */
+button, input, select, textarea {
+  max-width: 100%;
+  font-size: 16px; /* Cegah zoom iOS saat focus input */
+}
+
+/* Override font-size kecil hanya untuk desktop */
+@media (min-width: 768px) {
+  button, input, select, textarea {
+    font-size: inherit;
+  }
+}
+
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── Layout Utama ─────────────────────────── */
+.app-surface,
+.app-main {
+  min-width: 0;
+  width: 100%;
+}
+
+/* Topbar: mobile = full width */
+.app-topbar {
+  left: 0;
+  right: 0;
+}
+
+/* Main area: mobile = no margin */
+.app-main {
+  margin-left: 0;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+.app-main > * {
+  min-width: 0;
+}
+
+/* Desktop: geser sesuai sidebar */
+@media (min-width: 768px) {
+  .app-topbar {
+    left: var(--sidebar-left, 76px);
+  }
+
+  .app-main {
+    margin-left: var(--sidebar-left, 76px);
+    width: calc(100% - var(--sidebar-left, 76px));
+    max-width: calc(100vw - var(--sidebar-left, 76px));
+  }
+}
+
+/* ── Konten dalam main ───────────────────── */
+.app-main section,
+.app-main article,
+.app-main div {
+  min-width: 0;
+}
+
+/* ── Scrollbar ───────────────────────────── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+/* ── Surface & Cards ─────────────────────── */
+.app-surface {
+  background:
+    radial-gradient(circle at top left, rgba(25, 118, 210, 0.10), transparent 30%),
+    radial-gradient(circle at top right, rgba(0, 172, 193, 0.08), transparent 28%),
+    linear-gradient(180deg, #f8fbfd 0%, var(--main-bg) 44%, #e9eef5 100%);
+}
+
+.government-card {
+  border: 1px solid #e2e8f0;
+  background: rgba(255,255,255,0.96);
+  box-shadow: 0 4px 12px rgba(13, 44, 84, 0.08);
+}
+
+.siaga-card {
+  border: 1px solid #e2e8f0;
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(13, 44, 84, 0.08);
+  min-width: 0;
+}
+
+.siaga-command-band {
+  background:
+    linear-gradient(135deg, rgba(13, 44, 84, 0.98), rgba(25, 118, 210, 0.94)),
+    radial-gradient(circle at 15% 20%, rgba(0, 172, 193, 0.30), transparent 34%);
+}
+
+/* ── Tabel Responsif ─────────────────────── */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+table {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Mobile: wrap cell text */
+@media (max-width: 767px) {
+  th, td {
+    white-space: normal;
+    word-break: break-word;
+  }
+}
+
+/* Desktop: nowrap */
+@media (min-width: 768px) {
+  .table-nowrap th,
+  .table-nowrap td {
+    white-space: nowrap;
+  }
+}
+
+/* ── Overflow helpers ────────────────────── */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+/* ── Leaflet ─────────────────────────────── */
+.leaflet-container { z-index: 0; }
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
+}
+.leaflet-control-attribution {
+  font-size: 9px !important;
+}
+
+/* ── Utilities ───────────────────────────── */
+.card-hover { transition: all 0.2s ease; }
+.card-hover:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.08); }
+
+.photo-upload-zone { border: 2px dashed #cbd5e1; transition: all 0.2s; }
+.photo-upload-zone:hover { border-color: #1d6fde; background: #eff6ff; }
+
+/* ── Animations ──────────────────────────── */
+@keyframes pulse-ring {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+.fade-in { animation: fadeIn 0.2s ease; }
+.slide-in-right { animation: slideInRight 0.2s ease; }
+.animate-in { animation: fadeIn 0.2s ease; }
+.slide-in-from-bottom-4 { animation: fadeIn 0.2s ease; }
+
+/* ── Range input ─────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  background: #1d6fde;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: #1d6fde;
+  border-radius: 50%;
+  border: 3px solid white;
+  cursor: pointer;
+}
+
+/* ── Print styles ────────────────────────── */
+@media print {
+  .no-print { display: none !important; }
+  .print-full { width: 100% !important; }
+}
+
+/* ── Mobile fixes ────────────────────────── */
+@media (max-width: 767px) {
+  /* Padding bawah supaya konten tidak tertutup bottom nav */
+  .app-main {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom));
+  }
+
+  /* Grid/flex: jangan overflow */
+  .grid, .flex {
+    min-width: 0;
+  }
+
+  /* Teks panjang: wrap */
+  p, span, div, td, th, li {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Touch scrolling horizontal */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* ── Watermark ───────────────────────────── */
+.watermark {
+  position: absolute; bottom: 8px; left: 0; right: 0;
+  text-align: center; font-size: 10px;
+  color: rgba(255,255,255,0.85);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+  font-weight: 600; pointer-events: none;
+}
