@@ -161,16 +161,15 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle={`${BRAND.tagline} - ${currentUser?.name?.split(' ')[0] || 'Pengguna'} - ${getRoleLabel(currentRole)}`}
       />
-      <div className="space-y-5 p-4 sm:p-5 siaga-aurora-bg">
-        <section className="siaga-command-band relative overflow-hidden rounded-[2rem] border border-white/40 bg-white/70 p-4 text-slate-950 shadow-[0_32px_80px_rgba(13,44,84,0.12)] backdrop-blur-xl md:p-5">
-          <div className="pointer-events-none absolute -left-6 top-6 h-40 w-40 rounded-full bg-cyan-300/20 blur-3xl opacity-80 siaga-soft-orb" />
+      <div className="space-y-5 p-4 sm:p-5 siaga-gemini-bg">
+        <section className="relative overflow-hidden rounded-3xl border border-white/50 bg-white/60 p-4 text-slate-950 shadow-lg shadow-blue-200/10 backdrop-blur-md md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-700">{BRAND.unit}</div>
-              <h2 className="mt-1 text-2xl font-extrabold leading-tight md:text-3xl">{BRAND.name}</h2>
+              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-600">{BRAND.unit}</div>
+              <h2 className="mt-1 text-2xl font-extrabold leading-tight md:text-3xl text-slate-950">{BRAND.name}</h2>
               <p className="mt-1 max-w-3xl text-sm text-slate-700">{BRAND.fullName} untuk monitoring proyek dan respons cepat SDA.</p>
             </div>
-            <Link href="/peta" className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-white/70 bg-white/15 px-4 text-sm font-extrabold text-slate-900 shadow-sm shadow-cyan-200/20 backdrop-blur-sm transition duration-300 hover:border-cyan-200 hover:bg-white hover:shadow-[0_0_24px_rgba(59,130,246,0.18)] focus:outline-none focus:ring-2 focus:ring-cyan-200 focus:ring-offset-1">
+            <Link href="/peta" className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-cyan-200/70 bg-gradient-to-r from-cyan-100/80 to-blue-100/80 px-5 text-sm font-extrabold text-slate-950 shadow-md shadow-cyan-300/20 backdrop-blur-sm transition duration-300 hover:from-cyan-100 hover:to-blue-100 hover:shadow-lg hover:shadow-cyan-300/30 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-1">
               <MapPin className="h-4 w-4" />
               Buka Peta Monitoring
             </Link>
