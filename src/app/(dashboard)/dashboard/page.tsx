@@ -448,26 +448,67 @@ export default function DashboardPage() {
           </div>
         </section>
 
+        <div className="relative z-10 rounded-3xl border border-cyan-100/80 bg-white p-3 shadow-sm">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
+            {DASHBOARD_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`min-h-[72px] rounded-3xl border px-3 py-3 text-left transition-all duration-300 ease-out ${activeTab === tab.id ? 'border-cyan-300 bg-gradient-to-br from-cyan-500/15 via-sky-100 to-white text-slate-950 shadow-[0_18px_40px_rgba(14,165,233,0.12)]' : 'border-slate-200/70 bg-white/80 text-slate-700 hover:border-cyan-200 hover:bg-cyan-50/70 hover:shadow-[0_12px_28px_rgba(59,130,246,0.08)]'}`}
+                aria-pressed={activeTab === tab.id}
+              >
+                <div className="text-sm font-black leading-tight text-slate-950">{tab.label}</div>
+                <div className={`mt-1 text-[11px] ${activeTab === tab.id ? 'text-slate-600' : 'text-slate-400'}`}>{tab.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="relative z-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { label: 'Total Paket Aktif', value: stats.total, icon: FolderOpen, href: '/proyek', tone: 'blue' },
-            { label: 'Paket Deviasi/Kritis', value: stats.kritis, icon: XCircle, href: '/proyek', tone: 'red' },
-            { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, href: '/approval', tone: 'amber' },
-            { label: 'Survey Belum Ditindaklanjuti', value: stats.surveyMenunggu, icon: FileText, href: '/survey', tone: 'violet' },
+            {
+              label: 'Total Paket Aktif',
+              value: stats.total,
+              icon: FolderOpen,
+              href: `/proyek?tahun=${activeYear}&status=aktif`,
+              tone: 'blue',
+            },
+            {
+              label: 'Paket Deviasi/Kritis',
+              value: stats.kritis,
+              icon: XCircle,
+              href: `/proyek?tahun=${activeYear}&health=kritis`,
+              tone: 'red',
+            },
+            {
+              label: 'Approval Pending',
+              value: approvalPending,
+              icon: ClipboardList,
+              href: `/approval?tahun=${activeYear}&status=pending`,
+              tone: 'amber',
+            },
+            {
+              label: 'Survey Belum Ditindaklanjuti',
+              value: stats.surveyMenunggu,
+              icon: FileText,
+              href: `/proyek?tahun=${activeYear}&source=survey&status=belum-ditindaklanjuti`,
+              tone: 'violet',
+            },
           ].map((card) => {
             const Icon = card.icon
             return (
               <Link
                 key={card.label}
                 href={card.href}
-                className={`group relative z-10 siaga-glass-card border ${card.tone === 'blue' ? 'border-blue-200/70' : card.tone === 'red' ? 'border-rose-200/70' : card.tone === 'amber' ? 'border-amber-200/70' : card.tone === 'green' ? 'border-emerald-200/70' : 'border-violet-200/70'} transform-gpu transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.02] hover:shadow-lg ${card.tone === 'blue' ? 'focus:ring-blue-200' : card.tone === 'red' ? 'focus:ring-red-200' : card.tone === 'amber' ? 'focus:ring-amber-200' : card.tone === 'green' ? 'focus:ring-green-200' : 'focus:ring-violet-200'} focus:outline-none focus:ring-2 focus:ring-offset-1 text-slate-900`}
+                className={`group relative z-10 siaga-glass-card border ${card.tone === 'blue' ? 'border-blue-200/70' : card.tone === 'red' ? 'border-rose-200/70' : card.tone === 'amber' ? 'border-amber-200/70' : 'border-violet-200/70'} transform-gpu transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.02] hover:shadow-lg ${card.tone === 'blue' ? 'focus:ring-blue-200' : card.tone === 'red' ? 'focus:ring-red-200' : card.tone === 'amber' ? 'focus:ring-amber-200' : 'focus:ring-violet-200'} focus:outline-none focus:ring-2 focus:ring-offset-1 text-slate-900`}
               >
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-sm font-semibold text-slate-700">{card.label}</div>
                     <div className="mt-3 text-3xl font-black text-slate-950">{card.value}</div>
                   </div>
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone === 'blue' ? 'bg-gradient-to-br from-[#3730A3] to-[#06B6D4]' : card.tone === 'red' ? 'bg-gradient-to-br from-[#D32F2F] to-[#E53935]' : card.tone === 'amber' ? 'bg-gradient-to-br from-[#FFB300] to-[#FF8A00]' : card.tone === 'green' ? 'bg-gradient-to-br from-[#2E7D32] to-[#66BB6A]' : 'bg-gradient-to-br from-[#7C3AED] to-[#A78BFA]'} text-white`}>
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone === 'blue' ? 'bg-gradient-to-br from-[#3730A3] to-[#06B6D4]' : card.tone === 'red' ? 'bg-gradient-to-br from-[#D32F2F] to-[#E53935]' : card.tone === 'amber' ? 'bg-gradient-to-br from-[#FFB300] to-[#FF8A00]' : 'bg-gradient-to-br from-[#7C3AED] to-[#A78BFA]'} text-white`}> 
                     <Icon className="h-5 w-5" />
                   </div>
                 </div>
@@ -475,96 +516,6 @@ export default function DashboardPage() {
             )
           })}
         </div>
-
-        <div className="relative z-10 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-sm">
-            <div className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">Command Center</div>
-            <h3 className="mt-2 text-lg font-extrabold text-slate-950">Ringkasan Aktif</h3>
-            <p className="mt-1 text-xs text-slate-600">Status paket dan SDA saat ini.</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-3xl border border-slate-100 bg-slate-50 p-3">
-                <div className="text-[10px] text-slate-500">Total Paket</div>
-                <div className="mt-2 text-2xl font-black text-slate-950">{stats.total}</div>
-              </div>
-              <div className="rounded-3xl border border-slate-100 bg-slate-50 p-3">
-                <div className="text-[10px] text-slate-500">Kritis + Warning</div>
-                <div className="mt-2 text-2xl font-black text-slate-950">{stats.kritis + stats.warning}</div>
-              </div>
-            </div>
-          </div>
-          <TideDashboardPanel compact />
-        </div>
-
-        <div className="relative z-10 rounded-3xl border border-cyan-100/80 bg-white p-4 shadow-sm sm:p-5">
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] items-center">
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700 sm:gap-3">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Tahun: <span className="font-bold text-slate-900">{compactFilterValues.tahun}</span></span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Jenis: <span className="font-bold text-slate-900">{compactFilterValues.jenis}</span></span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Metode: <span className="font-bold text-slate-900">{compactFilterValues.metode}</span></span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Tahap: <span className="font-bold text-slate-900">{compactFilterValues.tahap}</span></span>
-                <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-cyan-900">{visibleProjects.length} paket</span>
-              </div>
-              <div className="text-xs text-slate-500">{compactFilterSummary}</div>
-              {hasFilterActive && (
-                <div className="flex flex-wrap gap-2 text-[11px] text-slate-600">
-                  {activeFilterLabels.map((label) => (
-                    <span key={label} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-semibold text-slate-700">{label}</span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 justify-end">
-              {hasFilterActive && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFilterKategori('all')
-                    setFilterJenisProyek('all')
-                    setFilterTahap('all')
-                    setFilterTahun('all')
-                    setFilterProgram('all')
-                    setFilterSubKegiatan('all')
-                  }}
-                  className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
-                >
-                  Reset Filter
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={() => setShowAdvancedFilters((prev) => !prev)}
-                className="inline-flex h-10 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 px-4 text-xs font-bold text-cyan-900 transition hover:border-cyan-300 hover:bg-cyan-100"
-              >
-                {showAdvancedFilters ? 'Sembunyikan Filter' : 'Filter Lanjutan'}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {showAdvancedFilters && (
-          <div className="relative z-10 rounded-3xl border border-slate-200/70 bg-white p-4 shadow-sm sm:p-5">
-            <ProjectScopeFilters
-              category={filterKategori}
-              packageType={filterJenisProyek}
-              workStage={filterTahap}
-              budgetYear={filterTahun}
-              budgetYears={budgetYears}
-              program={filterProgram}
-              programs={programs}
-              subKegiatan={filterSubKegiatan}
-              subKegiatanOptions={subKegiatanOptions}
-              onCategoryChange={setFilterKategori}
-              onPackageTypeChange={setFilterJenisProyek}
-              onWorkStageChange={setFilterTahap}
-              onBudgetYearChange={setFilterTahun}
-              onProgramChange={setFilterProgram}
-              onSubKegiatanChange={setFilterSubKegiatan}
-              total={visibleProjects.length}
-            />
-          </div>
-        )}
 
         <div className="relative z-10 rounded-[32px] border border-slate-200/70 bg-white/80 p-5 shadow-lg shadow-slate-200/10 backdrop-blur-sm">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -583,17 +534,17 @@ export default function DashboardPage() {
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-3">
                 {[
-                  { label: 'Total paket tahun aktif', value: stats.total },
-                  { label: 'Paket progres', value: visibleProjects.filter((project) => project.status !== 'selesai').length },
-                  { label: 'Paket selesai', value: stats.selesai },
-                  { label: 'Stuck / perlu tindak lanjut', value: stats.kritis + stats.warning },
-                  { label: 'Approval pending', value: approvalPending },
-                  { label: 'Masalah open', value: stats.openMasalah },
+                  { label: 'Total paket tahun aktif', value: stats.total, href: `/proyek?tahun=${activeYear}&status=aktif` },
+                  { label: 'Paket progres', value: visibleProjects.filter((project) => project.status !== 'selesai').length, href: `/proyek?tahun=${activeYear}&status=aktif` },
+                  { label: 'Paket selesai', value: stats.selesai, href: `/proyek?tahun=${activeYear}&status=selesai` },
+                  { label: 'Stuck / perlu tindak lanjut', value: stats.kritis + stats.warning, href: `/proyek?tahun=${activeYear}&health=kritis` },
+                  { label: 'Approval pending', value: approvalPending, href: `/approval?tahun=${activeYear}&status=pending` },
+                  { label: 'Masalah open', value: stats.openMasalah, href: `/proyek?tahun=${activeYear}&masalah=open` },
                 ].map((item) => (
-                  <div key={item.label} className="rounded-3xl border border-slate-200/70 bg-slate-50 p-4">
+                  <Link key={item.label} href={item.href} className="block rounded-3xl border border-slate-200/70 bg-slate-50 p-4 transition hover:border-cyan-200 hover:bg-cyan-50">
                     <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">{item.label}</div>
                     <div className="mt-3 text-2xl font-black text-slate-950">{item.value}</div>
-                  </div>
+                  </Link>
                 ))}
               </div>
 
@@ -766,22 +717,76 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="relative z-10 rounded-3xl border border-cyan-100/80 bg-white p-3 shadow-sm">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-            {DASHBOARD_TABS.map((tab) => (
+        <div className="relative z-10 rounded-3xl border border-cyan-100/80 bg-white p-4 shadow-sm sm:p-5">
+          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] items-center">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700 sm:gap-3">
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Tahun: <span className="font-bold text-slate-900">{compactFilterValues.tahun}</span></span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Jenis: <span className="font-bold text-slate-900">{compactFilterValues.jenis}</span></span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Metode: <span className="font-bold text-slate-900">{compactFilterValues.metode}</span></span>
+                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Tahap: <span className="font-bold text-slate-900">{compactFilterValues.tahap}</span></span>
+                <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-cyan-900">{visibleProjects.length} paket</span>
+              </div>
+              <div className="text-xs text-slate-500">{compactFilterSummary}</div>
+              {hasFilterActive && (
+                <div className="flex flex-wrap gap-2 text-[11px] text-slate-600">
+                  {activeFilterLabels.map((label) => (
+                    <span key={label} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-semibold text-slate-700">{label}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 justify-end">
+              {hasFilterActive && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterKategori('all')
+                    setFilterJenisProyek('all')
+                    setFilterTahap('all')
+                    setFilterTahun('all')
+                    setFilterProgram('all')
+                    setFilterSubKegiatan('all')
+                  }}
+                  className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                >
+                  Reset Filter
+                </button>
+              )}
               <button
-                key={tab.id}
                 type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`min-h-[72px] rounded-3xl border px-3 py-3 text-left transition-all duration-300 ease-out ${activeTab === tab.id ? 'border-cyan-300 bg-gradient-to-br from-cyan-500/15 via-sky-100 to-white text-slate-950 shadow-[0_18px_40px_rgba(14,165,233,0.12)]' : 'border-slate-200/70 bg-white/80 text-slate-700 hover:border-cyan-200 hover:bg-cyan-50/70 hover:shadow-[0_12px_28px_rgba(59,130,246,0.08)]'}`}
-                aria-pressed={activeTab === tab.id}
+                onClick={() => setShowAdvancedFilters((prev) => !prev)}
+                className="inline-flex h-10 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 px-4 text-xs font-bold text-cyan-900 transition hover:border-cyan-300 hover:bg-cyan-100"
               >
-                <div className="text-sm font-black leading-tight text-slate-950">{tab.label}</div>
-                <div className={`mt-1 text-[11px] ${activeTab === tab.id ? 'text-slate-600' : 'text-slate-400'}`}>{tab.desc}</div>
+                {showAdvancedFilters ? 'Sembunyikan Filter' : 'Filter Lanjutan'}
               </button>
-            ))}
+            </div>
           </div>
         </div>
+
+        {showAdvancedFilters && (
+          <div className="relative z-10 rounded-3xl border border-slate-200/70 bg-white p-4 shadow-sm sm:p-5">
+            <ProjectScopeFilters
+              category={filterKategori}
+              packageType={filterJenisProyek}
+              workStage={filterTahap}
+              budgetYear={filterTahun}
+              budgetYears={budgetYears}
+              program={filterProgram}
+              programs={programs}
+              subKegiatan={filterSubKegiatan}
+              subKegiatanOptions={subKegiatanOptions}
+              onCategoryChange={setFilterKategori}
+              onPackageTypeChange={setFilterJenisProyek}
+              onWorkStageChange={setFilterTahap}
+              onBudgetYearChange={setFilterTahun}
+              onProgramChange={setFilterProgram}
+              onSubKegiatanChange={setFilterSubKegiatan}
+              total={visibleProjects.length}
+            />
+          </div>
+        )}
 
         {activeTab !== 'ringkasan' && (
           <button
