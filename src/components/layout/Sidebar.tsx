@@ -47,6 +47,7 @@ const NAV = [
   { href: '/proyek',      label: 'Paket Pekerjaan',    desc: 'Ruang kerja paket',    icon: FolderOpen },
   { href: '/approval',    label: 'Approval Center',    desc: 'Persetujuan formal',   icon: CheckSquare },
   { href: '/rab',         label: 'RAB',                desc: 'Rencana Anggaran',     icon: Calculator },
+  { href: '/serapan-anggaran', label: 'Serapan Anggaran', desc: 'Program, Kegiatan, Sub Kegiatan', icon: Gauge },
   { href: '/kontrak',     label: 'Kontrak',            desc: 'Data kontrak paket',   icon: FileCheck },
   { href: '/dokumen',     label: 'Dokumen',            desc: 'Arsip dokumen',        icon: Archive },
 

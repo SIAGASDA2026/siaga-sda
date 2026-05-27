@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Activity, AlertTriangle, ArrowRight, BarChart2, Bot, Building2, Camera, CheckCircle, ClipboardList, Eye, FileText, FolderOpen, HardHat, Landmark, LifeBuoy, MapPin, Megaphone, MessageSquare, Plus, ShieldAlert, TrendingDown, TrendingUp, Users, Waves, XCircle } from 'lucide-react'
+import { Activity, AlertTriangle, ArrowRight, BarChart2, Bell, Bot, Building2, Camera, CalendarDays, CheckCircle, Clock, ClipboardList, Eye, FileText, FolderOpen, HardHat, Landmark, LifeBuoy, MapPin, Megaphone, MessageSquare, Menu, Plus, ShieldAlert, TrendingDown, TrendingUp, Users, Waves, XCircle, LucideIcon } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { Topbar } from '@/components/layout/Topbar'
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
@@ -30,21 +30,21 @@ type DashboardTab =
   | 'aktivitas'
   | 'ai'
 
-const DASHBOARD_TABS: { id: DashboardTab; label: string; desc: string }[] = [
-  { id: 'ringkasan', label: 'Ringkasan', desc: 'KPI utama' },
-  { id: 'monitoring', label: 'Monitoring', desc: 'Progress dan paket' },
-  { id: 'survey', label: 'Survey', desc: 'Investigasi lapangan' },
-  { id: 'paket', label: 'Paket', desc: 'Ruang kerja paket' },
-  { id: 'approval', label: 'Approval & Risiko', desc: 'Pending dan kritis' },
-  { id: 'surat', label: 'Surat', desc: 'Masuk dan keluar' },
-  { id: 'peil', label: 'Peil Banjir', desc: 'Titik peil' },
-  { id: 'asset', label: 'Asset SDA', desc: 'Pintu air/pompa' },
-  { id: 'operasional', label: 'Operasional', desc: 'Mandor dan shift' },
-  { id: 'pasang-surut', label: 'Pasang Surut', desc: 'Rob dan muka air' },
-  { id: 'warning', label: 'Warning Center', desc: 'Peringatan SDA' },
-  { id: 'waktu', label: 'Waktu & Salat', desc: 'Jam dan pengingat' },
-  { id: 'aktivitas', label: 'Aktivitas', desc: 'Audit terbaru' },
-  { id: 'ai', label: 'AI Analisis', desc: 'Saran teknis' },
+const DASHBOARD_TABS: { id: DashboardTab; label: string; desc: string; icon: LucideIcon }[] = [
+  { id: 'ringkasan', label: 'Ringkasan', desc: 'KPI utama', icon: BarChart2 },
+  { id: 'monitoring', label: 'Monitoring', desc: 'Progress dan paket', icon: MapPin },
+  { id: 'survey', label: 'Survey', desc: 'Investigasi lapangan', icon: Camera },
+  { id: 'paket', label: 'Paket', desc: 'Ruang kerja paket', icon: HardHat },
+  { id: 'approval', label: 'Approval & Risiko', desc: 'Pending dan kritis', icon: ClipboardList },
+  { id: 'surat', label: 'Surat', desc: 'Masuk dan keluar', icon: MessageSquare },
+  { id: 'peil', label: 'Peil Banjir', desc: 'Titik peil', icon: Landmark },
+  { id: 'asset', label: 'Asset SDA', desc: 'Pintu air/pompa', icon: Building2 },
+  { id: 'operasional', label: 'Operasional', desc: 'Mandor dan shift', icon: Users },
+  { id: 'pasang-surut', label: 'Pasang Surut', desc: 'Rob dan muka air', icon: Waves },
+  { id: 'warning', label: 'Warning Center', desc: 'Peringatan SDA', icon: AlertTriangle },
+  { id: 'waktu', label: 'Waktu & Salat', desc: 'Jam dan pengingat', icon: Clock },
+  { id: 'aktivitas', label: 'Aktivitas', desc: 'Audit terbaru', icon: Activity },
+  { id: 'ai', label: 'AI Analisis', desc: 'Saran teknis', icon: Bot },
 ]
 
 export default function DashboardPage() {
@@ -177,6 +177,59 @@ export default function DashboardPage() {
   }, [approvalPending, stats.kritis, stats.warning, stats.openMasalah, stats.avgFisik, statusSda])
 
   const currentUserName = currentUser?.name?.trim() || 'Nama user belum tersedia'
+  const currentDate = new Date()
+  const currentDateLabel = currentDate.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  })
+  const currentTimeLabel = currentDate.toLocaleTimeString('id-ID', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+  const userInitials = useMemo(
+    () => currentUserName
+      .split(' ')
+      .filter(Boolean)
+      .map((word) => word[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase(),
+    [currentUserName],
+  )
+  const tideOverview = useMemo(
+    () => ({
+      currentLevel: '+1.36 m',
+      status: 'WASPADA',
+      trend: 'Air Naik',
+      peakTime: '23:18 WIB',
+      updateLabel: 'Update terakhir',
+      weeklyHighest: {
+        date: 'Jumat, 14 Juni 2025',
+        time: '23:40 WIB',
+        height: '+1.58 m',
+        status: 'Siaga',
+        note: 'Data simulasi sementara — menunggu integrasi API pasang surut resmi.',
+      },
+      monthlyHighest: {
+        date: 'Selasa, 24 Juni 2025',
+        time: '00:15 WIB',
+        height: '+1.72 m',
+        status: 'Siaga Tinggi',
+        note: 'Data simulasi sementara — menunggu integrasi API pasang surut resmi.',
+      },
+      note: 'Petugas disarankan memeriksa pintu air, pompa, outfall drainase, dan titik rawan rob sebelum jam puncak pasang tertinggi.',
+    }),
+    [],
+  )
+  const tideScheduleRows = [
+    { time: '00:30', condition: 'Surut Minimum', height: '+0.62 m', status: 'Aman' },
+    { time: '06:45', condition: 'Pasang Naik', height: '+1.18 m', status: 'Waspada' },
+    { time: '12:00', condition: 'Pasang Maksimum', height: '+1.36 m', status: 'Siaga' },
+    { time: '18:20', condition: 'Surut Turun', height: '+0.84 m', status: 'Aman' },
+  ]
   const broadRoleView = ['super_admin', 'admin', 'admin_sistem', 'kabid', 'pimpinan'].includes(normalizedRole)
   const currentUserAction = {
     ppk: { label: 'PPK', task: 'Review approval pending dan evaluasi paket kritis', module: '/approval', priority: 'Tinggi' },
@@ -363,6 +416,39 @@ export default function DashboardPage() {
 
   const hasPreviousYearStats = previousYearProjects.length > 0
 
+  const commandBriefItems = [
+    { label: 'Total Paket', value: stats.total, icon: FolderOpen, tone: 'blue' },
+    { label: 'Progres', value: stats.onTrack, icon: TrendingUp, tone: 'emerald' },
+    { label: 'Selesai', value: stats.selesai, icon: CheckCircle, tone: 'slate' },
+    { label: 'Stuck / Kritis', value: stats.kritis + stats.warning, icon: XCircle, tone: 'red' },
+    { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, tone: 'amber' },
+    { label: 'Survey Belum Ditindaklanjuti', value: stats.surveyMenunggu, icon: FileText, tone: 'violet' },
+    { label: 'Masalah Open', value: stats.openMasalah, icon: AlertTriangle, tone: 'rose' },
+    { label: 'Titik Kritis', value: riskProjects.length, icon: LifeBuoy, tone: 'orange' },
+  ]
+
+  const alertItems = [
+    { label: 'Paket Kritis', value: stats.kritis, icon: AlertTriangle, href: `/proyek?tahun=${activeYear}&health=kritis`, badge: 'Kritis', badgeClass: 'bg-rose-50 text-rose-700' },
+    { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, href: `/approval?tahun=${activeYear}&status=pending`, badge: 'Pending', badgeClass: 'bg-amber-50 text-amber-700' },
+    { label: 'Survey Belum Ditindaklanjuti', value: stats.surveyMenunggu, icon: FileText, href: `/proyek?tahun=${activeYear}&source=survey&status=belum-ditindaklanjuti`, badge: 'Survei', badgeClass: 'bg-violet-50 text-violet-700' },
+    { label: 'Laporan Harian Belum Masuk', value: stats.laporanMenunggu, icon: FileText, href: `/laporan`, badge: 'Laporan', badgeClass: 'bg-sky-50 text-sky-700' },
+    { label: 'Status Pasang Surut', value: tideOverview.status, icon: Waves, href: '/peta', badge: tideOverview.status, badgeClass: 'bg-amber-50 text-amber-700' },
+    { label: 'Masalah Open', value: stats.openMasalah, icon: AlertTriangle, href: `/proyek?tahun=${activeYear}&masalah=open`, badge: 'Open', badgeClass: 'bg-slate-50 text-slate-700' },
+  ]
+
+  const packageTypeSummary = useMemo(() => {
+    const counts: Record<string, { label: string; count: number }> = {}
+    visibleProjects.forEach((project) => {
+      const type = getProjectPackageType(project)
+      const label = getProjectPackageTypeLabel(type).replace('Paket ', '')
+      if (!counts[label]) counts[label] = { label, count: 0 }
+      counts[label].count += 1
+    })
+    return Object.values(counts)
+  }, [visibleProjects])
+
+  const recentActivityItems = recentActivity.slice(0, 3)
+
   const subKegiatanBudget = useMemo(() => {
     const totals = visibleProjects.reduce<Record<string, { amount: number; count: number }>>((acc, project) => {
       const name = String(project.subKegiatan || 'Lainnya').trim() || 'Lainnya'
@@ -434,38 +520,56 @@ export default function DashboardPage() {
         subtitle={`${BRAND.tagline} - ${currentUser?.name?.split(' ')[0] || 'Pengguna'} - ${getRoleLabel(currentRole)}`}
       />
       <div className="space-y-5 p-4 sm:p-5 siaga-gemini-bg">
-        <section className="relative z-10 overflow-hidden rounded-3xl border border-cyan-100/80 bg-white/70 p-4 text-slate-950 shadow-lg shadow-blue-200/10 backdrop-blur-md md:p-6">
+        <section className="relative z-10 overflow-hidden rounded-[32px] border border-slate-200/70 bg-white/90 p-4 text-slate-950 shadow-[0_24px_70px_rgba(15,23,42,0.06)] backdrop-blur-sm md:p-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="min-w-0">
-              <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-600">{BRAND.unit}</div>
-              <h2 className="mt-1 text-xl font-extrabold leading-tight sm:text-2xl md:text-3xl text-slate-950">{BRAND.name}</h2>
-              <p className="mt-1 max-w-3xl text-sm text-slate-700">{BRAND.fullName} untuk monitoring proyek dan respons cepat SDA.</p>
+            <div className="space-y-3">
+              <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Dashboard Command Center</div>
+              <h1 className="text-xl font-extrabold text-slate-950 lg:text-2xl">Ringkasan kondisi Sistem Informasi, Analisis, Gerak Cepat dan Administrasi SDA</h1>
+              <p className="max-w-2xl text-sm text-slate-600">Ringkasan operasional, risiko, dan tugas prioritas untuk pengambilan keputusan cepat.</p>
             </div>
-            <Link href="/peta" className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-cyan-200/70 bg-gradient-to-r from-cyan-100/80 to-blue-100/80 px-5 text-sm font-extrabold text-slate-950 shadow-md shadow-cyan-300/20 backdrop-blur-sm transition duration-300 hover:from-cyan-100 hover:to-blue-100 hover:shadow-lg hover:shadow-cyan-300/30 focus:outline-none focus:ring-2 focus:ring-cyan-300 focus:ring-offset-1">
-              <MapPin className="h-4 w-4" />
-              Buka Peta Monitoring
-            </Link>
+            <div className="grid gap-3 sm:auto-cols-fr sm:grid-flow-col sm:grid">
+              <div className="flex items-center gap-2 rounded-3xl bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm">
+                <Clock className="h-4 w-4 text-cyan-600" />
+                <span>{currentDateLabel} • {currentTimeLabel}</span>
+              </div>
+              <div className="flex items-center gap-2 rounded-3xl bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm">
+                <Bell className="h-4 w-4 text-cyan-600" />
+                <span>{auditLogs.length} notifikasi</span>
+              </div>
+              <div className="flex items-center gap-3 rounded-3xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-sm text-white">{userInitials}</div>
+                <div className="min-w-0">
+                  <div className="text-sm font-semibold">{currentUserName}</div>
+                  <div className="text-xs uppercase tracking-[0.24em] text-cyan-100">{roleLabel}</div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        <div className="relative z-10 rounded-3xl border border-cyan-100/80 bg-white p-3 shadow-sm">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-7">
-            {DASHBOARD_TABS.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`min-h-[72px] rounded-3xl border px-3 py-3 text-left transition-all duration-300 ease-out ${activeTab === tab.id ? 'border-cyan-300 bg-gradient-to-br from-cyan-500/15 via-sky-100 to-white text-slate-950 shadow-[0_18px_40px_rgba(14,165,233,0.12)]' : 'border-slate-200/70 bg-white/80 text-slate-700 hover:border-cyan-200 hover:bg-cyan-50/70 hover:shadow-[0_12px_28px_rgba(59,130,246,0.08)]'}`}
-                aria-pressed={activeTab === tab.id}
-              >
-                <div className="text-sm font-black leading-tight text-slate-950">{tab.label}</div>
-                <div className={`mt-1 text-[11px] ${activeTab === tab.id ? 'text-slate-600' : 'text-slate-400'}`}>{tab.desc}</div>
-              </button>
-            ))}
+        <section className="relative z-10 rounded-[28px] border border-slate-200/70 bg-white/90 p-3 shadow-sm">
+          <div className="flex min-w-full gap-2 pb-1 md:flex-wrap md:overflow-visible overflow-x-auto">
+            {DASHBOARD_TABS.map((tab) => {
+              const TabIcon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`inline-flex min-w-[92px] items-center gap-2 rounded-2xl border px-2 py-1.5 text-xs transition duration-200 ${activeTab === tab.id ? 'border-cyan-400 bg-cyan-50 text-slate-950 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-cyan-200 hover:bg-slate-50'}`}
+                  aria-pressed={activeTab === tab.id}
+                >
+                  <span className={`inline-flex h-7 w-7 items-center justify-center rounded-2xl ${activeTab === tab.id ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-100 text-slate-600'}`}>
+                    <TabIcon className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="whitespace-nowrap font-semibold">{tab.label}</span>
+                </button>
+              )
+            })}
           </div>
-        </div>
+        </section>
 
-        <div className="relative z-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="relative z-10 grid gap-3 grid-cols-2 md:grid-cols-4">
           {[
             {
               label: 'Total Paket Aktif',
@@ -501,16 +605,14 @@ export default function DashboardPage() {
               <Link
                 key={card.label}
                 href={card.href}
-                className={`group relative z-10 siaga-glass-card border ${card.tone === 'blue' ? 'border-blue-200/70' : card.tone === 'red' ? 'border-rose-200/70' : card.tone === 'amber' ? 'border-amber-200/70' : 'border-violet-200/70'} transform-gpu transition-transform transition-shadow duration-200 ease-out will-change-transform hover:scale-[1.02] hover:shadow-lg ${card.tone === 'blue' ? 'focus:ring-blue-200' : card.tone === 'red' ? 'focus:ring-red-200' : card.tone === 'amber' ? 'focus:ring-amber-200' : 'focus:ring-violet-200'} focus:outline-none focus:ring-2 focus:ring-offset-1 text-slate-900`}
+                className={`group relative z-10 rounded-3xl border bg-white p-4 flex items-center justify-between gap-3 h-24 ${card.tone === 'blue' ? 'border-blue-200/70' : card.tone === 'red' ? 'border-rose-200/70' : card.tone === 'amber' ? 'border-amber-200/70' : 'border-violet-200/70'} text-slate-900 transition hover:shadow-md hover:scale-[1.01]`}
               >
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-sm font-semibold text-slate-700">{card.label}</div>
-                    <div className="mt-3 text-3xl font-black text-slate-950">{card.value}</div>
-                  </div>
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${card.tone === 'blue' ? 'bg-gradient-to-br from-[#3730A3] to-[#06B6D4]' : card.tone === 'red' ? 'bg-gradient-to-br from-[#D32F2F] to-[#E53935]' : card.tone === 'amber' ? 'bg-gradient-to-br from-[#FFB300] to-[#FF8A00]' : 'bg-gradient-to-br from-[#7C3AED] to-[#A78BFA]'} text-white`}> 
-                    <Icon className="h-5 w-5" />
-                  </div>
+                <div>
+                  <div className="text-xs font-semibold text-slate-700">{card.label}</div>
+                  <div className="mt-2 text-2xl font-extrabold text-slate-950">{card.value}</div>
+                </div>
+                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-full text-white ${card.tone === 'blue' ? 'bg-gradient-to-br from-[#2b6cb0] to-[#06b6d4] shadow-[0_8px_30px_rgba(14,165,233,0.12)]' : card.tone === 'red' ? 'bg-gradient-to-br from-[#d32f2f] to-[#f44336] shadow-[0_8px_30px_rgba(244,63,94,0.12)]' : card.tone === 'amber' ? 'bg-gradient-to-br from-[#ffb300] to-[#ff8a00] shadow-[0_8px_30px_rgba(255,167,38,0.12)]' : 'bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] shadow-[0_8px_30px_rgba(124,58,237,0.12)]'}`}>
+                  <Icon className="h-5 w-5" />
                 </div>
               </Link>
             )
@@ -618,152 +720,52 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="relative z-10 rounded-[32px] border border-slate-200/70 bg-white/80 p-5 shadow-lg shadow-slate-200/10 backdrop-blur-sm">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <section className="relative z-10 rounded-[32px] border border-slate-200/70 bg-white/90 p-4 shadow-sm">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Serapan Anggaran per Sub Kegiatan</div>
-              <h2 className="mt-2 text-xl font-extrabold text-slate-950 sm:text-2xl">Rekap Serapan & Kinerja Prioritas</h2>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600">Ringkas serapan anggaran, progres fisik, dan risiko untuk sub kegiatan teratas.</p>
+              <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Filter Ringkas</div>
+              <div className="mt-2 text-sm text-slate-600">Saring paket aktif berdasarkan tahun, jenis, metode, dan tahap.</div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-sky-200 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-800">Top {subKegiatanSummaries.length || 0} Sub Kegiatan</span>
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-900">{subKegiatanSummaries.length ? 'Prioritas terpilih' : 'Data tidak mencukupi'}</span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Tahun: <span className="font-bold text-slate-900">{compactFilterValues.tahun}</span></span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Jenis: <span className="font-bold text-slate-900">{compactFilterValues.jenis}</span></span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Metode: <span className="font-bold text-slate-900">{compactFilterValues.metode}</span></span>
+              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Tahap: <span className="font-bold text-slate-900">{compactFilterValues.tahap}</span></span>
+              <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-900">{visibleProjects.length} paket</span>
             </div>
           </div>
-
-          <div className="mt-5 overflow-x-auto">
-            <table className="min-w-[980px] w-full border-separate border-spacing-0 text-left text-sm text-slate-700">
-              <thead>
-                <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.18em] text-slate-500">
-                  <th className="px-3 py-3">Sub Kegiatan</th>
-                  <th className="px-3 py-3">Pagu</th>
-                  <th className="px-3 py-3">Kontrak</th>
-                  <th className="px-3 py-3">Serapan</th>
-                  <th className="px-3 py-3">Sisa</th>
-                  <th className="px-3 py-3">%Serapan</th>
-                  <th className="px-3 py-3">Paket</th>
-                  <th className="px-3 py-3">Selesai</th>
-                  <th className="px-3 py-3">Stuck</th>
-                  <th className="px-3 py-3">Deviasi</th>
-                  <th className="px-3 py-3">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {subKegiatanSummaries.map((row) => (
-                  <tr
-                    key={row.subKegiatan}
-                    onClick={() => router.push(row.rowLink)}
-                    onKeyDown={(event) => event.key === 'Enter' && router.push(row.rowLink)}
-                    className="group cursor-pointer border-b border-slate-200 bg-white transition hover:bg-slate-50"
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <td className="px-3 py-4 align-top">
-                      <div className="text-sm font-semibold text-slate-900">{row.subKegiatan}</div>
-                      <div className="mt-1 text-xs text-slate-500">{row.estimationLabel}</div>
-                    </td>
-                    <td className="px-3 py-4 font-black text-slate-900">{formatCurrency(row.totalPagu)}</td>
-                    <td className="px-3 py-4 text-slate-800">{formatCurrency(row.totalKontrak)}</td>
-                    <td className="px-3 py-4 text-slate-900">{formatCurrency(row.serapan)}</td>
-                    <td className="px-3 py-4 text-slate-800">{formatCurrency(row.totalPagu - row.serapan)}</td>
-                    <td className="px-3 py-4">
-                      <div className="max-w-[120px] rounded-full bg-slate-100">
-                        <div className={`h-2 rounded-full ${row.persenSerapan > 80 ? 'bg-emerald-500' : row.persenSerapan > 50 ? 'bg-amber-400' : 'bg-rose-400'}`} style={{ width: `${Math.min(100, Math.max(0, row.persenSerapan))}%` }} />
-                      </div>
-                      <div className="mt-1 text-xs font-semibold text-slate-700">{row.persenSerapan}%</div>
-                    </td>
-                    <td className="px-3 py-4 text-slate-900">{row.paketCount}</td>
-                    <td className="px-3 py-4 text-emerald-700">{row.paketSelesai}</td>
-                    <td className="px-3 py-4 text-rose-600">{row.paketStuck}</td>
-                    <td className="px-3 py-4 text-slate-900">{row.deviasiFisikKeuangan}%</td>
-                    <td className="px-3 py-4">
-                      <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${row.statusSerapan === 'Aman' ? 'bg-emerald-50 text-emerald-700' : row.statusSerapan === 'Perlu Percepatan' ? 'bg-amber-50 text-amber-700' : row.statusSerapan === 'Perlu Evaluasi' ? 'bg-orange-100 text-orange-700' : 'bg-rose-50 text-rose-700'}`}>{row.statusSerapan}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+            <span>{compactFilterSummary}</span>
+            {hasFilterActive && activeFilterLabels.map((label) => (
+              <span key={label} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 font-semibold text-slate-700">{label}</span>
+            ))}
           </div>
-
-          <div className="mt-5 grid gap-4 lg:grid-cols-2">
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Catatan Ringkas</div>
-              <div className="mt-3 space-y-2 text-sm text-slate-700">
-                {subKegiatanSummaries.length > 0 ? (
-                  <>
-                    <p>Nilai kontrak fallback jika belum tersedia akan menggunakan anggaran sebagai dasar sementara.</p>
-                    <p>Estimasi serapan dihitung berdasarkan progres keuangan saat ini.</p>
-                  </>
-                ) : (
-                  <p className="text-slate-500">Belum ada data sub kegiatan yang memenuhi kriteria untuk ringkasan ini.</p>
-                )}
-              </div>
-            </div>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
-              <div className="text-sm font-semibold text-slate-900">Tindakan Utama</div>
-              <div className="mt-3 space-y-2 text-sm text-slate-700">
-                <p>Percepat review approval pending.</p>
-                <p>Evaluasi paket stuck/kritis.</p>
-                <p>Lengkapi dokumen kontrak, laporan, dan opname.</p>
-                <p>Sinkronkan progres fisik dengan progres keuangan.</p>
-                <p>Lakukan rapat evaluasi sub kegiatan prioritas.</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-xs text-slate-500">Klik baris untuk melihat sub kegiatan di daftar paket.</div>
-            <Link href="/proyek" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Semua Sub Kegiatan</Link>
-          </div>
-        </div>
-
-        <div className="relative z-10 rounded-3xl border border-cyan-100/80 bg-white p-4 shadow-sm sm:p-5">
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto] items-center">
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-slate-700 sm:gap-3">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Tahun: <span className="font-bold text-slate-900">{compactFilterValues.tahun}</span></span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Jenis: <span className="font-bold text-slate-900">{compactFilterValues.jenis}</span></span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Metode: <span className="font-bold text-slate-900">{compactFilterValues.metode}</span></span>
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1">Tahap: <span className="font-bold text-slate-900">{compactFilterValues.tahap}</span></span>
-                <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-cyan-900">{visibleProjects.length} paket</span>
-              </div>
-              <div className="text-xs text-slate-500">{compactFilterSummary}</div>
-              {hasFilterActive && (
-                <div className="flex flex-wrap gap-2 text-[11px] text-slate-600">
-                  {activeFilterLabels.map((label) => (
-                    <span key={label} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 font-semibold text-slate-700">{label}</span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 justify-end">
-              {hasFilterActive && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFilterKategori('all')
-                    setFilterJenisProyek('all')
-                    setFilterTahap('all')
-                    setFilterTahun('all')
-                    setFilterProgram('all')
-                    setFilterSubKegiatan('all')
-                  }}
-                  className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-bold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
-                >
-                  Reset Filter
-                </button>
-              )}
+          <div className="mt-4 flex flex-wrap gap-2 justify-end">
+            {hasFilterActive && (
               <button
                 type="button"
-                onClick={() => setShowAdvancedFilters((prev) => !prev)}
-                className="inline-flex h-10 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 px-4 text-xs font-bold text-cyan-900 transition hover:border-cyan-300 hover:bg-cyan-100"
+                onClick={() => {
+                  setFilterKategori('all')
+                  setFilterJenisProyek('all')
+                  setFilterTahap('all')
+                  setFilterTahun('all')
+                  setFilterProgram('all')
+                  setFilterSubKegiatan('all')
+                }}
+                className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
               >
-                {showAdvancedFilters ? 'Sembunyikan Filter' : 'Filter Lanjutan'}
+                Reset Filter
               </button>
-            </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setShowAdvancedFilters((prev) => !prev)}
+              className="inline-flex h-10 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 px-4 text-xs font-semibold text-cyan-900 transition hover:border-cyan-300 hover:bg-cyan-100"
+            >
+              {showAdvancedFilters ? 'Sembunyikan Filter' : 'Filter Lanjutan'}
+            </button>
           </div>
-        </div>
+        </section>
 
         {showAdvancedFilters && (
           <div className="relative z-10 rounded-3xl border border-slate-200/70 bg-white p-4 shadow-sm sm:p-5">
@@ -802,56 +804,291 @@ export default function DashboardPage() {
         <div className={`relative z-10 transition-all duration-200 ease-out ${activeTab === 'ringkasan' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'}`}>
           {activeTab === 'ringkasan' && (
           <div className="space-y-5">
-            <div className="relative z-10 grid gap-3 lg:grid-cols-2">
-              <div className="siaga-glass-card border border-rose-200/70">
-                <div className="flex items-center justify-between">
+            <div className="grid gap-4 xl:grid-cols-[1.8fr_1fr_1fr]">
+              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="text-sm font-extrabold text-slate-900">Warning Center</div>
-                    <div className="text-xs text-slate-500">Peringatan penting</div>
+                    <div className="text-xs uppercase tracking-[0.26em] text-cyan-700">Command Brief SIAGA-SDA</div>
+                    <h2 className="mt-2 text-lg font-extrabold text-slate-950">Status operasi dan prioritas hari ini</h2>
+                  </div>
+                  <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusSda === 'WASPADA' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>{statusSda}</span>
+                </div>
+                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {commandBriefItems.map((item) => {
+                    const toneClass = item.tone === 'blue' ? 'bg-blue-50 text-blue-700' : item.tone === 'emerald' ? 'bg-emerald-50 text-emerald-700' : item.tone === 'slate' ? 'bg-slate-100 text-slate-700' : item.tone === 'red' ? 'bg-rose-50 text-rose-700' : item.tone === 'amber' ? 'bg-amber-50 text-amber-700' : 'bg-violet-50 text-violet-700'
+                    return (
+                      <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.22em] text-slate-500">{item.label}</div>
+                            <div className="mt-3 text-3xl font-black text-slate-950">{item.value}</div>
+                          </div>
+                          <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${toneClass}`}>
+                            <item.icon className="h-5 w-5" />
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+                <div className="mt-5 grid gap-3 lg:grid-cols-2">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-sm font-semibold text-slate-900">Kesimpulan Singkat</div>
+                    <p className="mt-3 text-sm leading-6 text-slate-700">{mainCauses[0] || 'Kondisi umum terlihat stabil, tetap awasi approval dan progress harian.'}</p>
+                  </div>
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-sm font-semibold text-slate-900">Aksi Prioritas</div>
+                    <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                      <li>• Percepat review approval pending.</li>
+                      <li>• Evaluasi paket stuck/kritis.</li>
+                      <li>• Sinkronkan progres fisik dan keuangan.</li>
+                      <li>• Cek titik kritis dan pasang surut puncak.</li>
+                    </ul>
+                  </div>
+                </div>
+                <div className="mt-5 flex flex-wrap gap-2">
+                  <Link href="/proyek" className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Lihat Paket</Link>
+                  <Link href="/approval" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Approval</Link>
+                  <Link href="/peta" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Buka Peta</Link>
+                  <Link href="/audit-log" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Audit Log</Link>
+                </div>
+              </section>
+
+              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-slate-700">Alert & Risiko Lintas Modul</div>
+                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Prioritas hari ini</h3>
                   </div>
                   <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
                 </div>
-                <div className="mt-4 space-y-2 text-sm text-slate-600">
-                  <Link href="/peta" className="flex items-center justify-between rounded-2xl border border-amber-200/70 bg-amber-50/50 p-2 text-xs hover:bg-amber-100/50">
-                    <span>Pasang surut saat ini</span>
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700">WASPADA</span>
-                  </Link>
-                  <Link href="/peta" className="flex items-center justify-between rounded-2xl border border-rose-200/70 bg-rose-50/50 p-2 text-xs hover:bg-rose-100/50">
-                    <span>{stats.kritis + stats.warning} titik peringatan</span>
-                    <span className="rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700">Kritis</span>
-                  </Link>
-                  <Link href="/proyek" className="flex items-center justify-between rounded-2xl border border-blue-200/70 bg-blue-50/50 p-2 text-xs hover:bg-blue-100/50">
-                    <span>{stats.kritis} paket kritis</span>
-                    <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700">Lihat</span>
-                  </Link>
+                <div className="mt-4 space-y-3">
+                  {alertItems.map((item) => (
+                    <Link key={item.label} href={item.href} className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-3 text-sm transition hover:bg-slate-50">
+                      <div className="flex items-center gap-3">
+                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700"><item.icon className="h-4 w-4" /></span>
+                        <div>
+                          <div className="font-semibold text-slate-900">{item.label}</div>
+                          <div className="text-xs text-slate-500">{typeof item.value === 'number' ? `${item.value} item` : item.value}</div>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${item.badgeClass}`}>{item.badge}</span>
+                    </Link>
+                  ))}
                 </div>
-              </div>
+              </section>
 
-              <div className="siaga-glass-card border border-cyan-200/70">
+              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-slate-700">Paket & Anggaran Tahun Aktif</div>
+                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Ringkasan paket dan serapan</h3>
+                  </div>
+                  <Link href="/proyek" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
+                </div>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Total Paket</div>
+                    <div className="mt-2 text-3xl font-black text-slate-950">{stats.total}</div>
+                  </div>
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Stuck / Kritis</div>
+                    <div className="mt-2 text-3xl font-black text-slate-950">{stats.kritis + stats.warning}</div>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-2">
+                  <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Klasifikasi Paket</div>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    {packageTypeSummary.slice(0, 4).map((item) => (
+                      <div key={item.label} className="rounded-3xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700">
+                        <div className="font-semibold text-slate-900">{item.label}</div>
+                        <div className="mt-1 text-xl font-black text-slate-950">{item.count}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="mt-4 overflow-x-auto">
+                  <table className="min-w-[680px] w-full text-left text-sm text-slate-700">
+                    <thead>
+                      <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.18em] text-slate-500">
+                        <th className="px-3 py-3">Sub Kegiatan</th>
+                        <th className="px-3 py-3">Pagu</th>
+                        <th className="px-3 py-3">Serapan</th>
+                        <th className="px-3 py-3">% Serapan</th>
+                        <th className="px-3 py-3">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {subKegiatanSummaries.slice(0, 5).map((row) => (
+                        <tr key={row.subKegiatan} className="border-b border-slate-200 bg-white hover:bg-slate-50">
+                          <td className="px-3 py-3 align-top">
+                            <div className="font-semibold text-slate-900">{row.subKegiatan}</div>
+                            <div className="text-xs text-slate-500">{row.estimationLabel}</div>
+                          </td>
+                          <td className="px-3 py-3 font-black text-slate-900">{formatCurrency(row.totalPagu)}</td>
+                          <td className="px-3 py-3 text-slate-800">{formatCurrency(row.serapan)}</td>
+                          <td className="px-3 py-3 text-slate-900">{row.persenSerapan}%</td>
+                          <td className="px-3 py-3">
+                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${row.statusSerapan === 'Aman' ? 'bg-emerald-50 text-emerald-700' : row.statusSerapan === 'Perlu Percepatan' ? 'bg-amber-50 text-amber-700' : row.statusSerapan === 'Perlu Evaluasi' ? 'bg-orange-100 text-orange-700' : 'bg-rose-50 text-rose-700'}`}>{row.statusSerapan}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-3">
+              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
+                <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Status SDA Hari Ini</div>
+                <div className="mt-4 rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Tinggi Muka Air</div>
+                  <div className="mt-3 text-3xl font-black text-slate-950">{tideOverview.currentLevel}</div>
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <div className="rounded-3xl bg-white p-3 text-sm text-slate-700">
+                      <div className="text-xs text-slate-500">Tren</div>
+                      <div className="mt-1 font-semibold text-slate-900">{tideOverview.trend}</div>
+                    </div>
+                    <div className="rounded-3xl bg-white p-3 text-sm text-slate-700">
+                      <div className="text-xs text-slate-500">Menuju Puncak</div>
+                      <div className="mt-1 font-semibold text-slate-900">{tideOverview.peakTime}</div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
                 <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-sm font-extrabold text-slate-900">Peta Monitoring</div>
-                    <div className="text-xs text-slate-500">Sebaran status</div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Pasang Surut Air Laut</div>
+                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Hari Ini</h3>
                   </div>
-                  <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Buka</Link>
+                  <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-900">Simulasi sementara</span>
                 </div>
-                <div className="mt-4 overflow-hidden rounded-[26px] border border-cyan-200/70 bg-gradient-to-br from-cyan-100 via-slate-100 to-white p-3 shadow-soft">
-                  <div className="relative h-32 overflow-hidden rounded-[22px] bg-gradient-to-br from-sky-100 via-cyan-50 to-white">
-                    <div className="absolute left-5 top-6 h-3 w-3 rounded-full bg-cyan-500 shadow-[0_0_0_12px_rgba(56,189,248,0.18)]" />
-                    <div className="absolute left-24 top-14 h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_0_12px_rgba(251,191,36,0.16)]" />
-                    <div className="absolute right-6 top-12 h-3 w-3 rounded-full bg-rose-400 shadow-[0_0_0_12px_rgba(244,63,94,0.18)]" />
+                <div className="mt-4 space-y-2 text-sm text-slate-700">
+                  {tideScheduleRows.map((row) => (
+                    <div key={row.time} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-3">
+                      <div>
+                        <div className="text-sm font-semibold text-slate-900">{row.time}</div>
+                        <div className="text-xs text-slate-500">{row.condition}</div>
+                      </div>
+                      <div className={`text-sm font-semibold ${row.status === 'Aman' ? 'text-emerald-700' : row.status === 'Waspada' ? 'text-amber-700' : 'text-rose-700'}`}>{row.height}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Puncak Minggu Ini</div>
+                    <div className="mt-2 font-semibold text-slate-900">{tideOverview.weeklyHighest.height}</div>
+                    <div className="mt-1 text-xs text-slate-500">{tideOverview.weeklyHighest.date}</div>
+                  </div>
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
+                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Puncak Bulan Ini</div>
+                    <div className="mt-2 font-semibold text-slate-900">{tideOverview.monthlyHighest.height}</div>
+                    <div className="mt-1 text-xs text-slate-500">{tideOverview.monthlyHighest.date}</div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Peta Monitoring Ringkas</div>
+                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Sebaran status</h3>
+                  </div>
+                  <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Buka Peta</Link>
+                </div>
+                <div className="mt-4 overflow-hidden rounded-[24px] border border-cyan-200 bg-gradient-to-br from-cyan-100 via-slate-100 to-white p-3 shadow-soft">
+                  <div className="relative h-40 overflow-hidden rounded-[20px] bg-gradient-to-br from-sky-100 via-cyan-50 to-white">
+                    <div className="absolute left-6 top-8 h-3 w-3 rounded-full bg-cyan-500 shadow-[0_0_0_14px_rgba(56,189,248,0.18)]" />
+                    <div className="absolute left-28 top-18 h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_0_14px_rgba(251,191,36,0.16)]" />
+                    <div className="absolute right-8 top-14 h-3 w-3 rounded-full bg-rose-400 shadow-[0_0_0_14px_rgba(244,63,94,0.18)]" />
                     <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-cyan-200/40 to-transparent" />
                   </div>
                 </div>
-                <div className="mt-3 grid gap-1 text-[11px] text-slate-600">
-                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-red-500"></span>2 Kritis</div>
-                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500"></span>1 Waspada</div>
-                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-sky-500"></span>2 Aman</div>
+                <div className="mt-4 grid gap-2 text-sm text-slate-600">
+                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-rose-500"></span>7 Titik Kritis</div>
+                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500"></span>14 Titik Waspada</div>
+                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-sky-500"></span>22 Titik Aman</div>
                 </div>
-                <Link href="/peta" className="mt-3 inline-flex w-full items-center justify-center rounded-2xl border border-cyan-200/80 bg-cyan-50/50 py-2 text-xs font-bold text-slate-950 transition hover:bg-cyan-100/50">
-                  Buka Peta Monitoring
-                </Link>
-              </div>
+              </section>
+            </div>
+
+            <div className="grid gap-4 xl:grid-cols-3">
+              <section className="siaga-glass-card border border-slate-200/70 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Tugas Per Role / User</div>
+                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Fokus lintas peran</h3>
+                  </div>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {roleActions.slice(0, 5).map((action) => (
+                    <div key={`${action.role}-${action.task}`} className="rounded-3xl border border-slate-200 bg-white p-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-800">{action.name?.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div>
+                          <div>
+                            <div className="text-sm font-semibold text-slate-900">{action.name}</div>
+                            <div className="text-xs text-slate-500">{action.role}</div>
+                          </div>
+                        </div>
+                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">{action.priority}</span>
+                      </div>
+                      <div className="mt-3 text-sm text-slate-700">{action.task}</div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+
+              <section className="siaga-glass-card border border-slate-200/70 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Akses Cepat</div>
+                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Shortcut modul</h3>
+                  </div>
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {actions.slice(0, 8).map((action) => (
+                    <Link key={action.label} href={action.href} className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 transition hover:bg-slate-50">
+                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700"><action.icon className="h-4 w-4" /></span>
+                      <div>
+                        <div className="font-semibold text-slate-900">{action.label}</div>
+                        <div className="text-xs text-slate-500">{action.desc}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              <section className="siaga-glass-card border border-slate-200/70 p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Aktivitas Terbaru</div>
+                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Log audit terbaru</h3>
+                  </div>
+                  <Link href="/audit-log" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
+                </div>
+                <div className="mt-4 space-y-3">
+                  {recentActivityItems.map((item) => {
+                    const userName = item.userName || item.userId || 'Nama user belum tersedia'
+                    const initials = userName.split(' ').filter(Boolean).map((word) => word[0]).join('').slice(0, 2).toUpperCase()
+                    return (
+                      <div key={item.id} className="rounded-3xl border border-slate-200 bg-white p-3">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-800">{initials}</div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-semibold text-slate-900">{userName}</div>
+                            <div className="mt-1 text-xs text-slate-500">{item.detail || item.action}</div>
+                          </div>
+                        </div>
+                        <div className="mt-3 text-xs text-slate-500">{new Date(item.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </section>
             </div>
           </div>
         )}
