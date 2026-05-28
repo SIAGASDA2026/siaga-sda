@@ -619,107 +619,6 @@ export default function DashboardPage() {
           })}
         </div>
 
-        <div className="relative z-10 rounded-[32px] border border-slate-200/70 bg-white/80 p-5 shadow-lg shadow-slate-200/10 backdrop-blur-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Ringkasan Cerdas Tahun Aktif</div>
-              <h2 className="mt-2 text-xl font-extrabold text-slate-950 sm:text-2xl">Kondisi Sistem & Prioritas Tindakan</h2>
-              <p className="mt-2 max-w-2xl text-sm text-slate-600">Insight cepat berdasarkan paket aktif, approval, risiko SDA, dan pembanding tahun sebelumnya.</p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">Tahun aktif: {activeYear}</span>
-              <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusSda === 'WASPADA' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>{statusSda}</span>
-            </div>
-          </div>
-
-          <div className="mt-5 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-            <div className="space-y-4">
-              <div className="grid gap-3 md:grid-cols-3">
-                {[
-                  { label: 'Total paket tahun aktif', value: stats.total, href: `/proyek?tahun=${activeYear}&status=aktif` },
-                  { label: 'Paket progres', value: visibleProjects.filter((project) => project.status !== 'selesai').length, href: `/proyek?tahun=${activeYear}&status=aktif` },
-                  { label: 'Paket selesai', value: stats.selesai, href: `/proyek?tahun=${activeYear}&status=selesai` },
-                  { label: 'Stuck / perlu tindak lanjut', value: stats.kritis + stats.warning, href: `/proyek?tahun=${activeYear}&health=kritis` },
-                  { label: 'Approval pending', value: approvalPending, href: `/approval?tahun=${activeYear}&status=pending` },
-                  { label: 'Masalah open', value: stats.openMasalah, href: `/proyek?tahun=${activeYear}&masalah=open` },
-                ].map((item) => (
-                  <Link key={item.label} href={item.href} className="block rounded-3xl border border-slate-200/70 bg-slate-50 p-4 transition hover:border-cyan-200 hover:bg-cyan-50">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">{item.label}</div>
-                    <div className="mt-3 text-2xl font-black text-slate-950">{item.value}</div>
-                  </Link>
-                ))}
-              </div>
-
-              <div className="rounded-3xl border border-slate-200/70 bg-slate-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">Perbandingan 1 Tahun Sebelumnya</div>
-                    <div className="text-xs text-slate-500">{hasPreviousYearStats ? `Bandingkan dengan TA ${previousYear}` : 'Data pembanding tahun sebelumnya belum tersedia lengkap.'}</div>
-                  </div>
-                  <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">{hasPreviousYearStats ? `TA ${previousYear}` : 'Tidak lengkap'}</span>
-                </div>
-                {hasPreviousYearStats ? (
-                  <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    {comparisonRows.map((row) => (
-                      <div key={row.label} className="rounded-3xl border border-slate-200 bg-white p-3">
-                        <div className="text-xs text-slate-500">{row.label}</div>
-                        <div className="mt-2 flex items-baseline gap-2">
-                          <span className="text-xl font-black text-slate-950">{row.current}</span>
-                          <span className="text-xs text-slate-500">vs {row.previous}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="rounded-3xl border border-slate-200/70 bg-slate-50 p-4">
-                <div className="text-sm font-semibold text-slate-900">Penyebab Utama</div>
-                <div className="mt-3 space-y-2 text-sm text-slate-700">
-                  {mainCauses.map((cause) => (
-                    <div key={cause} className="rounded-2xl border border-slate-200 bg-white p-3">{cause}</div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-slate-200/70 bg-slate-50 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-sm font-semibold text-slate-900">Tindakan Per Role/User</div>
-                    <div className="text-xs text-slate-500">Petunjuk fokus kerja berdasarkan peran Anda.</div>
-                  </div>
-                </div>
-                <div className="mt-4 max-h-64 space-y-3 overflow-y-auto pr-2 text-sm text-slate-700">
-                  {roleActions.map((action) => (
-                    <div key={`${action.role}-${action.task}`} className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">{action.role}</div>
-                          <div className="mt-1 font-semibold text-slate-900">{action.name}</div>
-                        </div>
-                        <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-semibold text-slate-600">{action.priority}</span>
-                      </div>
-                      <div className="mt-3 text-sm text-slate-700">{action.task}</div>
-                      <Link href={action.module} className="mt-3 inline-flex text-xs font-bold text-sky-600 hover:text-sky-700">Modul terkait</Link>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div className="text-xs text-slate-500">Update audit terakhir: {lastAuditLabel}</div>
-            <div className="flex flex-wrap gap-2">
-              <Link href="/proyek" className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Lihat Paket</Link>
-              <Link href="/approval" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Approval</Link>
-              <Link href="/peta" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Buka Peta</Link>
-            </div>
-          </div>
-        </div>
-
         <section className="relative z-10 rounded-[32px] border border-slate-200/70 bg-white/90 p-4 shadow-sm">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div>
@@ -803,21 +702,21 @@ export default function DashboardPage() {
 
         <div className={`relative z-10 transition-all duration-200 ease-out ${activeTab === 'ringkasan' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'}`}>
           {activeTab === 'ringkasan' && (
-          <div className="space-y-5">
-            <div className="grid gap-4 xl:grid-cols-[1.8fr_1fr_1fr]">
-              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-4">
+            <div className="grid gap-3 lg:grid-cols-[1.8fr_1fr_1fr]">
+              <section className="siaga-glass-card border border-slate-200/70 p-4 h-full flex flex-col">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.26em] text-cyan-700">Command Brief SIAGA-SDA</div>
-                    <h2 className="mt-2 text-lg font-extrabold text-slate-950">Status operasi dan prioritas hari ini</h2>
+                    <h2 className="mt-1 text-lg font-extrabold text-slate-950">Status operasi dan prioritas hari ini</h2>
                   </div>
                   <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusSda === 'WASPADA' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>{statusSda}</span>
                 </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
                   {commandBriefItems.map((item) => {
                     const toneClass = item.tone === 'blue' ? 'bg-blue-50 text-blue-700' : item.tone === 'emerald' ? 'bg-emerald-50 text-emerald-700' : item.tone === 'slate' ? 'bg-slate-100 text-slate-700' : item.tone === 'red' ? 'bg-rose-50 text-rose-700' : item.tone === 'amber' ? 'bg-amber-50 text-amber-700' : 'bg-violet-50 text-violet-700'
                     return (
-                      <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+                      <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
                         <div className="flex items-start justify-between gap-4">
                           <div>
                             <div className="text-xs uppercase tracking-[0.22em] text-slate-500">{item.label}</div>
@@ -831,14 +730,14 @@ export default function DashboardPage() {
                     )
                   })}
                 </div>
-                <div className="mt-5 grid gap-3 lg:grid-cols-2">
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <div className="mt-3 grid gap-2 lg:grid-cols-2">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
                     <div className="text-sm font-semibold text-slate-900">Kesimpulan Singkat</div>
-                    <p className="mt-3 text-sm leading-6 text-slate-700">{mainCauses[0] || 'Kondisi umum terlihat stabil, tetap awasi approval dan progress harian.'}</p>
+                    <p className="mt-2 text-sm leading-5 text-slate-700">{mainCauses[0] || 'Kondisi umum terlihat stabil, tetap awasi approval dan progress harian.'}</p>
                   </div>
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
                     <div className="text-sm font-semibold text-slate-900">Aksi Prioritas</div>
-                    <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                    <ul className="mt-2 space-y-1 text-sm text-slate-700">
                       <li>• Percepat review approval pending.</li>
                       <li>• Evaluasi paket stuck/kritis.</li>
                       <li>• Sinkronkan progres fisik dan keuangan.</li>
@@ -846,27 +745,27 @@ export default function DashboardPage() {
                     </ul>
                   </div>
                 </div>
-                <div className="mt-5 flex flex-wrap gap-2">
-                  <Link href="/proyek" className="inline-flex h-11 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Lihat Paket</Link>
-                  <Link href="/approval" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Approval</Link>
-                  <Link href="/peta" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Buka Peta</Link>
-                  <Link href="/audit-log" className="inline-flex h-11 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Audit Log</Link>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link href="/proyek" className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Lihat Paket</Link>
+                  <Link href="/approval" className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Approval</Link>
+                  <Link href="/peta" className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Buka Peta</Link>
+                  <Link href="/audit-log" className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Audit Log</Link>
                 </div>
               </section>
 
-              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
-                <div className="flex items-center justify-between gap-3">
+              <section className="siaga-glass-card border border-slate-200/70 p-4 h-full flex flex-col">
+                <div className="flex items-center justify-between gap-2">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-slate-700">Alert & Risiko Lintas Modul</div>
-                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Prioritas hari ini</h3>
+                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Prioritas hari ini</h3>
                   </div>
                   <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
                 </div>
-                <div className="mt-4 space-y-3">
+                <div className="mt-3 space-y-2">
                   {alertItems.map((item) => (
-                    <Link key={item.label} href={item.href} className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-3 text-sm transition hover:bg-slate-50">
-                      <div className="flex items-center gap-3">
-                        <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700"><item.icon className="h-4 w-4" /></span>
+                    <Link key={item.label} href={item.href} className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-2 text-sm transition hover:bg-slate-50">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 text-slate-700"><item.icon className="h-4 w-4" /></span>
                         <div>
                           <div className="font-semibold text-slate-900">{item.label}</div>
                           <div className="text-xs text-slate-500">{typeof item.value === 'number' ? `${item.value} item` : item.value}</div>
@@ -878,25 +777,25 @@ export default function DashboardPage() {
                 </div>
               </section>
 
-              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
-                <div className="flex items-center justify-between gap-3">
+              <section className="siaga-glass-card border border-slate-200/70 p-4 h-full flex flex-col">
+                <div className="flex items-center justify-between gap-2">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-slate-700">Paket & Anggaran Tahun Aktif</div>
-                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Ringkasan paket dan serapan</h3>
+                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Ringkasan paket dan serapan</h3>
                   </div>
                   <Link href="/proyek" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
                 </div>
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
                     <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Total Paket</div>
                     <div className="mt-2 text-3xl font-black text-slate-950">{stats.total}</div>
                   </div>
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
                     <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Stuck / Kritis</div>
                     <div className="mt-2 text-3xl font-black text-slate-950">{stats.kritis + stats.warning}</div>
                   </div>
                 </div>
-                <div className="mt-4 grid gap-2">
+                <div className="mt-3 grid gap-2">
                   <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Klasifikasi Paket</div>
                   <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                     {packageTypeSummary.slice(0, 4).map((item) => (
@@ -939,67 +838,73 @@ export default function DashboardPage() {
               </section>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-3">
-              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
-                <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Status SDA Hari Ini</div>
-                <div className="mt-4 rounded-3xl border border-slate-200 bg-slate-50 p-4">
-                  <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Tinggi Muka Air</div>
-                  <div className="mt-3 text-3xl font-black text-slate-950">{tideOverview.currentLevel}</div>
-                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                    <div className="rounded-3xl bg-white p-3 text-sm text-slate-700">
-                      <div className="text-xs text-slate-500">Tren</div>
-                      <div className="mt-1 font-semibold text-slate-900">{tideOverview.trend}</div>
-                    </div>
-                    <div className="rounded-3xl bg-white p-3 text-sm text-slate-700">
-                      <div className="text-xs text-slate-500">Menuju Puncak</div>
-                      <div className="mt-1 font-semibold text-slate-900">{tideOverview.peakTime}</div>
-                    </div>
-                  </div>
+            <div className="grid gap-3 xl:grid-cols-2">
+              <section className="siaga-glass-card border border-slate-200/70 p-4 h-full flex flex-col">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Status SDA & Pasang Surut Hari Ini</div>
+                  <h3 className="mt-2 text-lg font-extrabold text-slate-950">Monitoring kondisi air dan operasional</h3>
                 </div>
-              </section>
-
-              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Pasang Surut Air Laut</div>
-                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Hari Ini</h3>
-                  </div>
-                  <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-1 text-xs font-semibold text-cyan-900">Simulasi sementara</span>
-                </div>
-                <div className="mt-4 space-y-2 text-sm text-slate-700">
-                  {tideScheduleRows.map((row) => (
-                    <div key={row.time} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-3 py-3">
-                      <div>
-                        <div className="text-sm font-semibold text-slate-900">{row.time}</div>
-                        <div className="text-xs text-slate-500">{row.condition}</div>
+                
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500 font-semibold">Tinggi Muka Air</div>
+                    <div className="mt-2 text-2xl font-black text-slate-950">{tideOverview.currentLevel}</div>
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Tren</span>
+                        <span className="font-semibold text-slate-900">{tideOverview.trend}</span>
                       </div>
-                      <div className={`text-sm font-semibold ${row.status === 'Aman' ? 'text-emerald-700' : row.status === 'Waspada' ? 'text-amber-700' : 'text-rose-700'}`}>{row.height}</div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Puncak</span>
+                        <span className="font-semibold text-slate-900">{tideOverview.peakTime}</span>
+                      </div>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500 font-semibold">Pasang Surut Hari Ini</div>
+                    <div className="mt-3 space-y-1">
+                      {tideScheduleRows.slice(0, 3).map((row) => (
+                        <div key={row.time} className="flex items-center justify-between text-sm">
+                          <span className="text-slate-600">{row.time}</span>
+                          <div className="text-right">
+                            <div className="font-semibold text-slate-900">{row.height}</div>
+                            <div className={`text-xs ${row.status === 'Aman' ? 'text-emerald-600' : row.status === 'Waspada' ? 'text-amber-600' : 'text-rose-600'}`}>{row.status}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Puncak Minggu Ini</div>
-                    <div className="mt-2 font-semibold text-slate-900">{tideOverview.weeklyHighest.height}</div>
-                    <div className="mt-1 text-xs text-slate-500">{tideOverview.weeklyHighest.date}</div>
+
+                <div className="mt-3 grid gap-2">
+                  <div className="text-xs uppercase tracking-[0.22em] text-slate-500 font-semibold">Puncak Tertinggi</div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-2xl bg-white border border-slate-200 p-2">
+                      <div className="text-xs text-slate-600">Minggu Ini</div>
+                      <div className="mt-1 text-sm font-bold text-slate-900">{tideOverview.weeklyHighest.height}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{tideOverview.weeklyHighest.date.slice(0, 11)}</div>
+                    </div>
+                    <div className="rounded-2xl bg-white border border-slate-200 p-2">
+                      <div className="text-xs text-slate-600">Bulan Ini</div>
+                      <div className="mt-1 text-sm font-bold text-slate-900">{tideOverview.monthlyHighest.height}</div>
+                      <div className="text-xs text-slate-500 mt-0.5">{tideOverview.monthlyHighest.date.slice(0, 11)}</div>
+                    </div>
                   </div>
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-700">
-                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Puncak Bulan Ini</div>
-                    <div className="mt-2 font-semibold text-slate-900">{tideOverview.monthlyHighest.height}</div>
-                    <div className="mt-1 text-xs text-slate-500">{tideOverview.monthlyHighest.date}</div>
-                  </div>
+                </div>
+
+                <div className="mt-3 text-xs text-slate-600 bg-blue-50 border border-blue-200 rounded-2xl p-2">
+                  <span className="font-semibold text-blue-900">Tip:</span> Pantau puncak pasang untuk persiapan operasional pintu air dan pompa.
                 </div>
               </section>
-
-              <section className="siaga-glass-card border border-slate-200/70 p-5 h-full flex flex-col">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Peta Monitoring Ringkas</div>
-                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Sebaran status</h3>
+                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Sebaran status</h3>
                   </div>
                   <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Buka Peta</Link>
                 </div>
-                <div className="mt-4 overflow-hidden rounded-[24px] border border-cyan-200 bg-gradient-to-br from-cyan-100 via-slate-100 to-white p-3 shadow-soft">
+                <div className="mt-3 overflow-hidden rounded-[24px] border border-cyan-200 bg-gradient-to-br from-cyan-100 via-slate-100 to-white p-2 shadow-soft">
                   <div className="relative h-40 overflow-hidden rounded-[20px] bg-gradient-to-br from-sky-100 via-cyan-50 to-white">
                     <div className="absolute left-6 top-8 h-3 w-3 rounded-full bg-cyan-500 shadow-[0_0_0_14px_rgba(56,189,248,0.18)]" />
                     <div className="absolute left-28 top-18 h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_0_14px_rgba(251,191,36,0.16)]" />
@@ -1007,7 +912,7 @@ export default function DashboardPage() {
                     <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-cyan-200/40 to-transparent" />
                   </div>
                 </div>
-                <div className="mt-4 grid gap-2 text-sm text-slate-600">
+                <div className="mt-3 grid gap-2 text-sm text-slate-600">
                   <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-rose-500"></span>7 Titik Kritis</div>
                   <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500"></span>14 Titik Waspada</div>
                   <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-sky-500"></span>22 Titik Aman</div>
@@ -1015,75 +920,75 @@ export default function DashboardPage() {
               </section>
             </div>
 
-            <div className="grid gap-4 xl:grid-cols-3">
-              <section className="siaga-glass-card border border-slate-200/70 p-5">
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              <section className="siaga-glass-card border border-slate-200/70 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Tugas Per Role / User</div>
-                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Fokus lintas peran</h3>
+                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Fokus lintas peran</h3>
                   </div>
                 </div>
-                <div className="mt-4 space-y-3">
+                <div className="mt-3 space-y-2">
                   {roleActions.slice(0, 5).map((action) => (
-                    <div key={`${action.role}-${action.task}`} className="rounded-3xl border border-slate-200 bg-white p-3">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-800">{action.name?.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div>
+                    <div key={`${action.role}-${action.task}`} className="rounded-3xl border border-slate-200 bg-white p-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-slate-800">{action.name?.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div>
                           <div>
                             <div className="text-sm font-semibold text-slate-900">{action.name}</div>
                             <div className="text-xs text-slate-500">{action.role}</div>
                           </div>
                         </div>
-                        <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-700">{action.priority}</span>
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">{action.priority}</span>
                       </div>
-                      <div className="mt-3 text-sm text-slate-700">{action.task}</div>
+                      <div className="mt-2 text-xs text-slate-700">{action.task}</div>
                     </div>
                   ))}
                 </div>
               </section>
 
-              <section className="siaga-glass-card border border-slate-200/70 p-5">
+              <section className="siaga-glass-card border border-slate-200/70 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Akses Cepat</div>
-                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Shortcut modul</h3>
+                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Shortcut modul</h3>
                   </div>
                 </div>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                <div className="mt-3 grid gap-1 sm:grid-cols-2">
                   {actions.slice(0, 8).map((action) => (
-                    <Link key={action.label} href={action.href} className="flex items-center gap-3 rounded-3xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700 transition hover:bg-slate-50">
-                      <span className="inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-slate-700"><action.icon className="h-4 w-4" /></span>
-                      <div>
-                        <div className="font-semibold text-slate-900">{action.label}</div>
-                        <div className="text-xs text-slate-500">{action.desc}</div>
+                    <Link key={action.label} href={action.href} className="flex items-center gap-2 rounded-3xl border border-slate-200 bg-white px-2 py-2 text-sm text-slate-700 transition hover:bg-slate-50">
+                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700"><action.icon className="h-3 w-3" /></span>
+                      <div className="min-w-0">
+                        <div className="truncate text-xs font-semibold text-slate-900">{action.label}</div>
+                        <div className="truncate text-[10px] text-slate-500">{action.desc}</div>
                       </div>
                     </Link>
                   ))}
                 </div>
               </section>
 
-              <section className="siaga-glass-card border border-slate-200/70 p-5">
+              <section className="siaga-glass-card border border-slate-200/70 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Aktivitas Terbaru</div>
-                    <h3 className="mt-2 text-lg font-extrabold text-slate-950">Log audit terbaru</h3>
+                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Log audit terbaru</h3>
                   </div>
                   <Link href="/audit-log" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
                 </div>
-                <div className="mt-4 space-y-3">
+                <div className="mt-3 space-y-2">
                   {recentActivityItems.map((item) => {
                     const userName = item.userName || item.userId || 'Nama user belum tersedia'
                     const initials = userName.split(' ').filter(Boolean).map((word) => word[0]).join('').slice(0, 2).toUpperCase()
                     return (
-                      <div key={item.id} className="rounded-3xl border border-slate-200 bg-white p-3">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-100 text-sm font-bold text-slate-800">{initials}</div>
+                      <div key={item.id} className="rounded-3xl border border-slate-200 bg-white p-2">
+                        <div className="flex items-start gap-2">
+                          <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-slate-800">{initials}</div>
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold text-slate-900">{userName}</div>
-                            <div className="mt-1 text-xs text-slate-500">{item.detail || item.action}</div>
+                            <div className="truncate text-sm font-semibold text-slate-900">{userName}</div>
+                            <div className="mt-0.5 truncate text-xs text-slate-500">{item.detail || item.action}</div>
                           </div>
                         </div>
-                        <div className="mt-3 text-xs text-slate-500">{new Date(item.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
+                        <div className="mt-1 text-xs text-slate-500">{new Date(item.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false })}</div>
                       </div>
                     )
                   })}
