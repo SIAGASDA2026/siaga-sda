@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Storage Rules
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -57,3 +64,13 @@ Kamera HP
 - Jangan menyimpan file tanpa entity_type dan entity_id.
 - Jangan memakai nama file asal tanpa sanitasi.
 - Jangan memakai folder acak yang sulit diaudit.
+
+---
+
+# UPDATE FINAL STORAGE
+
+Semua foto upload wajib dikompresi sebelum disimpan.
+Foto laporan lapangan boleh digunakan dengan watermark/metadata.
+Foto absensi tidak digunakan.
+
+QR Code asset tidak boleh menyimpan data rahasia; QR hanya berisi kode/link detail asset.

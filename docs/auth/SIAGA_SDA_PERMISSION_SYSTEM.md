@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Permission System
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -51,3 +58,19 @@ Gunakan action granular:
 - archive
 - manage_assignment
 - manage_user
+
+---
+
+# UPDATE FINAL PERMISSION SYSTEM
+
+Gunakan role-based dan assignment-based access.
+
+Menu yang bukan kewenangan user harus disembunyikan.
+Jika user membuka URL tanpa izin, tampilkan halaman Akses Dibatasi.
+Jika user memiliki role tetapi belum ada assignment aktif, tampilkan Belum Ada Penugasan Aktif.
+
+Pimpinan dan Auditor read-only.
+Kontraktor/Konsultan hanya melihat paketnya sendiri.
+Mandor hanya melihat asset/operasional yang ditugaskan.
+
+Role ADMIN_KEGIATAN tidak digunakan lagi dan tidak boleh dibuat ulang.

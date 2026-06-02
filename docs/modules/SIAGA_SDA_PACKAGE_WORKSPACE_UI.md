@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Package Workspace UI
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -57,3 +64,23 @@ Silakan ubah filter atau tambah data sesuai kewenangan Anda.
 - Lazy loading untuk detail.
 - Jangan load semua file/foto sekaligus.
 - Gunakan thumbnail untuk gambar.
+
+---
+
+# UPDATE FINAL PAKET PEKERJAAN
+
+Jenis paket final:
+- Fisik
+- Konsultan
+- Rutin
+
+Sub jenis konsultan:
+- Konsultan Perencanaan
+- Konsultan Pengawasan
+
+Metode pengadaan:
+- Pengadaan Langsung
+- Tender/Lelang
+
+Direksi Teknis wajib tetap ada pada paket fisik.
+ADMIN_SUB_KEGIATAN menjadi admin administrasi paket berdasarkan assignment sub kegiatan.

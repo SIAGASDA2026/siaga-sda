@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA System Architecture
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -8,7 +15,7 @@
 
 ## Instruksi Wajib untuk Codex
 
-1. Project ini adalah pengembangan SIMONPRO menjadi SIAGA-SDA, bukan project baru.
+1. Project ini adalah SIAGA-SDA, sistem aktif yang sedang dikembangkan bertahap.
 2. Jangan rebuild total dan jangan menghapus sistem lama tanpa audit.
 3. Semua perubahan database wajib melalui migration Supabase.
 4. Semua UI wajib responsive untuk laptop/desktop dan mobile/phone.

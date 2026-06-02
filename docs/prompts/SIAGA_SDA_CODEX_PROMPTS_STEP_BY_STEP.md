@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Codex Prompts Step by Step
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -13,7 +20,7 @@ Baca dan patuhi file berikut:
 /docs/core/SIAGA_SDA_MASTER_CODEX_GUIDE_FINAL.md
 /docs/design/SIAGA_SDA_DESIGN_SYSTEM.md
 
-Project ini adalah rebranding dan pengembangan dari SIMONPRO menjadi SIAGA-SDA.
+Project ini adalah penyelarasan dan pengembangan dari SIAGA-SDA menjadi SIAGA-SDA.
 SIAGA-SDA bukan project baru.
 
 Jangan rebuild total.
@@ -31,7 +38,7 @@ Setelah selesai, jalankan build/lint/typecheck dan laporkan file yang berubah.
 ## Tahap 1 — Audit Project Lama
 
 ```text
-Audit struktur project SIMONPRO yang ada.
+Audit struktur project SIAGA-SDA yang ada.
 Jangan ubah kode dulu.
 Laporkan:
 1. framework yang digunakan,
@@ -43,10 +50,10 @@ Laporkan:
 7. rekomendasi refactor bertahap.
 ```
 
-## Tahap 2 — Rebranding Aman
+## Tahap 2 — Penyelarasan Aman
 
 ```text
-Lakukan rebranding tampilan dari SIMONPRO menjadi SIAGA-SDA secara aman.
+Lakukan penyelarasan tampilan dari SIAGA-SDA menjadi SIAGA-SDA secara aman.
 Jangan mengubah database dulu.
 Pastikan desktop dan mobile responsive.
 Terapkan footer:
@@ -117,7 +124,7 @@ Detail marker tampil sebagai drawer.
 
 ```text
 Bangun Survey Investigasi.
-Gunakan istilah Ditindaklanjuti, bukan Menjadi Paket.
+Gunakan istilah Ditindaklanjuti, bukan Ditindaklanjuti.
 Tambahkan follow_up_type, follow_up_status, linked_package_id, linked_letter_id, follow_up_note.
 ```
 
@@ -138,3 +145,19 @@ Tampilkan pending item sesuai kewenangan user.
 Pimpinan dan Auditor read-only.
 User nonaktif tidak boleh approve.
 ```
+
+---
+
+# UPDATE FINAL PROMPT STRATEGY
+
+Prompt pertama ke Codex harus AUDIT DAN MAPPING.
+
+Jangan coding sebelum sistem aktual dipetakan terhadap blueprint.
+
+Codex dilarang:
+- mengubah role/workflow/database/routing/auth tanpa instruksi;
+- membuat ulang ADMIN_KEGIATAN;
+- menambah tab utama baru;
+- mengubah istilah Ditindaklanjuti;
+- membuat login Google/Microsoft/social login;
+- membuat dropdown role di login.

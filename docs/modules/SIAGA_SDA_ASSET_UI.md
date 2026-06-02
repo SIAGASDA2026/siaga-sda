@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Asset SDA UI
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -55,3 +62,14 @@ Silakan ubah filter atau tambah data sesuai kewenangan Anda.
 - Lazy loading untuk detail.
 - Jangan load semua file/foto sekaligus.
 - Gunakan thumbnail untuk gambar.
+
+---
+
+# UPDATE FINAL ASSET SDA
+
+Asset SDA harus mendukung QR Code Asset, histori scan, histori operasi, dan sub-tab Operasional SDA.
+
+Operasional SDA tidak menjadi menu utama pada tahap awal.
+
+Petugas biasa tidak wajib login. Mandor wajib login dan memilih petugas dari master data.
+Foto absensi dihapus.

@@ -1,13 +1,20 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Survey Investigasi UI
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
 
 ## Deskripsi
 
-Survey Investigasi mencatat masalah lapangan dan tindak lanjut. Gunakan istilah Ditindaklanjuti, bukan Menjadi Paket.
+Survey Investigasi mencatat masalah lapangan dan tindak lanjut. Gunakan istilah Ditindaklanjuti, bukan Ditindaklanjuti.
 
 ## Fitur Wajib
 
@@ -54,3 +61,21 @@ Silakan ubah filter atau tambah data sesuai kewenangan Anda.
 - Lazy loading untuk detail.
 - Jangan load semua file/foto sekaligus.
 - Gunakan thumbnail untuk gambar.
+
+---
+
+# UPDATE FINAL SURVEY INVESTIGASI
+
+Gunakan istilah “Ditindaklanjuti”, bukan “Menjadi Paket”.
+
+Survey tidak boleh hilang setelah ditindaklanjuti. Status berubah dan relasi ditampilkan.
+
+Tindak lanjut survey:
+- Dibuat Paket Rutin
+- Dibuat Paket Fisik
+- Perbaikan Langsung
+- Surat Balasan
+- Koordinasi OPD
+- Usulan Tahun Berikutnya
+- Tidak Dilanjutkan
+- Arsip

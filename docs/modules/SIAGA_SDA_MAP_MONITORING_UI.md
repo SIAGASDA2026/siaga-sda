@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Peta Monitoring UI
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -53,3 +60,21 @@ Silakan ubah filter atau tambah data sesuai kewenangan Anda.
 - Lazy loading untuk detail.
 - Jangan load semua file/foto sekaligus.
 - Gunakan thumbnail untuk gambar.
+
+---
+
+# UPDATE FINAL PETA MONITORING
+
+Peta Monitoring adalah pusat spasial SIAGA-SDA dan bukan hanya peta banjir.
+
+Layer final:
+- Paket Pekerjaan
+- Survey Investigasi
+- Asset SDA
+- Operasional SDA
+- Peil Banjir
+- Pasang Surut
+- Surat Masuk terkait lokasi
+- Deviasi/Warning
+
+Gunakan konsep 1 lokasi = 1 marker utama jika data saling terkait. Detail marker harus menampilkan relasi surat → survey → paket → asset → laporan.

@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Dashboard UI
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -54,3 +61,28 @@ Silakan ubah filter atau tambah data sesuai kewenangan Anda.
 - Lazy loading untuk detail.
 - Jangan load semua file/foto sekaligus.
 - Gunakan thumbnail untuk gambar.
+
+---
+
+# UPDATE FINAL DASHBOARD
+
+Dashboard adalah pusat rekap seluruh modul, bukan halaman peta utama.
+
+Dashboard wajib menampilkan:
+- rekap paket fisik berdasarkan sub kegiatan dan metode;
+- rekap paket rutin;
+- rekap konsultan perencanaan PL/Tender;
+- rekap konsultan pengawasan PL/Tender;
+- rekap survey investigasi;
+- rekap surat masuk/keluar;
+- rekap approval;
+- rekap administrasi;
+- rekap peil banjir;
+- rekap asset SDA;
+- rekap operasional SDA;
+- rekap pasang surut;
+- rekap audit log;
+- warning aktif;
+- filter tahun, kegiatan, sub kegiatan, kecamatan, status.
+
+Dashboard tidak boleh memuat peta interaktif besar. Peta besar hanya di menu Peta Monitoring.

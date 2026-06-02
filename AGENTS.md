@@ -1,241 +1,102 @@
-# Instruksi Wajib Codex — SIAGA-SDA
+# AGENTS.md — SIAGA-SDA
 
-> File ini wajib diletakkan di **root project**, sejajar dengan `package.json`, bukan di dalam folder `/docs`.
+## Identitas Project
 
----
+Project ini adalah **SIAGA-SDA**.
 
-## 1. Identitas Project
-
-Project ini adalah:
+SIAGA-SDA adalah:
 
 ```text
-SIAGA-SDA
 Sistem Informasi, Analisis, Gerak Cepat dan Administrasi Sumber Daya Air
 Command Center SDA
+Dinas Pekerjaan Umum Bidang Sumber Daya Air Kota Dumai
 ```
 
-Project ini merupakan **rebranding dan pengembangan bertahap dari SIMONPRO**, bukan project baru.
-
-Instansi:
-
-```text
-Dinas Pekerjaan Umum
-Bidang Sumber Daya Air
-Kota Dumai
-```
-
-Footer resmi aplikasi:
-
-```text
-SIAGA-SDA
-©2026 Budi Legawan, ST
-All Rights Reserved
-```
+Jangan melakukan penggantian nama aplikasi.  
+Jangan mencari atau mengembalikan konteks nama lama.  
+Jangan membuat ulang sistem dari awal.
 
 ---
 
-## 2. File Dokumentasi yang Wajib Dibaca Sebelum Coding
+## Dokumen Wajib Dibaca
 
-Sebelum mengubah kode apa pun, Codex wajib membaca dan mengikuti dokumen berikut:
-
-```text
-/docs/core/SIAGA_SDA_MASTER_CODEX_GUIDE_FINAL.md
-/docs/core/SIAGA_SDA_REBRANDING_RULES.md
-/docs/core/SIAGA_SDA_SYSTEM_ARCHITECTURE.md
-/docs/core/SIAGA_SDA_WORKFLOW_MASTER.md
-
-/docs/design/SIAGA_SDA_DESIGN_SYSTEM.md
-/docs/design/SIAGA_SDA_LOGO_GUIDELINE.md
-/docs/design/SIAGA_SDA_UI_DIRECTION.md
-
-/docs/database/SIAGA_SDA_DATABASE_RULES.md
-/docs/database/SIAGA_SDA_DATABASE_SCHEMA.md
-/docs/database/SIAGA_SDA_STORAGE_RULES.md
-
-/docs/auth/SIAGA_SDA_LOGIN_AUTH_UI.md
-/docs/auth/SIAGA_SDA_PERMISSION_SYSTEM.md
-/docs/auth/SIAGA_SDA_SECURITY_RULES.md
-```
-
-Jika pekerjaan menyentuh role tertentu, baca juga file terkait di:
+Sebelum mengubah kode apa pun, AI coding agent/Codex wajib membaca dan mematuhi:
 
 ```text
-/docs/roles
-```
-
-Jika pekerjaan menyentuh modul tertentu, baca juga file terkait di:
-
-```text
-/docs/modules
-```
-
-Jika pekerjaan menyentuh operasional SDA, shift, pasang surut, atau rekap kehadiran, baca juga file terkait di:
-
-```text
-/docs/operational
-```
-
----
-
-## 3. Aturan Utama yang Tidak Boleh Dilanggar
-
-1. Jangan rebuild total.
-2. Jangan menganggap SIAGA-SDA sebagai project baru.
-3. Jangan menghapus sistem lama tanpa audit.
-4. Pertahankan data lama SIMONPRO sejauh mungkin.
-5. Lakukan refactor bertahap dan aman.
-6. Semua perubahan database wajib menggunakan migration Supabase.
-7. Semua fitur wajib responsive untuk laptop/desktop dan mobile/HP.
-8. Jangan hardcode role dan permission.
-9. Semua akses harus berbasis role + assignment aktif.
-10. User dapat memiliki banyak role.
-11. User/personel tidak boleh dihapus permanen jika masih punya histori.
-12. Gunakan status `AKTIF`, `NONAKTIF`, atau `ARSIP`.
-13. Semua aksi penting wajib masuk audit log.
-14. Peta Monitoring adalah jantung aplikasi.
-15. Dashboard hanya menampilkan ringkasan ringan.
-16. Dashboard tidak boleh memuat peta interaktif besar.
-17. Program/Kegiatan/Sub Kegiatan bukan menu utama.
-18. Program/Kegiatan/Sub Kegiatan hanya menjadi relasi/filter data.
-19. Master Data tidak menjadi tab utama sidebar.
-20. Master Data ditempatkan di Pengaturan/Admin sesuai permission.
-21. Foto absensi tidak digunakan.
-22. Petugas lapangan biasa tidak wajib punya akun.
-23. Mandor wajib punya akun.
-24. Mandor memilih anggota dari master data petugas, bukan mengetik nama bebas.
-25. Semua foto upload wajib dikompres otomatis sebelum disimpan.
-26. Ikuti design system dan visual reference di `/docs/assets`.
-
----
-
-## 4. Prinsip Kerja Codex
-
-Saat menerima tugas, Codex wajib:
-
-1. Membaca file dokumentasi yang relevan.
-2. Memahami konteks SIMONPRO lama sebelum mengubah kode.
-3. Melakukan perubahan kecil, aman, dan bertahap.
-4. Menghindari penghapusan file/fungsi lama tanpa audit.
-5. Menghindari perubahan besar yang tidak diminta.
-6. Memastikan perubahan berlaku untuk desktop dan mobile.
-7. Menjaga struktur role, permission, workflow, dan database tetap konsisten.
-8. Menjelaskan risiko jika ada bagian yang belum aman.
-9. Tidak membuat asumsi besar tanpa menulis asumsi tersebut.
-10. Tidak membuat role/menu/workflow baru jika tidak ada di dokumen `/docs`.
-
----
-
-## 5. Prioritas Pengerjaan
-
-Urutan prioritas project:
-
-1. Stabilitas sistem lama SIMONPRO.
-2. Kompatibilitas data lama.
-3. Refactor bertahap.
-4. Fitur baru.
-5. Optimasi UI/UX.
-6. Optimasi performa.
-7. Perapian kode.
-8. Dokumentasi tambahan.
-
----
-
-## 6. Aturan UI/UX
-
-SIAGA-SDA harus terasa seperti:
-
-```text
-Smart Government Command Center SDA
-```
-
-Bukan:
-
-- aplikasi CRUD biasa
-- aplikasi kasir
-- aplikasi startup SaaS umum
-- aplikasi gaming/neon
-- ERP jadul
-- dashboard terlalu ramai
-
-Karakter UI:
-
-- modern
-- clean
-- government enterprise
-- command center
-- map-centric
-- mobile-first
-- cepat dibaca
-- ringan
-- profesional
-- konsisten
-
-Warna utama mengikuti dokumen:
-
-```text
+/docs/core/SIAGA_SDA_MASTER_BLUEPRINT_FINAL.md
+/docs/core/SIAGA_SDA_GLOBAL_CLICKABLE_NAVIGATION_RULE.md
 /docs/design/SIAGA_SDA_DESIGN_SYSTEM.md
 ```
 
-Visual referensi mengikuti file di:
-
-```text
-/docs/assets
-```
-
-Semua perubahan UI wajib dicek untuk:
-
-```text
-Desktop / Laptop
-Tablet jika ada
-Mobile / HP
-```
-
-Aturan navigasi UI global:
-
-1. Semua menu dan navigasi penting wajib terlihat tanpa zoom in/out pada desktop, tablet, dan mobile.
-2. Semua card, angka, tabel, list, dokumen, laporan, status, panel kanan, dan ringkasan data yang relevan wajib bisa diklik menuju tab asal, detail data, atau sumber data terkait.
-3. Setiap masuk ke sub menu, sub tab, halaman detail, mode drill-down, form tambah/edit, atau hasil filter khusus wajib menyediakan tombol `Kembali`.
-4. Semua navigasi klik wajib tetap mengikuti role, permission, dan assignment existing.
-5. Jangan membuat link atau tombol palsu. Jika tujuan data belum tersedia, tampilkan status belum tersedia tanpa aksi klik.
-6. Jangan merusak auth, role, API, database, state, route, dan logic lama saat menambah navigasi.
-7. Backup file sebelum mengubah UI.
-8. Uji tampilan pada desktop 1366px, desktop besar, tablet, dan mobile 360-430px.
-9. Laporkan file backup, file berubah, elemen yang dibuat clickable, tujuan navigasi, tombol kembali, serta hasil lint/typecheck/build.
+Jika `SIAGA_SDA_DESIGN_SYSTEM.md` belum tersedia, gunakan blueprint utama dan referensi visual di `/docs/assets/` sebagai acuan.
 
 ---
 
-## 7. Menu Utama Final
+## Prinsip Kerja Utama
 
-Menu utama final SIAGA-SDA:
+Kerjakan **hanya tugas yang diminta pada prompt**.
 
-1. Dashboard
-2. Peta Monitoring
-3. Survey Investigasi
-4. Paket Pekerjaan
-5. Approval Center
-6. Surat Masuk & Keluar
-7. Administrasi
-8. Peil Banjir
-9. Asset SDA
-10. Audit Log
-11. Pengaturan
+Jika menemukan masalah di luar scope:
 
-Catatan:
+```text
+Laporkan saja.
+Jangan diperbaiki sebelum mendapat izin.
+```
 
-- Jangan membuat `Master Data` sebagai tab utama sidebar.
-- Jangan membuat `Program`, `Kegiatan`, dan `Sub Kegiatan` sebagai menu utama.
-- Data tersebut hanya menjadi relasi/filter di paket dan administrasi.
+Sebelum coding besar, wajib lakukan:
+
+```text
+audit
+mapping
+laporan risiko
+rencana perubahan bertahap
+```
+
+Blueprint adalah arah pengembangan, bukan bukti bahwa semua tabel, role, route, field, dan modul sudah tersedia di kode. Cocokkan terlebih dahulu dengan sistem aktual.
 
 ---
 
-## 8. Role Utama Final
+## Larangan Keras
 
-Role utama final:
+AI coding agent/Codex dilarang:
+
+1. Mengubah file di luar scope.
+2. Mengubah role tanpa instruksi eksplisit.
+3. Mengubah workflow tanpa instruksi eksplisit.
+4. Mengubah database besar tanpa instruksi eksplisit.
+5. Mengubah auth/permission tanpa instruksi eksplisit.
+6. Mengubah routing utama tanpa instruksi eksplisit.
+7. Menambah menu utama baru tanpa instruksi.
+8. Menghapus menu utama final tanpa instruksi.
+9. Membuat ulang sistem dari awal.
+10. Melakukan refactor besar tanpa izin.
+11. Menambah dependency tanpa alasan kuat dan tanpa laporan.
+12. Membuat login Google/Microsoft/social login.
+13. Membuat dropdown role di halaman login.
+14. Membuat tab Master Data sebagai menu utama.
+15. Membuat peta interaktif besar di Dashboard.
+16. Mengganti istilah **“Ditindaklanjuti”** menjadi **“Menjadi Paket”**.
+17. Menghapus **Direksi Teknis** dari paket fisik.
+18. Membuat petugas biasa wajib login.
+19. Membuat foto absensi.
+20. Membuat kembali role **ADMIN_KEGIATAN**.
+21. Menghapus data lama tanpa audit dan instruksi eksplisit.
+22. Membuat tabel/route/role ganda sebelum mapping sistem aktual.
+23. Membuat fitur baru di luar permintaan.
+24. Mengubah konfigurasi `.env`, Supabase, auth provider, atau storage tanpa instruksi eksplisit.
+25. Mengubah tampilan hanya untuk desktop tanpa memperbaiki mobile.
+
+---
+
+## Role Final SIAGA-SDA
+
+Role final yang digunakan:
 
 ```text
 SUPER_ADMIN
 ADMIN_SISTEM
-ADMIN_KEGIATAN
+ADMIN_SDA
+ADMIN_SUB_KEGIATAN
 ADMIN_SURAT
 ADMIN_PEIL
 PIMPINAN
@@ -256,118 +117,341 @@ MANDOR_OPERASIONAL_SDA
 MANDOR_REHAB_DRAINASE
 ```
 
-Prinsip role:
+Role berikut **tidak digunakan lagi**:
 
-- Jangan hardcode role.
-- Gunakan role + assignment.
-- User bisa punya lebih dari satu role.
-- Assignment punya masa berlaku.
-- Assignment lama tetap disimpan untuk histori/audit.
-- Jika pejabat pindah/berganti, jangan ubah histori lama.
-- Buat assignment baru untuk pejabat pengganti.
+```text
+ADMIN_KEGIATAN
+```
+
+Jika masih ada referensi `ADMIN_KEGIATAN` di kode lama, jangan hapus sembarangan. Mapping bertahap ke:
+
+```text
+ADMIN_SUB_KEGIATAN
+```
+
+Laporkan file yang terdampak sebelum perubahan besar.
 
 ---
 
-## 9. Aturan Login dan Auth
+## Menu Utama Final
 
-Login final berisi:
+Menu utama SIAGA-SDA:
 
 ```text
-Username / Email / NIP
-Password
-Masuk
-Lupa Password
-Daftar Akun Eksternal
+Dashboard
+Peta Monitoring
+Survey Investigasi
+Paket Pekerjaan
+Approval Center
+Surat Masuk & Keluar
+Administrasi
+Peil Banjir
+Asset SDA
+Audit Log
+Pengaturan
 ```
 
-Tidak boleh ada:
+Jangan membuat menu utama baru tanpa instruksi.
 
-- Login Google
-- Login Microsoft
-- Login sosial
-- Role dropdown di halaman login utama
+Fitur tambahan ditempatkan sebagai sub-fitur:
 
-Role ditentukan setelah login berdasarkan database/assignment, bukan dipilih manual di halaman login.
+```text
+Operasional SDA → sub-tab Asset SDA
+Notulen & Tindak Lanjut Rapat → sub-fitur Surat Masuk & Keluar
+Warning Center → panel Dashboard + icon notifikasi
+Laporan → export/rekap dari Dashboard
+Master Data → Pengaturan
+```
 
 ---
 
-## 10. Aturan Database
+## Prinsip Akses
 
-Prinsip database:
-
-1. Assignment-based.
-2. Multi-role.
-3. Audit-ready.
-4. Scalable.
-5. Tidak hard delete.
-6. Migration bertahap.
-7. Indexed query.
-8. Pagination.
-9. Lazy loading.
-10. Query difilter berdasarkan assignment.
-
-Semua perubahan database wajib dibuat melalui:
+Gunakan:
 
 ```text
-Supabase migration
+role-based access
+assignment-based access
 ```
 
-Jangan mengubah schema secara manual tanpa migration.
+Aturan akses:
 
-Index penting:
+- menu yang bukan kewenangan user disembunyikan;
+- akses URL tanpa izin menampilkan halaman **Akses Dibatasi**;
+- user dengan role tetapi belum memiliki assignment aktif menampilkan **Belum Ada Penugasan Aktif**;
+- Pimpinan dan Auditor bersifat read-only;
+- Kontraktor/Konsultan hanya melihat paketnya sendiri;
+- Mandor hanya melihat asset/operasional yang ditugaskan;
+- petugas biasa tidak wajib login;
+- mandor wajib login dan memilih petugas dari master data;
+- semua penolakan akses penting dicatat ke Audit Log jika sistem mendukung.
+
+Teks halaman akses dibatasi:
 
 ```text
-package_id
-survey_id
-letter_id
-peil_id
-asset_id
-activity_id
+Akses Dibatasi
+
+Halaman ini hanya dapat diakses oleh user yang memiliki role dan penugasan aktif sesuai kewenangan.
+Silakan hubungi Admin Sistem jika akses ini diperlukan.
+```
+
+Teks halaman belum ada penugasan:
+
+```text
+Belum Ada Penugasan Aktif
+
+Anda memiliki role terkait, tetapi belum ditugaskan ke data/kegiatan/paket tersebut.
+Silakan hubungi Admin Sistem.
+```
+
+---
+
+## Prinsip Alur Data
+
+Data tidak boleh hilang setelah ditindaklanjuti.
+
+Setiap data harus dapat dilacak dari:
+
+```text
+tab asal
+tab tujuan
+Dashboard
+Peta Monitoring
+Laporan
+Audit Log
+```
+
+Contoh alur:
+
+```text
+Surat Masuk → Survey / Peil / Paket / Surat Keluar / Arsip
+Survey Investigasi → Paket / Operasional / Surat Keluar / Arsip
+Paket Pekerjaan → Administrasi + Approval + Laporan
+Asset SDA → Operasional / Survey / Paket Rutin
+Approval Center → kembali ke tab asal
+```
+
+Setiap data yang ditindaklanjuti harus mempertahankan relasi:
+
+```text
+origin_module
+target_module
+linked_origin_id
 status
-created_at
-assigned_user_id
-role_code
-fiscal_year
-coordinates
+tindak_lanjut
+rekap_akhir
+```
+
+Status asal data berubah menjadi:
+
+```text
+Ditindaklanjuti
+Selesai
+Arsip
 ```
 
 ---
 
-## 11. Aturan Storage dan Upload
+## Global Clickable Navigation & Auto Filter
 
-Semua foto wajib dikompres otomatis sebelum upload.
+Semua elemen data yang tampil di SIAGA-SDA wajib clickable jika memiliki sumber data atau relasi data.
 
-Workflow foto:
-
-```text
-Kamera HP
-→ user ambil foto
-→ frontend compress
-→ generate thumbnail
-→ upload ke storage
-```
-
-Metadata wajib disimpan:
+Wajib membaca:
 
 ```text
-original_size
-compressed_size
-compression_ratio
-thumbnail_url
-file_category
-uploaded_by
-uploaded_at
+/docs/core/SIAGA_SDA_GLOBAL_CLICKABLE_NAVIGATION_RULE.md
 ```
 
-Foto absensi tidak digunakan.
+Elemen yang wajib clickable:
+
+```text
+angka rekap dashboard
+card statistik
+badge status
+nama paket
+nama survey
+nama surat
+nama asset
+nama peil banjir
+item approval
+item warning
+item notifikasi
+marker peta
+dokumen terkait
+riwayat aktivitas
+relasi antar data
+hasil laporan/rekap
+tabel data
+grafik rekap
+timeline aktivitas
+```
+
+Saat diklik:
+
+1. arahkan user ke tab asal data;
+2. aktifkan filter otomatis sesuai klasifikasi yang diklik;
+3. jika data tunggal, buka detail data langsung;
+4. jika data banyak, tampilkan daftar dengan filter aktif;
+5. tampilkan breadcrumb asal klik;
+6. sediakan tombol **Reset Filter**;
+7. sediakan tombol **Kembali**;
+8. tetap ikuti role-based dan assignment-based access;
+9. jangan membuka halaman kosong;
+10. jangan menghilangkan konteks asal.
+
+Contoh:
+
+```text
+Dashboard → klik “Paket Fisik Tender Sub Kegiatan A”
+→ Paket Pekerjaan
+→ filter aktif: jenis_paket=Fisik, metode=Tender, sub_kegiatan=Sub Kegiatan A
+```
+
+```text
+Dashboard → klik “Survey Ditindaklanjuti”
+→ Survey Investigasi
+→ filter aktif: status=Ditindaklanjuti
+```
+
+```text
+Peta Monitoring → klik marker asset
+→ drawer detail asset
+→ tombol Buka Detail Asset
+→ Asset SDA dengan asset_id aktif
+```
 
 ---
 
-## 12. Aturan Peta Monitoring
+## Aturan UI
 
-Peta Monitoring adalah jantung aplikasi.
+Gunakan tema:
 
-Layer wajib:
+```text
+SIAGA-SDA Fluent Water Theme
+```
+
+Karakter UI:
+
+```text
+clean
+elegan
+tema air
+navy
+biru
+aqua
+putih
+soft shadow
+rounded
+responsive desktop dan mobile
+```
+
+Jangan gunakan style:
+
+```text
+gaming
+neon
+terlalu gelap
+terlalu ramai
+template SaaS umum yang tidak cocok untuk pemerintah
+```
+
+Semua perubahan UI wajib berlaku untuk:
+
+```text
+desktop/laptop
+tablet jika relevan
+mobile/phone
+```
+
+---
+
+## Login
+
+Login menggunakan:
+
+```text
+Email / NIP / Username
+Password
+```
+
+Login wajib menampilkan:
+
+```text
+Logo SIAGA-SDA
+Nama SIAGA-SDA
+Kepanjangan SIAGA-SDA
+Command Center SDA
+Dinas Pekerjaan Umum Bidang Sumber Daya Air Kota Dumai
+Widget pasang surut
+Waktu salat
+Status sistem
+Footer resmi
+```
+
+Footer:
+
+```text
+SIAGA-SDA
+©2026 Budi Legawan, ST
+All Rights Reserved
+```
+
+Dilarang:
+
+```text
+Google Login
+Microsoft Login
+Social Login
+Dropdown pilih role di login
+```
+
+---
+
+## Dashboard
+
+Dashboard adalah pusat rekap seluruh modul.
+
+Dashboard wajib menampilkan rekap:
+
+```text
+paket fisik
+paket rutin
+paket konsultan
+survey investigasi
+surat masuk/keluar
+approval
+administrasi
+peil banjir
+asset SDA
+operasional SDA
+pasang surut
+audit log
+warning aktif
+```
+
+Dashboard tidak boleh memuat peta interaktif besar.
+
+Dashboard cukup menampilkan:
+
+```text
+peta ringkas
+ringkasan lokasi
+tombol Buka Peta Monitoring
+```
+
+Peta besar hanya berada di menu:
+
+```text
+Peta Monitoring
+```
+
+---
+
+## Peta Monitoring
+
+Peta Monitoring adalah pusat spasial SIAGA-SDA.
+
+Layer final:
 
 ```text
 Paket Pekerjaan
@@ -376,300 +460,326 @@ Asset SDA
 Operasional SDA
 Peil Banjir
 Pasang Surut
-Surat Masuk
-Deviasi / Warning
+Surat Masuk terkait lokasi
+Deviasi/Warning
 ```
 
-Prinsip marker:
+Aturan:
 
-```text
-1 lokasi = 1 marker utama aktif
-```
-
-Jika survey sudah ditindaklanjuti:
-
-- histori survey tetap disimpan
-- marker aktif dapat berubah menjadi marker paket/tindak lanjut
-- detail marker menampilkan survey asal dan tindak lanjut terkait
+- jangan membuat marker bertumpuk;
+- gunakan konsep satu lokasi = satu marker utama jika data saling terkait;
+- detail marker harus menampilkan relasi data;
+- tombol detail harus membuka tab asal;
+- marker dan relasi wajib clickable.
 
 ---
 
-## 13. Aturan Dashboard
+## Survey Investigasi
 
-Dashboard harus ringan.
-
-Dashboard tidak boleh memuat peta interaktif besar.
-
-Dashboard hanya menampilkan ringkasan:
-
-- Total Paket Aktif
-- Paket Deviasi/Kritis
-- Approval Pending
-- Survey Belum Ditindaklanjuti
-- Surat Masuk Penting
-- Asset SDA Aktif
-- Warning Center
-- Ringkasan Pasang Surut
-- Aktivitas Terbaru
-- Akses Cepat
-- Tombol Buka Peta Monitoring
-
----
-
-## 14. Aturan Survey Investigasi
-
-Survey Investigasi bukan hanya banjir.
-
-Kategori dapat mencakup:
-
-- banjir
-- drainase kecil
-- drainase tersumbat
-- sedimentasi
-- normalisasi
-- tanggul rusak
-- longsor
-- genangan
-- instruksi pimpinan
-- aduan warga
-- tindak lanjut surat
-
-Istilah yang tidak boleh digunakan:
-
-```text
-Menjadi Paket
-Jadikan Paket
-Tindak Menjadi Paket
-```
-
-Gunakan istilah:
+Istilah final:
 
 ```text
 Ditindaklanjuti
-Tindak Lanjuti
 ```
 
-Karena tidak semua survey harus menjadi paket.
-
----
-
-## 15. Aturan Paket Pekerjaan
-
-Jenis paket final hanya:
+Dilarang menggunakan istilah:
 
 ```text
-FISIK
-KONSULTAN
-RUTIN
+Menjadi Paket
 ```
 
-Subkategori konsultan:
+Survey tidak boleh hilang setelah ditindaklanjuti. Status berubah dan relasinya ditampilkan.
+
+Tindak lanjut survey:
 
 ```text
-KONSULTAN_PERENCANAAN
-KONSULTAN_PENGAWASAN
-```
-
-Metode pengadaan terpisah:
-
-```text
-PENGADAAN_LANGSUNG
-LELANG
-```
-
-Jangan membuat jenis paket terlalu banyak.
-
-Prinsip:
-
-```text
-1 paket = 1 ruang kerja
+Dibuat Paket Rutin
+Dibuat Paket Fisik
+Perbaikan Langsung
+Surat Balasan
+Koordinasi OPD
+Usulan Tahun Berikutnya
+Tidak Dilanjutkan
+Arsip
 ```
 
 ---
 
-## 16. Aturan Approval Center
+## Paket Pekerjaan
 
-Approval Center menampilkan item pending sesuai role dan assignment.
-
-Jenis item:
-
-- Survey Investigasi
-- Laporan Harian/Mingguan/Bulanan
-- Dokumen Konsultan
-- Addendum
-- SPM/Pembayaran
-- PHO/FHO
-- Peil Banjir
-- Surat Keluar
-- Dokumen Perencanaan
-
-Aksi:
-
-- Setujui
-- Minta Revisi
-- Tolak
-- Lihat Detail
-- Catatan
-
-Pimpinan dan Auditor bersifat read-only.
-
----
-
-## 17. Aturan Audit Log
-
-Audit log wajib mencatat aksi penting, termasuk:
-
-- login
-- logout
-- failed login
-- user dibuat
-- user diverifikasi
-- role diubah
-- assignment dibuat/diubah
-- survey dibuat/diapprove
-- paket dibuat/diubah
-- dokumen upload
-- laporan dibuat/diapprove
-- kontrak dibuat
-- addendum dibuat
-- SPM dibuat
-- PHO/FHO
-- surat masuk/keluar
-- peil
-- asset
-- operasi SDA
-- shift mandor
-- catatan pimpinan
-- perubahan threshold pasang surut
-
----
-
-## 18. Aturan Multi Tahun dan Arsip
-
-Data tahun lama tidak dihapus.
-
-Gunakan filter:
+Jenis paket final:
 
 ```text
-tahun_anggaran / fiscal_year
+Fisik
+Konsultan
+Rutin
 ```
 
-Jika proyek lintas tahun:
-
-- paket tetap aktif
-- tahun anggaran asal tetap tercatat
-- status lintas tahun/lanjutan dicatat
-- histori tetap aman
-
-Jika PPK/PPTK/Kabid berganti:
-
-- assignment lama diberi end_date
-- assignment lama tidak dihapus
-- assignment baru dibuat
-- histori approval lama tetap milik pejabat lama
-
----
-
-## 19. Aturan Performance
-
-Agar sistem tidak berat:
-
-1. Jangan load semua data sekaligus.
-2. Gunakan pagination.
-3. Gunakan lazy loading.
-4. Peta lengkap hanya di menu Peta Monitoring.
-5. Dashboard hanya ringkasan ringan.
-6. Map marker gunakan clustering jika banyak.
-7. Foto wajib kompres.
-8. Gunakan thumbnail di list/dashboard.
-9. Realtime hanya untuk hal penting.
-10. Query harus difilter berdasarkan assignment.
-11. Hindari dashboard terlalu banyak widget realtime.
-
----
-
-## 20. Checklist Wajib Setelah Coding
-
-Setelah menyelesaikan setiap tahap, Codex wajib melaporkan:
+Sub jenis konsultan:
 
 ```text
-1. File yang berubah
-2. Migration database baru jika ada
-3. Komponen UI yang diubah
-4. Dampak ke desktop/laptop
-5. Dampak ke mobile/HP
-6. Hasil build
-7. Hasil lint/typecheck
-8. Risiko atau bagian yang belum selesai
-9. Saran tahap berikutnya
+Konsultan Perencanaan
+Konsultan Pengawasan
 ```
 
-Jika build/lint/typecheck gagal, Codex wajib:
-
-1. Menjelaskan error.
-2. Menjelaskan penyebab paling mungkin.
-3. Memperbaiki jika masih dalam scope.
-4. Tidak mengklaim selesai jika masih error.
-
----
-
-## 21. Prompt Standar Saat Mengerjakan Task
-
-Gunakan prinsip kerja berikut untuk setiap task:
+Metode pengadaan:
 
 ```text
-Baca dan patuhi AGENTS.md dan seluruh dokumen relevan di /docs.
+Pengadaan Langsung
+Tender / Lelang
+```
 
-Project ini adalah SIMONPRO yang direbranding dan dikembangkan menjadi SIAGA-SDA, bukan project baru.
+Paket fisik wajib mendukung:
 
-Jangan rebuild total.
-Jangan hapus data lama tanpa audit.
-Gunakan migration Supabase.
-Jangan hardcode role.
-Gunakan role + assignment aktif.
-Semua UI wajib responsive desktop/laptop dan mobile/HP.
-Ikuti design system di /docs/design.
-Ikuti workflow di /docs/core.
-Ikuti role di /docs/roles.
-Kerjakan hanya scope yang diminta.
-Setelah selesai, jalankan build/lint/typecheck dan laporkan hasilnya.
+```text
+PPK
+PPTK
+Direksi Teknis
+Konsultan Pengawas jika ada
+Kontraktor
+PPHP
+```
+
+Paket rutin mendukung:
+
+```text
+Tim Perencana Rutin
+Tim Pengawas Rutin
+Pejabat Pengadaan
+Kontraktor/Pelaksana
+PPTK
+PPK
+ADMIN_SUB_KEGIATAN
 ```
 
 ---
 
-## 22. Kesimpulan
+## Surat Masuk & Keluar
 
-SIAGA-SDA harus menjadi:
+Kategori surat:
 
 ```text
-Smart Government Command Center SDA
+Undangan Rapat
+Aduan Warga
+Permohonan Drainase
+Permohonan Normalisasi
+Permohonan Peil
+Permohonan Data
+Instruksi Pimpinan
+Surat Internal
+Surat Eksternal
+Lainnya
 ```
 
-Fokus utama:
+Tindak lanjut surat:
 
-- satu data
-- satu peta
-- satu alur kerja
-- monitoring proyek
-- monitoring SDA
-- survey investigasi
-- surat masuk
-- peil banjir
-- asset SDA
-- operasional lapangan
-- pasang surut
-- approval
-- audit
-- administrasi
-- pengambilan keputusan cepat
+```text
+Survey Investigasi
+Peil Banjir
+Paket Pekerjaan
+Surat Keluar
+Notulen & Tindak Lanjut Rapat
+Arsip
+```
 
-Sistem harus:
+Notulen & Tindak Lanjut Rapat adalah sub-fitur di detail surat undangan rapat. Jangan membuat tab utama Notulen.
 
-- stabil
-- tidak berat
-- mobile-friendly
-- audit-safe
-- scalable multi tahun
-- mudah dipakai lapangan
-- mudah dipantau pimpinan
-- profesional untuk Dinas PU Bidang SDA Kota Dumai
+---
+
+## Administrasi
+
+Administrasi dikelola oleh:
+
+```text
+ADMIN_SUB_KEGIATAN
+```
+
+bukan `ADMIN_KEGIATAN`.
+
+Administrasi mengelola:
+
+```text
+Kontrak/SPK
+Addendum
+SPM
+Pembayaran
+Jaminan
+Dokumen administrasi
+Arsip paket
+```
+
+Administrasi harus terhubung ke:
+
+```text
+Paket Pekerjaan
+Approval Center
+Dashboard
+Laporan
+Audit Log
+```
+
+---
+
+## Asset SDA dan Operasional
+
+Jenis asset:
+
+```text
+Pintu Air
+Rumah Pompa
+Pompa Mobile
+Drainase Utama
+Kanal
+Tanggul
+Pos Duga Air
+Bangunan Operasi
+```
+
+Asset mendukung:
+
+```text
+Kode asset
+Koordinat
+Kondisi
+Status operasional
+Foto
+Dokumen
+Histori operasi
+QR Code
+```
+
+Operasional SDA diletakkan sebagai sub-tab di Asset SDA.
+
+Keputusan final:
+
+```text
+Foto absensi dihapus.
+Petugas biasa tidak wajib login.
+Mandor wajib login.
+Mandor memilih petugas dari master data.
+```
+
+---
+
+## Pengaturan
+
+Master Data tidak boleh menjadi tab utama.
+
+Master Data berada di:
+
+```text
+Pengaturan
+```
+
+Untuk Super Admin/Admin Sistem, Pengaturan dapat memuat:
+
+```text
+User management
+Role management
+Assignment
+Kategori surat
+Kategori survey
+Kategori asset
+Jenis paket
+Metode pengadaan
+SLA
+Template dokumen
+Backup
+Notifikasi
+Parameter pasang surut
+Storage
+QR asset
+Master data
+```
+
+Untuk user biasa:
+
+```text
+Profil akun
+Ubah password
+Notifikasi pribadi
+Preferensi tampilan
+```
+
+---
+
+## Audit Log
+
+Audit Log mencatat:
+
+```text
+Login
+Login gagal
+Upload dokumen
+Approval
+Revisi
+Perubahan data
+Perubahan role
+Perubahan assignment
+Akses ditolak
+Scan QR asset
+Laporan mandor
+Perubahan status survey
+Perubahan status paket
+Perubahan status asset
+```
+
+Audit Log hanya tampil untuk role berwenang.
+
+---
+
+## Prompt Pertama Wajib Untuk Codex
+
+Sebelum coding apa pun, gunakan audit dan mapping:
+
+```text
+Baca dan patuhi AGENTS.md serta:
+
+/docs/core/SIAGA_SDA_MASTER_BLUEPRINT_FINAL.md
+/docs/core/SIAGA_SDA_GLOBAL_CLICKABLE_NAVIGATION_RULE.md
+/docs/design/SIAGA_SDA_DESIGN_SYSTEM.md
+
+Tugas tahap ini hanya AUDIT dan MAPPING.
+
+Jangan coding.
+Jangan ubah file.
+Jangan ubah database.
+Jangan ubah role.
+Jangan ubah route.
+Jangan hapus apa pun.
+
+Audit sistem SIAGA-SDA aktual dan cocokkan dengan blueprint.
+
+Cek dan laporkan:
+1. struktur folder aktual;
+2. route/menu aktual;
+3. role yang sudah ada;
+4. auth dan permission yang sudah ada;
+5. tabel/schema/migration yang sudah ada;
+6. komponen UI yang sudah ada;
+7. halaman login aktual;
+8. dashboard aktual;
+9. peta monitoring aktual;
+10. tab/modul yang sudah ada;
+11. perbedaan antara sistem aktual dan blueprint;
+12. bagian yang bisa dipertahankan;
+13. bagian yang perlu mapping;
+14. bagian yang belum ada;
+15. risiko jika langsung diubah.
+
+Jangan melakukan perubahan apa pun sebelum saya menyetujui hasil audit.
+```
+
+---
+
+## Aturan Setiap Selesai Tugas
+
+Setelah mengerjakan tugas, wajib laporkan:
+
+1. File yang diubah.
+2. File yang dibuat.
+3. File yang tidak jadi diubah dan alasannya.
+4. Risiko perubahan.
+5. Cara rollback.
+6. Hasil build/lint/typecheck jika dijalankan.
+7. Bagian yang perlu dicek manual.

@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Login Auth UI
 
-> Dokumen acuan SIAGA-SDA / SIMONPRO 2026  
+> Dokumen acuan SIAGA-SDA 2026  
 > Instansi: Dinas Pekerjaan Umum — Bidang Sumber Daya Air — Kota Dumai  
 > Prinsip: audit-safe, mobile-first, assignment-based, dan tidak rebuild total.
 
@@ -67,3 +74,25 @@ All Rights Reserved
 - Form login mudah diklik.
 - Tombol utama jelas.
 - Footer tetap tampil, namun tidak memakan ruang.
+
+---
+
+# UPDATE FINAL LOGIN
+
+Login menggunakan Email/NIP/Username dan Password.
+
+Dilarang:
+- Google Login
+- Microsoft Login
+- Social Login
+- Dropdown pilih role di login
+
+Login menampilkan:
+- Logo SIAGA-SDA
+- Kepanjangan SIAGA-SDA
+- Command Center SDA
+- Dinas PU Bidang SDA Kota Dumai
+- Widget pasang surut
+- Waktu salat
+- Status sistem
+- Footer resmi

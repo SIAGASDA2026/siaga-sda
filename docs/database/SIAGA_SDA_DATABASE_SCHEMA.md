@@ -1,6 +1,13 @@
+<!--
+SIAGA-SDA DOCUMENT CONTROL
+Project aktif: SIAGA-SDA
+Dokumen ini adalah acuan pengembangan bertahap. Jangan melakukan penggantian nama aplikasi, jangan mengubah role/workflow/database/routing/auth tanpa instruksi eksplisit.
+Codex wajib audit dan mapping sistem aktual sebelum coding.
+-->
+
 # SIAGA-SDA Database Schema
 
-> Draft schema konseptual untuk Supabase/PostgreSQL. Codex wajib menyesuaikan dengan schema existing SIMONPRO melalui migration bertahap.
+> Draft schema konseptual untuk Supabase/PostgreSQL. Codex wajib menyesuaikan dengan schema existing SIAGA-SDA melalui migration bertahap.
 
 ## Core Tables
 
@@ -240,3 +247,15 @@ create table if not exists shift_log_workers (
   note text
 );
 ```
+
+---
+
+# UPDATE FINAL DATABASE MAPPING
+
+Schema dalam dokumen ini bersifat blueprint konseptual.
+
+Codex wajib audit schema aktual sebelum membuat tabel/field baru.
+Jangan membuat tabel ganda.
+Jangan menghapus tabel lama tanpa instruksi.
+
+Role ADMIN_KEGIATAN tidak digunakan lagi. Mapping bertahap ke ADMIN_SUB_KEGIATAN jika masih ditemukan pada schema/seed lama.
