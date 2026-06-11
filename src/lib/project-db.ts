@@ -228,7 +228,8 @@ export function toRole(value: unknown): Role {
     admin: Role.ADMIN,
     pejabat_pengadaan: Role.PEJABAT_PENGADAAN,
     pphp: Role.PPHP,
-    administrasi_kontrak: Role.ADMINISTRASI_KONTRAK,
+    // TODO: Setelah schema Prisma mendukung ADMIN_SUB_KEGIATAN, mapping ini perlu dimigrasikan.
+    admin_sub_kegiatan: Role.ADMINISTRASI_KONTRAK,
     pimpinan: Role.PIMPINAN,
     ppk: Role.PPK,
     pptk: Role.PPTK,

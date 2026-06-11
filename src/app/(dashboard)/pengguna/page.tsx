@@ -14,7 +14,7 @@ import toast from 'react-hot-toast'
 const ROLES = ROLE_DEFINITIONS
 
 const ROLE_COLORS: Record<Role, string> = {
-  super_admin: 'red', admin: 'red', pejabat_pengadaan: 'amber', pphp: 'cyan', administrasi_kontrak: 'slate',
+  super_admin: 'red', admin: 'red', pejabat_pengadaan: 'amber', pphp: 'cyan', admin_sub_kegiatan: 'slate',
   ppk: 'blue', kabid: 'purple', direksi_teknis: 'blue', pimpinan: 'purple',
   pptk: 'green', tim_perencanaan: 'teal', tim_survey: 'cyan', tim_pengawasan: 'orange',
   konsultan_perencana: 'indigo', konsultan_pengawasan: 'slate', kontraktor: 'green',
@@ -142,7 +142,7 @@ export default function PenggunaPage() {
         <div className="grid grid-cols-4 gap-3 mb-5">
           {[
             { label: 'Total User', val: users.length, bg: 'bg-white', color: 'text-slate-800' },
-            { label: 'Staff Dinas', val: users.filter(u => ['ppk','pptk','pimpinan','tim_perencanaan','tim_survey','tim_pengawasan','admin','super_admin','pejabat_pengadaan','pphp','administrasi_kontrak','auditor'].includes(u.role)).length, bg: 'bg-blue-50', color: 'text-blue-700' },
+            { label: 'Staff Dinas', val: users.filter(u => ['ppk','pptk','pimpinan','tim_perencanaan','tim_survey','tim_pengawasan','admin','super_admin','pejabat_pengadaan','pphp','admin_sub_kegiatan','auditor'].includes(u.role)).length, bg: 'bg-blue-50', color: 'text-blue-700' },
             { label: 'Konsultan', val: users.filter(u => u.role.startsWith('konsultan')).length, bg: 'bg-purple-50', color: 'text-purple-700' },
             { label: 'Admin', val: users.filter(u => u.role === 'admin').length, bg: 'bg-red-50', color: 'text-red-700' },
           ].map(s => (
@@ -278,7 +278,7 @@ export default function PenggunaPage() {
               <Input value={form.jabatan} onChange={e => f('jabatan', e.target.value)} placeholder="Kepala Seksi..." />
             </FormField>
           </div>
-          {['konsultan_perencana', 'konsultan_pengawasan', 'kontraktor', 'pphp', 'administrasi_kontrak', 'pejabat_pengadaan'].includes(form.role) && (
+          {['konsultan_perencana', 'konsultan_pengawasan', 'kontraktor', 'pphp', 'pejabat_pengadaan'].includes(form.role) && (
             <FormField label="Akses Proyek" hint="pilih proyek yang dapat diakses konsultan">
               <div className="space-y-2 max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-3">
                 {projects.map(p => (

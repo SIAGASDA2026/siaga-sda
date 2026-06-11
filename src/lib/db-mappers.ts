@@ -168,7 +168,7 @@ export function mapDbRole(role: PrismaRole | string): Role {
     admin: 'admin',
     pejabat_pengadaan: 'pejabat_pengadaan',
     pphp: 'pphp',
-    administrasi_kontrak: 'administrasi_kontrak',
+    administrasi_kontrak: 'admin_sub_kegiatan',
     kepala_dinas: 'pimpinan',
     pimpinan: 'pimpinan',
     ppk: 'ppk',

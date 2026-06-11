@@ -8,7 +8,8 @@ const ROLE_MAP: Record<string, string> = {
   admin: 'ADMIN',
   pejabat_pengadaan: 'PEJABAT_PENGADAAN',
   pphp: 'PPHP',
-  administrasi_kontrak: 'ADMINISTRASI_KONTRAK',
+  // TODO: Setelah enum Prisma ADMIN_SUB_KEGIATAN tersedia, arahkan role ini ke enum baru.
+  admin_sub_kegiatan: 'ADMINISTRASI_KONTRAK',
   pimpinan: 'PIMPINAN',
   ppk: 'PPK',
   pptk: 'PPTK',

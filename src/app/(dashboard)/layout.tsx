@@ -16,13 +16,14 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
-  const { status } = useSession()
+  const { data: session, status } = useSession()
 
-  const { isLoggedIn, sidebarOpen, hydrateFromDatabase, setAuthUser } = useAppStore()
+  const { currentUser, isLoggedIn, sidebarOpen, hydrateFromDatabase, setAuthUser } = useAppStore()
 
   const [mounted, setMounted] = useState(false)
   const [bootstrapped, setBootstrapped] = useState(false)
   const syncVersionRef = useRef<string>('')
+  const syncInFlightRef = useRef(false)
 
   useEffect(() => {
     setMounted(true)
@@ -31,6 +32,7 @@ export default function DashboardLayout({
   useEffect(() => {
     if (mounted && status === 'unauthenticated') {
       setAuthUser(null)
+      setBootstrapped(false)
       router.replace('/login')
     }
   }, [mounted, router, setAuthUser, status])
@@ -39,6 +41,18 @@ export default function DashboardLayout({
     if (!mounted || status !== 'authenticated') return
 
     let active = true
+
+    if (!currentUser && session?.user) {
+      const sessionUser = session.user as typeof session.user & { id?: string; role?: string }
+      setAuthUser({
+        id: sessionUser.id || sessionUser.email || 'session-user',
+        name: sessionUser.name || sessionUser.email || 'Pengguna',
+        email: sessionUser.email || '',
+        role: (sessionUser.role as any) || 'pptk',
+      })
+    }
+
+    setBootstrapped(true)
 
     const syncData = async () => {
       return fetch('/api/bootstrap', { cache: 'no-store' })
@@ -53,11 +67,32 @@ export default function DashboardLayout({
           }
         })
         .catch(() => {
-          if (active) setAuthUser(null)
+          // Jangan jatuhkan session aktif jika bootstrap data sedang lambat/gagal sementara.
+          // Validasi login tetap dipegang NextAuth; data dashboard akan mencoba sync lagi.
+          if (active) setBootstrapped(true)
         })
     }
 
+    const primeSyncVersion = async () => {
+      if (syncInFlightRef.current) return
+      syncInFlightRef.current = true
+
+      try {
+        const response = await fetch('/api/sync-version', { cache: 'no-store' })
+        if (!response.ok) throw new Error('Gagal memeriksa perubahan data')
+        const data = await response.json()
+        syncVersionRef.current = data.version
+      } catch {
+        // Cek versi hanya optimasi realtime; jangan ganggu login/dashboard.
+      } finally {
+        syncInFlightRef.current = false
+      }
+    }
+
     const syncIfChanged = async () => {
+      if (syncInFlightRef.current) return
+      syncInFlightRef.current = true
+
       try {
         const response = await fetch('/api/sync-version', { cache: 'no-store' })
         if (!response.ok) throw new Error('Gagal memeriksa perubahan data')
@@ -68,14 +103,20 @@ export default function DashboardLayout({
           await syncData()
         }
       } catch {
-        if (active) setAuthUser(null)
+        // Jangan paksa logout hanya karena cek realtime sementara gagal/lambat.
+        // Session tetap divalidasi oleh NextAuth dan bootstrap awal.
+      } finally {
+        syncInFlightRef.current = false
       }
     }
 
-    syncData()
+    const initialSyncId = window.setTimeout(() => {
+      syncData().then(primeSyncVersion)
+    }, 1200)
+
     const intervalId = window.setInterval(() => {
       if (document.visibilityState === 'visible') syncIfChanged()
-    }, 1000)
+    }, 15000)
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') syncIfChanged()
@@ -88,11 +129,12 @@ export default function DashboardLayout({
 
     return () => {
       active = false
+      window.clearTimeout(initialSyncId)
       window.clearInterval(intervalId)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleFocus)
     }
-  }, [hydrateFromDatabase, mounted, setAuthUser, status])
+  }, [currentUser, hydrateFromDatabase, mounted, session?.user, setAuthUser, status])
 
   if (!mounted || status === 'loading') {
     return (

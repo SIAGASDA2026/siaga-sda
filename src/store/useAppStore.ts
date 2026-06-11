@@ -49,6 +49,19 @@ const calcHealth = (fisik: number, keu: number) => {
   return { deviasi: dev, health: (dev >= -10 ? 'on_track' : dev >= -20 ? 'warning' : 'kritis') as 'on_track'|'warning'|'kritis' }
 }
 
+const mergeFallbackProjects = (databaseProjects: Proyek[]) => {
+  const merged = new Map<string, Proyek>()
+
+  DUMMY_PROJECTS.forEach((project) => merged.set(project.id, project))
+  databaseProjects.forEach((project) => merged.set(project.id, project))
+
+  return Array.from(merged.values()).sort((a, b) => {
+    const yearDiff = (b.tahunAnggaran || new Date(b.updatedAt).getFullYear()) - (a.tahunAnggaran || new Date(a.updatedAt).getFullYear())
+    if (yearDiff !== 0) return yearDiff
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  })
+}
+
 async function apiJson<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...options,
@@ -75,7 +88,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
     currentUser: data.currentUser,
     isLoggedIn: Boolean(data.currentUser),
     users: data.users,
-    projects: data.projects,
+    projects: mergeFallbackProjects(data.projects),
     auditLogs: data.auditLogs,
   }),
   login: (email, password) => {

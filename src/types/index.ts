@@ -3,7 +3,7 @@ export type Role =
   | 'admin'
   | 'pejabat_pengadaan'
   | 'pphp'
-  | 'administrasi_kontrak'
+  | 'admin_sub_kegiatan'
   | 'pptk'
   | 'ppk'
   | 'kabid'

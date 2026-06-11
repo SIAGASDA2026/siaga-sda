@@ -46,7 +46,7 @@ export function getDashboardRoleLabel(role: Role): string {
     admin: 'Admin',
     pejabat_pengadaan: 'Pejabat Pengadaan',
     pphp: 'PPHP',
-    administrasi_kontrak: 'Administrasi Kontrak',
+    admin_sub_kegiatan: 'Admin Sub Kegiatan',
     kabid: 'Kabid',
     direksi_teknis: 'Direksi Teknis',
     pptk: 'PPTK',

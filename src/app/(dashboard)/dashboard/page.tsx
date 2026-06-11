@@ -4,10 +4,11 @@ import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
-import { Activity, AlertTriangle, ArrowRight, BarChart2, Bell, Bot, Building2, Camera, CalendarDays, CheckCircle, Clock, ClipboardList, Eye, FileText, FolderOpen, HardHat, Landmark, LifeBuoy, MapPin, Megaphone, MessageSquare, Menu, Plus, ShieldAlert, TrendingDown, TrendingUp, Users, Waves, XCircle, LucideIcon } from 'lucide-react'
+import { Activity, AlertTriangle, ArrowRight, BarChart2, Bot, Building2, Camera, CalendarDays, CheckCircle, Clock, ClipboardList, Eye, FileText, FolderOpen, HardHat, Landmark, LifeBuoy, MapPin, Megaphone, MessageSquare, Menu, Plus, ShieldAlert, TrendingDown, TrendingUp, Users, Waves, XCircle, LucideIcon } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { Topbar } from '@/components/layout/Topbar'
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
+import { DashboardRoleHeader } from '@/components/dashboard/DashboardRoleHeader'
 import { PrayerTimeWidget } from '@/components/dashboard/PrayerTimeWidget'
 import { TideDashboardPanel } from '@/components/dashboard/TideDashboardPanel'
 import { BRAND } from '@/lib/brand'
@@ -118,7 +119,6 @@ export default function DashboardPage() {
   const recentActivity = auditLogs.slice(0, 7)
   const currentRole = currentUser?.role || 'pptk'
   const normalizedRole = currentRole.toLowerCase()
-  const roleLabel = getRoleLabel(currentRole)
   const approvalPending = stats.laporanMenunggu + stats.rabMenunggu + stats.surveyMenunggu
   const riskProjects = visibleProjects
     .filter((project) => project.health === 'kritis' || project.health === 'warning' || project.masalah.some((item) => item.status === 'open'))
@@ -189,16 +189,6 @@ export default function DashboardPage() {
     minute: '2-digit',
     hour12: false,
   })
-  const userInitials = useMemo(
-    () => currentUserName
-      .split(' ')
-      .filter(Boolean)
-      .map((word) => word[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase(),
-    [currentUserName],
-  )
   const tideOverview = useMemo(
     () => ({
       currentLevel: '+1.36 m',
@@ -470,28 +460,56 @@ export default function DashboardPage() {
   }, [visibleProjects, stats.totalAnggaran])
 
   const quickActions = {
-    pptk: [
-      { label: 'Input Laporan', href: '/laporan', icon: FileText, color: 'bg-gradient-to-br from-[#FF6A00] to-[#FF3D00]', desc: 'Upload progress harian' },
-      { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-gradient-to-br from-[#3730A3] to-[#06B6D4]', desc: 'Pantau sebaran paket' },
-      { label: 'Chat Proyek', href: '/chat', icon: MessageSquare, color: 'bg-gradient-to-br from-[#00897B] to-[#00ACC1]', desc: 'Koordinasi tim lapangan' },
+    admin: [
+      { label: 'Kelola Paket', href: '/proyek', icon: FolderOpen, color: 'bg-cyan-50 text-cyan-700', desc: 'Data paket aktif', badge: stats.total },
+      { label: 'Approval', href: '/approval', icon: CheckCircle, color: 'bg-emerald-50 text-emerald-700', desc: 'Validasi pending', badge: approvalPending },
+      { label: 'Audit Log', href: '/audit-log', icon: Activity, color: 'bg-slate-100 text-slate-700', desc: 'Aktivitas sistem', badge: auditLogs.length },
+      { label: 'Pengaturan', href: '/pengaturan', icon: Users, color: 'bg-blue-50 text-blue-700', desc: 'Akun dan akses' },
     ],
-  ppk: [
-    { label: 'Approval Center', href: '/approval', icon: CheckCircle, color: 'bg-gradient-to-br from-[#2E7D32] to-[#66BB6A]', desc: `${approvalPending} item menunggu` },
-    { label: 'Proyek Kritis', href: '/proyek', icon: ShieldAlert, color: 'bg-gradient-to-br from-[#D32F2F] to-[#E53935]', desc: 'Lihat paket deviasi' },
-    { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-gradient-to-br from-[#3730A3] to-[#06B6D4]', desc: 'Buka peta monitoring' },
-  ],
-  pimpinan: [
-    { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-gradient-to-br from-[#3730A3] to-[#06B6D4]', desc: 'Pantau situasi SDA' },
-    { label: 'Surat Masuk', href: '/pengumuman', icon: MessageSquare, color: 'bg-gradient-to-br from-[#2b2f6b] to-[#0D47A1]', desc: 'Surat penting' },
-    { label: 'Asset SDA', href: '/peta', icon: Building2, color: 'bg-gradient-to-br from-[#2E7D32] to-[#66BB6A]', desc: 'Status asset' },
-  ],
-  admin: [
-    { label: 'Kelola Pengguna', href: '/pengguna', icon: Users, color: 'bg-gradient-to-br from-[#3730A3] to-[#06B6D4]', desc: 'Tambah/Edit akun' },
-    { label: 'Tambah Paket', href: '/proyek', icon: Plus, color: 'bg-gradient-to-br from-[#2E7D32] to-[#66BB6A]', desc: 'Daftarkan paket baru' },
-    { label: 'Surat & Pengumuman', href: '/pengumuman', icon: Megaphone, color: 'bg-gradient-to-br from-[#FFB300] to-[#FF8A00]', desc: 'Informasi resmi' },
-  ],
-}
-  const actions = quickActions[normalizedRole] || quickActions.pptk
+    super_admin: [
+      { label: 'Kelola Paket', href: '/proyek', icon: FolderOpen, color: 'bg-cyan-50 text-cyan-700', desc: 'Data paket aktif', badge: stats.total },
+      { label: 'Approval', href: '/approval', icon: CheckCircle, color: 'bg-emerald-50 text-emerald-700', desc: 'Validasi pending', badge: approvalPending },
+      { label: 'Audit Log', href: '/audit-log', icon: Activity, color: 'bg-slate-100 text-slate-700', desc: 'Aktivitas sistem', badge: auditLogs.length },
+      { label: 'Pengaturan', href: '/pengaturan', icon: Users, color: 'bg-blue-50 text-blue-700', desc: 'Akun dan akses' },
+    ],
+    ppk: [
+      { label: 'Paket Saya', href: '/proyek', icon: FolderOpen, color: 'bg-cyan-50 text-cyan-700', desc: 'Pantau paket', badge: visibleProjects.length },
+      { label: 'Approval Pending', href: '/approval', icon: CheckCircle, color: 'bg-emerald-50 text-emerald-700', desc: 'Perlu keputusan', badge: approvalPending },
+      { label: 'Progress', href: '/laporan', icon: TrendingUp, color: 'bg-blue-50 text-blue-700', desc: 'Laporan harian', badge: stats.laporanMenunggu },
+      { label: 'Dokumen', href: '/dokumen', icon: FileText, color: 'bg-amber-50 text-amber-700', desc: 'RAB dan arsip' },
+    ],
+    pptk: [
+      { label: 'Paket Saya', href: '/proyek', icon: FolderOpen, color: 'bg-cyan-50 text-cyan-700', desc: 'Tindak lanjut', badge: visibleProjects.length },
+      { label: 'Progress', href: '/laporan', icon: TrendingUp, color: 'bg-blue-50 text-blue-700', desc: 'Input laporan', badge: stats.laporanMenunggu },
+      { label: 'Dokumen', href: '/dokumen', icon: FileText, color: 'bg-amber-50 text-amber-700', desc: 'Lengkapi arsip' },
+      { label: 'Peta Lokasi', href: '/peta', icon: MapPin, color: 'bg-emerald-50 text-emerald-700', desc: 'Pantau lokasi' },
+    ],
+    tim_survey: [
+      { label: 'Input Survey', href: '/survey', icon: Camera, color: 'bg-blue-50 text-blue-700', desc: 'Data lapangan', badge: stats.surveyMenunggu },
+      { label: 'Belum Tindak Lanjut', href: '/survey', icon: ClipboardList, color: 'bg-amber-50 text-amber-700', desc: 'Survey pending', badge: stats.surveyMenunggu },
+      { label: 'Peta Lokasi', href: '/peta', icon: MapPin, color: 'bg-emerald-50 text-emerald-700', desc: 'Koordinat survey' },
+      { label: 'Aktivitas', href: '/audit-log', icon: Activity, color: 'bg-slate-100 text-slate-700', desc: 'Riwayat input' },
+    ],
+    tim_pengawasan: [
+      { label: 'Paket Berjalan', href: '/proyek', icon: HardHat, color: 'bg-cyan-50 text-cyan-700', desc: 'Pengawasan aktif', badge: stats.total - stats.selesai },
+      { label: 'Masalah Lapangan', href: '/masalah', icon: AlertTriangle, color: 'bg-rose-50 text-rose-700', desc: 'Kendala aktif', badge: stats.openMasalah },
+      { label: 'Laporan Harian', href: '/laporan', icon: FileText, color: 'bg-blue-50 text-blue-700', desc: 'Validasi progres' },
+      { label: 'Peta Lokasi', href: '/peta', icon: MapPin, color: 'bg-emerald-50 text-emerald-700', desc: 'Sebaran paket' },
+    ],
+    pimpinan: [
+      { label: 'Dashboard', href: '/dashboard', icon: BarChart2, color: 'bg-blue-50 text-blue-700', desc: 'Ringkasan kota' },
+      { label: 'Risiko Kritis', href: '/masalah', icon: ShieldAlert, color: 'bg-rose-50 text-rose-700', desc: 'Perlu perhatian', badge: stats.kritis + stats.warning },
+      { label: 'Serapan Anggaran', href: '/serapan-anggaran', icon: TrendingUp, color: 'bg-emerald-50 text-emerald-700', desc: 'Realisasi tahun' },
+      { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-cyan-50 text-cyan-700', desc: 'Sebaran SDA' },
+    ],
+    default: [
+      { label: 'Input Data', href: '/laporan', icon: Plus, color: 'bg-blue-50 text-blue-700', desc: 'Laporan kerja' },
+      { label: 'Surat/Dokumen', href: '/dokumen', icon: FileText, color: 'bg-amber-50 text-amber-700', desc: 'Arsip modul' },
+      { label: 'Aktivitas', href: '/audit-log', icon: Activity, color: 'bg-slate-100 text-slate-700', desc: 'Log terbaru' },
+      { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-cyan-50 text-cyan-700', desc: 'Pantau lokasi' },
+    ],
+  }
+  const actions = quickActions[normalizedRole as keyof typeof quickActions] || quickActions.default
 
   const getFocusRingFromColor = (color: string) => {
     if (!color) return 'focus:ring-blue-200'
@@ -519,36 +537,23 @@ export default function DashboardPage() {
         title="Dashboard"
         subtitle={`${BRAND.tagline} - ${currentUser?.name?.split(' ')[0] || 'Pengguna'} - ${getRoleLabel(currentRole)}`}
       />
-      <div className="space-y-5 p-4 sm:p-5 siaga-gemini-bg">
-        <section className="relative z-10 overflow-hidden rounded-[32px] border border-slate-200/70 bg-white/90 p-4 text-slate-950 shadow-[0_24px_70px_rgba(15,23,42,0.06)] backdrop-blur-sm md:p-5">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="space-y-3">
-              <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Dashboard Command Center</div>
-              <h1 className="text-xl font-extrabold text-slate-950 lg:text-2xl">Ringkasan kondisi Sistem Informasi, Analisis, Gerak Cepat dan Administrasi SDA</h1>
-              <p className="max-w-2xl text-sm text-slate-600">Ringkasan operasional, risiko, dan tugas prioritas untuk pengambilan keputusan cepat.</p>
-            </div>
-            <div className="grid gap-3 sm:auto-cols-fr sm:grid-flow-col sm:grid">
-              <div className="flex items-center gap-2 rounded-3xl bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm">
-                <Clock className="h-4 w-4 text-cyan-600" />
-                <span>{currentDateLabel} • {currentTimeLabel}</span>
-              </div>
-              <div className="flex items-center gap-2 rounded-3xl bg-slate-50 px-4 py-2 text-sm text-slate-700 shadow-sm">
-                <Bell className="h-4 w-4 text-cyan-600" />
-                <span>{auditLogs.length} notifikasi</span>
-              </div>
-              <div className="flex items-center gap-3 rounded-3xl bg-cyan-600 px-4 py-2 text-sm font-semibold text-white shadow-sm">
-                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-950 text-sm text-white">{userInitials}</div>
-                <div className="min-w-0">
-                  <div className="text-sm font-semibold">{currentUserName}</div>
-                  <div className="text-xs uppercase tracking-[0.24em] text-cyan-100">{roleLabel}</div>
-                </div>
-              </div>
+      <div className="space-y-4 p-3 sm:p-4 siaga-gemini-bg">
+        <DashboardRoleHeader
+          currentUser={currentUser}
+          projects={projects}
+          dateLabel={currentDateLabel}
+          timeLabel={currentTimeLabel}
+          notificationCount={auditLogs.length}
+        />
+
+        <section className="relative z-10 rounded-[24px] border border-slate-200/70 bg-white/90 p-2 shadow-sm">
+          <div className="flex items-center justify-between gap-3 px-1.5 pb-2 pt-1">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-cyan-700">Navigasi Dashboard</div>
+              <div className="mt-0.5 text-[11px] text-slate-500">Pilih ringkasan atau ruang monitoring sesuai kebutuhan.</div>
             </div>
           </div>
-        </section>
-
-        <section className="relative z-10 rounded-[28px] border border-slate-200/70 bg-white/90 p-3 shadow-sm">
-          <div className="flex min-w-full gap-2 pb-1 md:flex-wrap md:overflow-visible overflow-x-auto">
+          <div className="flex min-w-full gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
             {DASHBOARD_TABS.map((tab) => {
               const TabIcon = tab.icon
               return (
@@ -556,10 +561,10 @@ export default function DashboardPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`inline-flex min-w-[92px] items-center gap-2 rounded-2xl border px-2 py-1.5 text-xs transition duration-200 ${activeTab === tab.id ? 'border-cyan-400 bg-cyan-50 text-slate-950 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-cyan-200 hover:bg-slate-50'}`}
+                  className={`inline-flex min-w-[82px] items-center gap-1.5 rounded-2xl border px-2 py-1.5 text-xs transition duration-200 ${activeTab === tab.id ? 'border-cyan-400 bg-cyan-50 text-slate-950 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-cyan-200 hover:bg-slate-50'}`}
                   aria-pressed={activeTab === tab.id}
                 >
-                  <span className={`inline-flex h-7 w-7 items-center justify-center rounded-2xl ${activeTab === tab.id ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-100 text-slate-600'}`}>
+                  <span className={`inline-flex h-6 w-6 items-center justify-center rounded-xl ${activeTab === tab.id ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-100 text-slate-600'}`}>
                     <TabIcon className="h-3.5 w-3.5" />
                   </span>
                   <span className="whitespace-nowrap font-semibold">{tab.label}</span>
@@ -569,8 +574,15 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <div className="relative z-10 grid gap-3 grid-cols-2 md:grid-cols-4">
-          {[
+        <section className="relative z-10 rounded-[24px] border border-slate-200/70 bg-white/75 p-2 shadow-sm">
+          <div className="flex items-center justify-between gap-3 px-1.5 pb-2 pt-1">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-cyan-700">Indikator Utama</div>
+              <div className="mt-0.5 text-[11px] text-slate-500">Rekap cepat kondisi paket, approval, dan tindak lanjut.</div>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 md:grid-cols-4">
+            {[
             {
               label: 'Total Paket Aktif',
               value: stats.total,
@@ -599,47 +611,48 @@ export default function DashboardPage() {
               href: `/proyek?tahun=${activeYear}&source=survey&status=belum-ditindaklanjuti`,
               tone: 'violet',
             },
-          ].map((card) => {
-            const Icon = card.icon
-            return (
-              <Link
-                key={card.label}
-                href={card.href}
-                className={`group relative z-10 rounded-3xl border bg-white p-4 flex items-center justify-between gap-3 h-24 ${card.tone === 'blue' ? 'border-blue-200/70' : card.tone === 'red' ? 'border-rose-200/70' : card.tone === 'amber' ? 'border-amber-200/70' : 'border-violet-200/70'} text-slate-900 transition hover:shadow-md hover:scale-[1.01]`}
-              >
-                <div>
-                  <div className="text-xs font-semibold text-slate-700">{card.label}</div>
-                  <div className="mt-2 text-2xl font-extrabold text-slate-950">{card.value}</div>
-                </div>
-                <div className={`inline-flex h-12 w-12 items-center justify-center rounded-full text-white ${card.tone === 'blue' ? 'bg-gradient-to-br from-[#2b6cb0] to-[#06b6d4] shadow-[0_8px_30px_rgba(14,165,233,0.12)]' : card.tone === 'red' ? 'bg-gradient-to-br from-[#d32f2f] to-[#f44336] shadow-[0_8px_30px_rgba(244,63,94,0.12)]' : card.tone === 'amber' ? 'bg-gradient-to-br from-[#ffb300] to-[#ff8a00] shadow-[0_8px_30px_rgba(255,167,38,0.12)]' : 'bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] shadow-[0_8px_30px_rgba(124,58,237,0.12)]'}`}>
-                  <Icon className="h-5 w-5" />
-                </div>
-              </Link>
-            )
-          })}
-        </div>
+            ].map((card) => {
+              const Icon = card.icon
+              return (
+                <Link
+                  key={card.label}
+                  href={card.href}
+                  className={`group relative z-10 flex min-h-[96px] items-center justify-between gap-3 rounded-[22px] border p-3.5 text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${card.tone === 'blue' ? 'border-sky-200/80 bg-sky-50/90' : card.tone === 'red' ? 'border-rose-200/80 bg-rose-50/85' : card.tone === 'amber' ? 'border-amber-200/80 bg-amber-50/85' : 'border-violet-200/80 bg-violet-50/85'}`}
+                >
+                  <div className="min-w-0">
+                    <div className="line-clamp-2 text-[11px] font-bold leading-snug text-slate-700 sm:text-xs">{card.label}</div>
+                    <div className="mt-2 text-2xl font-black leading-none text-slate-950">{card.value}</div>
+                  </div>
+                  <div className={`inline-flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl text-white ${card.tone === 'blue' ? 'bg-gradient-to-br from-[#2b6cb0] to-[#06b6d4] shadow-[0_8px_30px_rgba(14,165,233,0.12)]' : card.tone === 'red' ? 'bg-gradient-to-br from-[#d32f2f] to-[#f44336] shadow-[0_8px_30px_rgba(244,63,94,0.12)]' : card.tone === 'amber' ? 'bg-gradient-to-br from-[#ffb300] to-[#ff8a00] shadow-[0_8px_30px_rgba(255,167,38,0.12)]' : 'bg-gradient-to-br from-[#7c3aed] to-[#a78bfa] shadow-[0_8px_30px_rgba(124,58,237,0.12)]'}`}>
+                    <Icon className="h-5 w-5" />
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </section>
 
-        <section className="relative z-10 rounded-[32px] border border-slate-200/70 bg-white/90 p-4 shadow-sm">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <section className="relative z-10 rounded-[24px] border border-sky-200/70 bg-gradient-to-br from-white via-sky-50/80 to-cyan-50/70 p-3 shadow-sm">
+          <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Filter Ringkas</div>
-              <div className="mt-2 text-sm text-slate-600">Saring paket aktif berdasarkan tahun, jenis, metode, dan tahap.</div>
+              <div className="mt-1 text-xs text-slate-600">Saring paket aktif berdasarkan tahun, jenis, metode, dan tahap.</div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Tahun: <span className="font-bold text-slate-900">{compactFilterValues.tahun}</span></span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Jenis: <span className="font-bold text-slate-900">{compactFilterValues.jenis}</span></span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Metode: <span className="font-bold text-slate-900">{compactFilterValues.metode}</span></span>
-              <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-semibold text-slate-700">Tahap: <span className="font-bold text-slate-900">{compactFilterValues.tahap}</span></span>
-              <span className="rounded-full border border-cyan-200 bg-cyan-50 px-3 py-2 text-xs font-semibold text-cyan-900">{visibleProjects.length} paket</span>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="rounded-full border border-sky-100 bg-white/85 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">Tahun: <span className="font-bold text-slate-900">{compactFilterValues.tahun}</span></span>
+              <span className="rounded-full border border-emerald-100 bg-white/85 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">Jenis: <span className="font-bold text-slate-900">{compactFilterValues.jenis}</span></span>
+              <span className="rounded-full border border-amber-100 bg-white/85 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">Metode: <span className="font-bold text-slate-900">{compactFilterValues.metode}</span></span>
+              <span className="rounded-full border border-violet-100 bg-white/85 px-2.5 py-1.5 text-[11px] font-semibold text-slate-700">Tahap: <span className="font-bold text-slate-900">{compactFilterValues.tahap}</span></span>
+              <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1.5 text-[11px] font-semibold text-cyan-900">{visibleProjects.length} paket</span>
             </div>
           </div>
-          <div className="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
             <span>{compactFilterSummary}</span>
             {hasFilterActive && activeFilterLabels.map((label) => (
-              <span key={label} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-2 font-semibold text-slate-700">{label}</span>
+              <span key={label} className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1.5 font-semibold text-slate-700">{label}</span>
             ))}
           </div>
-          <div className="mt-4 flex flex-wrap gap-2 justify-end">
+          <div className="mt-3 flex flex-wrap justify-end gap-2">
             {hasFilterActive && (
               <button
                 type="button"
@@ -651,7 +664,7 @@ export default function DashboardPage() {
                   setFilterProgram('all')
                   setFilterSubKegiatan('all')
                 }}
-                className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-4 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
+                className="inline-flex h-9 items-center justify-center rounded-2xl border border-slate-200 bg-slate-50 px-3 text-xs font-semibold text-slate-700 transition hover:border-slate-300 hover:bg-slate-100"
               >
                 Reset Filter
               </button>
@@ -659,7 +672,7 @@ export default function DashboardPage() {
             <button
               type="button"
               onClick={() => setShowAdvancedFilters((prev) => !prev)}
-              className="inline-flex h-10 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 px-4 text-xs font-semibold text-cyan-900 transition hover:border-cyan-300 hover:bg-cyan-100"
+              className="inline-flex h-9 items-center justify-center rounded-2xl border border-cyan-200 bg-cyan-50 px-3 text-xs font-semibold text-cyan-900 transition hover:border-cyan-300 hover:bg-cyan-100"
             >
               {showAdvancedFilters ? 'Sembunyikan Filter' : 'Filter Lanjutan'}
             </button>
@@ -689,6 +702,40 @@ export default function DashboardPage() {
           </div>
         )}
 
+        <section className="relative z-10 overflow-hidden rounded-[24px] border border-cyan-200/70 bg-gradient-to-br from-cyan-50/95 via-white to-teal-50/90 p-4 text-slate-900 shadow-[0_18px_50px_rgba(14,116,144,0.10)] backdrop-blur-sm">
+          <div className="pointer-events-none absolute -right-12 -top-16 h-36 w-36 rounded-full bg-cyan-200/35 blur-3xl" />
+          <div className="pointer-events-none absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-emerald-200/30 blur-3xl" />
+          <div className="relative flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="min-w-0">
+              <div className="text-xs font-extrabold uppercase tracking-[0.22em] text-cyan-700">AKSES CEPAT ROLE</div>
+              <h2 className="mt-1 text-base font-extrabold text-slate-900">Shortcut kerja hari ini</h2>
+              <p className="mt-0.5 text-xs font-medium text-slate-600">Aksi utama disesuaikan dengan role aktif: {getRoleLabel(currentRole)}.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:min-w-[620px]">
+              {actions.slice(0, 4).map((action) => (
+                <Link
+                  key={action.label}
+                  href={action.href}
+                  className="group relative min-w-0 rounded-2xl border border-cyan-100 bg-white/90 p-3 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-[0_12px_32px_rgba(14,116,144,0.14)] active:translate-y-0 active:scale-[0.99]"
+                >
+                  <div className="flex items-start gap-2">
+                    <span className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl ${action.color}`}>
+                      <action.icon className="h-4 w-4" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-xs font-extrabold text-slate-900">{action.label}</div>
+                      <div className="mt-0.5 truncate text-[10px] font-medium text-slate-600">{action.desc}</div>
+                    </div>
+                    {'badge' in action && typeof action.badge === 'number' && (
+                      <span className="absolute right-2 top-2 rounded-full bg-slate-900 px-1.5 py-0.5 text-[10px] font-black text-white">{action.badge}</span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {activeTab !== 'ringkasan' && (
           <button
             type="button"
@@ -702,70 +749,59 @@ export default function DashboardPage() {
 
         <div className={`relative z-10 transition-all duration-200 ease-out ${activeTab === 'ringkasan' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'}`}>
           {activeTab === 'ringkasan' && (
-          <div className="space-y-4">
-            <div className="grid gap-3 lg:grid-cols-[1.8fr_1fr_1fr]">
-              <section className="siaga-glass-card border border-slate-200/70 p-4 h-full flex flex-col">
+          <div className="space-y-3">
+            <div className="grid gap-3 xl:grid-cols-[1.08fr_0.92fr]">
+              <section className="siaga-glass-card flex h-full flex-col border border-cyan-200/70 bg-gradient-to-br from-cyan-50/90 via-white to-sky-50/90 p-3.5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.26em] text-cyan-700">Command Brief SIAGA-SDA</div>
-                    <h2 className="mt-1 text-lg font-extrabold text-slate-950">Status operasi dan prioritas hari ini</h2>
+                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">COMMAND BRIEF SIAGA-SDA</div>
+                    <h2 className="mt-1 text-base font-extrabold text-slate-950">Operasi dan prioritas hari ini</h2>
                   </div>
                   <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${statusSda === 'WASPADA' ? 'border-amber-200 bg-amber-50 text-amber-900' : 'border-emerald-200 bg-emerald-50 text-emerald-900'}`}>{statusSda}</span>
                 </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
                   {commandBriefItems.map((item) => {
                     const toneClass = item.tone === 'blue' ? 'bg-blue-50 text-blue-700' : item.tone === 'emerald' ? 'bg-emerald-50 text-emerald-700' : item.tone === 'slate' ? 'bg-slate-100 text-slate-700' : item.tone === 'red' ? 'bg-rose-50 text-rose-700' : item.tone === 'amber' ? 'bg-amber-50 text-amber-700' : 'bg-violet-50 text-violet-700'
                     return (
-                      <div key={item.label} className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm">
-                        <div className="flex items-start justify-between gap-4">
-                          <div>
-                            <div className="text-xs uppercase tracking-[0.22em] text-slate-500">{item.label}</div>
-                            <div className="mt-3 text-3xl font-black text-slate-950">{item.value}</div>
+                       <div key={item.label} className={`rounded-2xl border p-2.5 shadow-sm ${item.tone === 'blue' ? 'border-blue-100 bg-blue-50/80' : item.tone === 'emerald' ? 'border-emerald-100 bg-emerald-50/80' : item.tone === 'slate' ? 'border-slate-200 bg-slate-50/90' : item.tone === 'red' ? 'border-rose-100 bg-rose-50/80' : item.tone === 'amber' ? 'border-amber-100 bg-amber-50/80' : 'border-violet-100 bg-violet-50/80'}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="line-clamp-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{item.label}</div>
+                            <div className="mt-1.5 text-2xl font-black text-slate-950">{item.value}</div>
                           </div>
-                          <span className={`inline-flex h-11 w-11 items-center justify-center rounded-2xl ${toneClass}`}>
-                            <item.icon className="h-5 w-5" />
+                          <span className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-xl ${toneClass}`}>
+                            <item.icon className="h-4 w-4" />
                           </span>
                         </div>
                       </div>
                     )
                   })}
                 </div>
-                <div className="mt-3 grid gap-2 lg:grid-cols-2">
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-sm font-semibold text-slate-900">Kesimpulan Singkat</div>
-                    <p className="mt-2 text-sm leading-5 text-slate-700">{mainCauses[0] || 'Kondisi umum terlihat stabil, tetap awasi approval dan progress harian.'}</p>
-                  </div>
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-sm font-semibold text-slate-900">Aksi Prioritas</div>
-                    <ul className="mt-2 space-y-1 text-sm text-slate-700">
-                      <li>• Percepat review approval pending.</li>
-                      <li>• Evaluasi paket stuck/kritis.</li>
-                      <li>• Sinkronkan progres fisik dan keuangan.</li>
-                      <li>• Cek titik kritis dan pasang surut puncak.</li>
-                    </ul>
-                  </div>
+                <div className="mt-3 rounded-2xl border border-cyan-100 bg-white/85 p-2.5">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Kesimpulan Singkat</div>
+                  <p className="mt-1 text-sm leading-5 text-slate-700">{mainCauses[0] || 'Kondisi umum stabil. Tetap awasi approval dan progress harian.'}</p>
                 </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  <Link href="/proyek" className="inline-flex h-10 items-center justify-center rounded-2xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">Lihat Paket</Link>
-                  <Link href="/approval" className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Approval</Link>
-                  <Link href="/peta" className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Buka Peta</Link>
-                  <Link href="/audit-log" className="inline-flex h-10 items-center justify-center rounded-2xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Lihat Audit Log</Link>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  <Link href="/proyek" className="inline-flex h-8 items-center justify-center rounded-xl bg-slate-950 px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800">Paket</Link>
+                  <Link href="/approval" className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Approval</Link>
+                  <Link href="/peta" className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Peta</Link>
+                  <Link href="/audit-log" className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Audit</Link>
                 </div>
               </section>
 
-              <section className="siaga-glass-card border border-slate-200/70 p-4 h-full flex flex-col">
+              <section className="siaga-glass-card flex h-full flex-col border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-rose-50/80 p-3.5">
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-slate-700">Alert & Risiko Lintas Modul</div>
-                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Prioritas hari ini</h3>
+                    <h3 className="mt-1 text-base font-extrabold text-slate-950">Prioritas hari ini</h3>
                   </div>
                   <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
                 </div>
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 space-y-1.5">
                   {alertItems.map((item) => (
-                    <Link key={item.label} href={item.href} className="flex items-center justify-between rounded-3xl border border-slate-200 bg-white p-2 text-sm transition hover:bg-slate-50">
+                    <Link key={item.label} href={item.href} className="flex items-center justify-between gap-3 rounded-2xl border border-amber-100 bg-white/90 p-2.5 text-sm transition hover:border-amber-200 hover:bg-amber-50/60">
                       <div className="flex items-center gap-2">
-                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 text-slate-700"><item.icon className="h-4 w-4" /></span>
+                        <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><item.icon className="h-4 w-4" /></span>
                         <div>
                           <div className="font-semibold text-slate-900">{item.label}</div>
                           <div className="text-xs text-slate-500">{typeof item.value === 'number' ? `${item.value} item` : item.value}</div>
@@ -777,151 +813,180 @@ export default function DashboardPage() {
                 </div>
               </section>
 
-              <section className="siaga-glass-card border border-slate-200/70 p-4 h-full flex flex-col">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.24em] text-slate-700">Paket & Anggaran Tahun Aktif</div>
-                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Ringkasan paket dan serapan</h3>
-                  </div>
-                  <Link href="/proyek" className="text-xs font-bold text-sky-600 hover:underline">Lihat Semua</Link>
+            </div>
+
+            <section className="siaga-glass-card overflow-hidden border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-emerald-50/80 p-3.5 sm:p-4">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <div className="text-xs uppercase tracking-[0.24em] text-sky-700">Paket & Anggaran Tahun Aktif</div>
+                  <h3 className="mt-1 text-lg font-extrabold leading-tight text-slate-950">Paket dan serapan</h3>
+                  <p className="mt-1 text-xs font-medium leading-5 text-slate-600">Rekap sub kegiatan tahun aktif dalam format tabel ringkas untuk monitoring pagu, serapan, progres, dan status.</p>
                 </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Total Paket</div>
-                    <div className="mt-2 text-3xl font-black text-slate-950">{stats.total}</div>
-                  </div>
-                  <div className="rounded-3xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Stuck / Kritis</div>
-                    <div className="mt-2 text-3xl font-black text-slate-950">{stats.kritis + stats.warning}</div>
-                  </div>
+                <Link href="/proyek" className="inline-flex h-9 w-fit items-center justify-center rounded-2xl border border-sky-200 bg-white px-3 text-xs font-bold text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50">Lihat Semua</Link>
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="rounded-2xl border border-sky-100 bg-white/90 p-3 shadow-sm">
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700">Total Paket</div>
+                  <div className="mt-1 text-2xl font-black leading-none text-slate-950">{stats.total}</div>
                 </div>
-                <div className="mt-3 grid gap-2">
-                  <div className="text-xs uppercase tracking-[0.22em] text-slate-500">Klasifikasi Paket</div>
-                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                    {packageTypeSummary.slice(0, 4).map((item) => (
-                      <div key={item.label} className="rounded-3xl border border-slate-200 bg-white px-3 py-3 text-sm text-slate-700">
-                        <div className="font-semibold text-slate-900">{item.label}</div>
-                        <div className="mt-1 text-xl font-black text-slate-950">{item.count}</div>
-                      </div>
-                    ))}
-                  </div>
+                <div className="rounded-2xl border border-rose-100 bg-rose-50/80 p-3 shadow-sm">
+                  <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-rose-700">Stuck / Kritis</div>
+                  <div className="mt-1 text-2xl font-black leading-none text-slate-950">{stats.kritis + stats.warning}</div>
                 </div>
-                <div className="mt-4 overflow-x-auto">
-                  <table className="min-w-[680px] w-full text-left text-sm text-slate-700">
-                    <thead>
-                      <tr className="border-b border-slate-200 text-xs uppercase tracking-[0.18em] text-slate-500">
-                        <th className="px-3 py-3">Sub Kegiatan</th>
-                        <th className="px-3 py-3">Pagu</th>
-                        <th className="px-3 py-3">Serapan</th>
-                        <th className="px-3 py-3">% Serapan</th>
-                        <th className="px-3 py-3">Status</th>
+                {packageTypeSummary.slice(0, 2).map((item, index) => (
+                  <div key={item.label} className={`rounded-2xl border p-3 shadow-sm ${index === 0 ? 'border-emerald-100 bg-emerald-50/80' : 'border-violet-100 bg-violet-50/80'}`}>
+                    <div className="line-clamp-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-600">{item.label}</div>
+                    <div className="mt-1 text-2xl font-black leading-none text-slate-950">{item.count}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-sm">
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[920px] border-collapse text-left text-sm">
+                    <thead className="bg-sky-50 text-[11px] font-black uppercase tracking-[0.12em] text-slate-600">
+                      <tr>
+                        <th className="border-b border-slate-200 px-4 py-3">Sub Kegiatan / Paket</th>
+                        <th className="border-b border-slate-200 px-3 py-3 text-center">Jumlah Paket</th>
+                        <th className="border-b border-slate-200 px-3 py-3 text-right">Pagu</th>
+                        <th className="border-b border-slate-200 px-3 py-3 text-right">Serapan</th>
+                        <th className="border-b border-slate-200 px-3 py-3">Progress</th>
+                        <th className="border-b border-slate-200 px-3 py-3">Status</th>
+                        <th className="border-b border-slate-200 px-4 py-3">Keterangan</th>
                       </tr>
                     </thead>
-                    <tbody>
-                      {subKegiatanSummaries.slice(0, 5).map((row) => (
-                        <tr key={row.subKegiatan} className="border-b border-slate-200 bg-white hover:bg-slate-50">
-                          <td className="px-3 py-3 align-top">
-                            <div className="font-semibold text-slate-900">{row.subKegiatan}</div>
-                            <div className="text-xs text-slate-500">{row.estimationLabel}</div>
+                    <tbody className="divide-y divide-slate-100">
+                      {subKegiatanSummaries.length > 0 ? subKegiatanSummaries.slice(0, 6).map((row, index) => (
+                        <tr
+                          key={row.subKegiatan}
+                          className={`cursor-pointer transition hover:bg-sky-50/80 ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}`}
+                          role="link"
+                          tabIndex={0}
+                          onClick={() => router.push(row.rowLink)}
+                          onKeyDown={(event) => {
+                            if (event.key === 'Enter' || event.key === ' ') router.push(row.rowLink)
+                          }}
+                        >
+                          <td className="max-w-[310px] px-4 py-3 align-top">
+                            <div className="line-clamp-2 font-extrabold leading-snug text-slate-900">{row.subKegiatan}</div>
+                            <div className="mt-1 text-xs font-medium text-slate-500">{row.estimationLabel}</div>
                           </td>
-                          <td className="px-3 py-3 font-black text-slate-900">{formatCurrency(row.totalPagu)}</td>
-                          <td className="px-3 py-3 text-slate-800">{formatCurrency(row.serapan)}</td>
-                          <td className="px-3 py-3 text-slate-900">{row.persenSerapan}%</td>
-                          <td className="px-3 py-3">
-                            <span className={`inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${row.statusSerapan === 'Aman' ? 'bg-emerald-50 text-emerald-700' : row.statusSerapan === 'Perlu Percepatan' ? 'bg-amber-50 text-amber-700' : row.statusSerapan === 'Perlu Evaluasi' ? 'bg-orange-100 text-orange-700' : 'bg-rose-50 text-rose-700'}`}>{row.statusSerapan}</span>
+                          <td className="px-3 py-3 text-center align-top">
+                            <span className="inline-flex min-w-10 justify-center rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-black text-slate-800">{row.paketCount}</span>
+                          </td>
+                          <td className="whitespace-nowrap px-3 py-3 text-right align-top font-bold text-slate-900">{formatCurrency(row.totalPagu)}</td>
+                          <td className="whitespace-nowrap px-3 py-3 text-right align-top">
+                            <div className="font-black text-slate-900">{row.persenSerapan}%</div>
+                            <div className="text-[11px] font-medium text-slate-500">Keu {row.avgKeuangan}%</div>
+                          </td>
+                          <td className="px-3 py-3 align-top">
+                            <div className="flex min-w-[130px] items-center gap-2">
+                              <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
+                                <div className={`h-full rounded-full ${row.avgFisik >= 80 ? 'bg-emerald-500' : row.avgFisik >= 50 ? 'bg-sky-500' : row.avgFisik >= 30 ? 'bg-amber-500' : 'bg-rose-500'}`} style={{ width: `${Math.min(100, Math.max(0, row.avgFisik))}%` }} />
+                              </div>
+                              <span className="w-10 text-right text-xs font-black text-slate-800">{row.avgFisik}%</span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 align-top">
+                            <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-black ${row.statusSerapan === 'Aman' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : row.statusSerapan === 'Perlu Percepatan' ? 'border-amber-200 bg-amber-50 text-amber-700' : row.statusSerapan === 'Perlu Evaluasi' ? 'border-orange-200 bg-orange-50 text-orange-700' : 'border-rose-200 bg-rose-50 text-rose-700'}`}>{row.statusSerapan}</span>
+                          </td>
+                          <td className="px-4 py-3 align-top text-xs leading-5 text-slate-600">
+                            <span className="line-clamp-2">{row.penyebab[0]}</span>
                           </td>
                         </tr>
-                      ))}
+                      )) : (
+                        <tr>
+                          <td colSpan={7} className="px-4 py-6 text-center text-sm font-semibold text-slate-500">Belum ada data paket untuk filter aktif.</td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
-              </section>
-            </div>
+              </div>
+            </section>
 
             <div className="grid gap-3 xl:grid-cols-2">
-              <section className="siaga-glass-card border border-slate-200/70 p-4 h-full flex flex-col">
-                <div>
-                  <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Status SDA & Pasang Surut Hari Ini</div>
-                  <h3 className="mt-2 text-lg font-extrabold text-slate-950">Monitoring kondisi air dan operasional</h3>
+              <section className="siaga-glass-card flex h-full flex-col border border-teal-200/70 bg-gradient-to-br from-teal-50/90 via-white to-blue-50/80 p-3.5">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">STATUS SDA & PASANG SURUT HARI INI</div>
+                    <h3 className="mt-1 text-base font-extrabold text-slate-950">Kondisi air dan kesiapsiagaan</h3>
+                  </div>
+                  <span className={`w-fit rounded-full border px-3 py-1 text-xs font-bold ${tideOverview.status === 'KRITIS' ? 'border-rose-200 bg-rose-50 text-rose-700' : tideOverview.status === 'WASPADA' ? 'border-amber-200 bg-amber-50 text-amber-800' : 'border-emerald-200 bg-emerald-50 text-emerald-800'}`}>
+                    {tideOverview.status}
+                  </span>
                 </div>
-                
-                <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500 font-semibold">Tinggi Muka Air</div>
-                    <div className="mt-2 text-2xl font-black text-slate-950">{tideOverview.currentLevel}</div>
-                    <div className="mt-3 space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-600">Tren</span>
-                        <span className="font-semibold text-slate-900">{tideOverview.trend}</span>
+
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <div className="rounded-2xl border border-teal-100 bg-white/90 p-3 shadow-sm">
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Status SDA</div>
+                    <div className="mt-2 grid grid-cols-2 gap-2">
+                      <div>
+                        <div className="text-[11px] text-slate-500">Tinggi muka air</div>
+                        <div className="mt-0.5 text-xl font-black text-slate-950">{tideOverview.currentLevel}</div>
                       </div>
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-slate-600">Puncak</span>
-                        <span className="font-semibold text-slate-900">{tideOverview.peakTime}</span>
+                      <div>
+                        <div className="text-[11px] text-slate-500">Tren</div>
+                        <div className="mt-0.5 text-sm font-bold text-slate-900">{tideOverview.trend}</div>
+                      </div>
+                      <div className="col-span-2 rounded-xl border border-teal-100 bg-teal-50/60 p-2">
+                        <div className="text-[11px] text-slate-500">Menuju puncak</div>
+                        <div className="mt-0.5 text-sm font-bold text-slate-900">{tideOverview.peakTime}</div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
-                    <div className="text-xs uppercase tracking-[0.22em] text-slate-500 font-semibold">Pasang Surut Hari Ini</div>
-                    <div className="mt-3 space-y-1">
-                      {tideScheduleRows.slice(0, 3).map((row) => (
-                        <div key={row.time} className="flex items-center justify-between text-sm">
-                          <span className="text-slate-600">{row.time}</span>
-                          <div className="text-right">
-                            <div className="font-semibold text-slate-900">{row.height}</div>
-                            <div className={`text-xs ${row.status === 'Aman' ? 'text-emerald-600' : row.status === 'Waspada' ? 'text-amber-600' : 'text-rose-600'}`}>{row.status}</div>
-                          </div>
-                        </div>
-                      ))}
+                  <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-3 shadow-sm">
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Pasang Surut</div>
+                    <div className="mt-2 grid gap-2">
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-white/90 p-2 text-sm">
+                        <span className="text-slate-600">Maksimum hari ini</span>
+                        <span className="font-bold text-slate-900">{tideScheduleRows.find((row) => row.condition === 'Pasang Maksimum')?.height || tideOverview.currentLevel}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-white/90 p-2 text-sm">
+                        <span className="text-slate-600">Tertinggi 1 minggu</span>
+                        <span className="font-bold text-slate-900">{tideOverview.weeklyHighest.height}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-white/90 p-2 text-sm">
+                        <span className="text-slate-600">Tertinggi 1 bulan</span>
+                        <span className="font-bold text-slate-900">{tideOverview.monthlyHighest.height}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-3 grid gap-2">
-                  <div className="text-xs uppercase tracking-[0.22em] text-slate-500 font-semibold">Puncak Tertinggi</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-2xl bg-white border border-slate-200 p-2">
-                      <div className="text-xs text-slate-600">Minggu Ini</div>
-                      <div className="mt-1 text-sm font-bold text-slate-900">{tideOverview.weeklyHighest.height}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{tideOverview.weeklyHighest.date.slice(0, 11)}</div>
-                    </div>
-                    <div className="rounded-2xl bg-white border border-slate-200 p-2">
-                      <div className="text-xs text-slate-600">Bulan Ini</div>
-                      <div className="mt-1 text-sm font-bold text-slate-900">{tideOverview.monthlyHighest.height}</div>
-                      <div className="text-xs text-slate-500 mt-0.5">{tideOverview.monthlyHighest.date.slice(0, 11)}</div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 text-xs text-slate-600 bg-blue-50 border border-blue-200 rounded-2xl p-2">
-                  <span className="font-semibold text-blue-900">Tip:</span> Pantau puncak pasang untuk persiapan operasional pintu air dan pompa.
+                <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50/80 p-2.5 text-xs leading-5 text-slate-700">
+                  <span className="font-semibold text-blue-900">Kesiapsiagaan:</span> {tideOverview.note}
                 </div>
               </section>
+
+              <section className="siaga-glass-card flex h-full flex-col border border-indigo-200/70 bg-gradient-to-br from-indigo-50/85 via-white to-cyan-50/80 p-3.5">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Peta Monitoring Ringkas</div>
-                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Sebaran status</h3>
+                    <h3 className="mt-1 text-base font-extrabold text-slate-950">Sebaran status</h3>
                   </div>
                   <Link href="/peta" className="text-xs font-bold text-sky-600 hover:underline">Buka Peta</Link>
                 </div>
-                <div className="mt-3 overflow-hidden rounded-[24px] border border-cyan-200 bg-gradient-to-br from-cyan-100 via-slate-100 to-white p-2 shadow-soft">
-                  <div className="relative h-40 overflow-hidden rounded-[20px] bg-gradient-to-br from-sky-100 via-cyan-50 to-white">
+                <div className="mt-3 overflow-hidden rounded-[22px] border border-cyan-200 bg-gradient-to-br from-cyan-100 via-slate-100 to-white p-2 shadow-soft">
+                  <div className="relative h-32 overflow-hidden rounded-[18px] bg-gradient-to-br from-sky-100 via-cyan-50 to-white sm:h-36">
                     <div className="absolute left-6 top-8 h-3 w-3 rounded-full bg-cyan-500 shadow-[0_0_0_14px_rgba(56,189,248,0.18)]" />
                     <div className="absolute left-28 top-18 h-3 w-3 rounded-full bg-amber-400 shadow-[0_0_0_14px_rgba(251,191,36,0.16)]" />
                     <div className="absolute right-8 top-14 h-3 w-3 rounded-full bg-rose-400 shadow-[0_0_0_14px_rgba(244,63,94,0.18)]" />
                     <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-cyan-200/40 to-transparent" />
                   </div>
                 </div>
-                <div className="mt-3 grid gap-2 text-sm text-slate-600">
-                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-rose-500"></span>7 Titik Kritis</div>
-                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-amber-500"></span>14 Titik Waspada</div>
-                  <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-sky-500"></span>22 Titik Aman</div>
+                <div className="mt-3 grid gap-2 text-sm font-semibold text-slate-700 sm:grid-cols-3 xl:grid-cols-1">
+                  <div className="flex items-center gap-2 rounded-xl border border-rose-100 bg-white/80 p-2"><span className="h-2 w-2 rounded-full bg-rose-500"></span>7 Titik Kritis</div>
+                  <div className="flex items-center gap-2 rounded-xl border border-amber-100 bg-white/80 p-2"><span className="h-2 w-2 rounded-full bg-amber-500"></span>14 Titik Waspada</div>
+                  <div className="flex items-center gap-2 rounded-xl border border-sky-100 bg-white/80 p-2"><span className="h-2 w-2 rounded-full bg-sky-500"></span>22 Titik Aman</div>
                 </div>
               </section>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-              <section className="siaga-glass-card border border-slate-200/70 p-4">
+            <div className="grid gap-3 md:grid-cols-2">
+              <section className="siaga-glass-card border border-slate-200/70 bg-gradient-to-br from-slate-50/90 via-white to-cyan-50/80 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Tugas Per Role / User</div>
@@ -930,7 +995,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="mt-3 space-y-2">
                   {roleActions.slice(0, 5).map((action) => (
-                    <div key={`${action.role}-${action.task}`} className="rounded-3xl border border-slate-200 bg-white p-2">
+                    <div key={`${action.role}-${action.task}`} className="rounded-3xl border border-violet-100 bg-white/90 p-3 shadow-sm">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-slate-800">{action.name?.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div>
@@ -947,27 +1012,7 @@ export default function DashboardPage() {
                 </div>
               </section>
 
-              <section className="siaga-glass-card border border-slate-200/70 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Akses Cepat</div>
-                    <h3 className="mt-1 text-lg font-extrabold text-slate-950">Shortcut modul</h3>
-                  </div>
-                </div>
-                <div className="mt-3 grid gap-1 sm:grid-cols-2">
-                  {actions.slice(0, 8).map((action) => (
-                    <Link key={action.label} href={action.href} className="flex items-center gap-2 rounded-3xl border border-slate-200 bg-white px-2 py-2 text-sm text-slate-700 transition hover:bg-slate-50">
-                      <span className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-slate-700"><action.icon className="h-3 w-3" /></span>
-                      <div className="min-w-0">
-                        <div className="truncate text-xs font-semibold text-slate-900">{action.label}</div>
-                        <div className="truncate text-[10px] text-slate-500">{action.desc}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-
-              <section className="siaga-glass-card border border-slate-200/70 p-4">
+              <section className="siaga-glass-card border border-violet-200/70 bg-gradient-to-br from-violet-50/85 via-white to-slate-50/90 p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Aktivitas Terbaru</div>
@@ -980,7 +1025,7 @@ export default function DashboardPage() {
                     const userName = item.userName || item.userId || 'Nama user belum tersedia'
                     const initials = userName.split(' ').filter(Boolean).map((word) => word[0]).join('').slice(0, 2).toUpperCase()
                     return (
-                      <div key={item.id} className="rounded-3xl border border-slate-200 bg-white p-2">
+                      <div key={item.id} className="rounded-3xl border border-slate-200 bg-white/90 p-3 shadow-sm">
                         <div className="flex items-start gap-2">
                           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-slate-800">{initials}</div>
                           <div className="min-w-0">
@@ -1000,14 +1045,16 @@ export default function DashboardPage() {
         </div>
 
         {activeTab === 'pasang-surut' && (
-          <TideDashboardPanel />
+          <div className="relative z-10 text-slate-900">
+            <TideDashboardPanel />
+          </div>
         )}
 
         {activeTab === 'survey' && (
           <SurveyInvestigationTab projects={visibleProjects} />
         )}
 
-        <div className={`transition-all duration-300 ease-in-out ${activeTab === 'paket' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
+        <div className={`relative z-10 text-slate-900 transition-all duration-300 ease-in-out ${activeTab === 'paket' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
           {activeTab === 'paket' && (
             <PackageWorkspaceTab projects={visibleProjects} stats={stats} />
           )}
@@ -1082,7 +1129,7 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'waktu' && (
-          <div className="space-y-5">
+          <div className="relative z-10 space-y-5 text-slate-900">
             <PrayerTimeWidget />
             <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700">
               <div className="font-extrabold text-[#0D2C54]">Catatan operasional</div>
@@ -1094,7 +1141,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <div className={`transition-all duration-300 ease-in-out ${activeTab === 'monitoring' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
+        <div className={`relative z-10 text-slate-900 transition-all duration-300 ease-in-out ${activeTab === 'monitoring' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-2 pointer-events-none'}`}>
           {activeTab === 'monitoring' && (
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
@@ -1102,7 +1149,7 @@ export default function DashboardPage() {
                 <div className="mb-4 flex items-center justify-between">
                   <div>
                     <div className="text-sm font-semibold text-slate-800">Progress Fisik vs Keuangan</div>
-                    <div className="mt-0.5 text-xs text-slate-400">Paket pada filter aktif</div>
+                    <div className="mt-0.5 text-xs text-slate-600">Paket pada filter aktif</div>
                   </div>
                 </div>
                 <ResponsiveContainer width="100%" height={220}>
@@ -1123,7 +1170,7 @@ export default function DashboardPage() {
 
               <div className="siaga-card p-5 lg:col-span-2">
                 <div className="mb-1 text-sm font-semibold text-slate-800">Status Paket</div>
-                <div className="mb-3 text-xs text-slate-400">Distribusi health</div>
+                <div className="mb-3 text-xs text-slate-600">Distribusi health</div>
                 {pieData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={170}>
                     <PieChart>
@@ -1135,7 +1182,7 @@ export default function DashboardPage() {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="flex h-40 items-center justify-center text-sm text-slate-400">Tidak ada data</div>
+                  <div className="flex h-40 items-center justify-center text-sm text-slate-600">Tidak ada data</div>
                 )}
                 <div className="mt-2 space-y-2">
                   {[
@@ -1162,7 +1209,7 @@ export default function DashboardPage() {
         </div>
 
         {activeTab === 'approval' && (
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+          <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-5">
             <div className="siaga-card p-5 lg:col-span-2">
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -1191,7 +1238,7 @@ export default function DashboardPage() {
             <div className="siaga-card p-5 lg:col-span-3">
               <div className="mb-4 text-sm font-extrabold text-slate-900">Paket Risiko Prioritas</div>
               {riskProjects.length === 0 ? (
-                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-400">Tidak ada paket risiko pada filter aktif.</div>
+                <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-600">Tidak ada paket risiko pada filter aktif.</div>
               ) : (
                 <div className="space-y-3">
                   {riskProjects.slice(0, 6).map((project) => {
@@ -1216,30 +1263,30 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'aktivitas' && (
-          <div className="siaga-card p-5">
+          <div className="siaga-card relative z-10 p-5 text-slate-900">
             <div className="mb-4 flex items-center justify-between">
-              <div className="text-sm font-semibold text-slate-800">Aktivitas Terbaru</div>
+              <div className="text-sm font-extrabold text-slate-900">Aktivitas Terbaru</div>
               <div className="flex items-center gap-1.5">
                 <div className="h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-xs text-slate-400">Realtime</span>
+                <span className="text-xs font-semibold text-slate-600">Realtime</span>
               </div>
             </div>
             {recentActivity.length === 0 ? (
-              <div className="py-8 text-center text-sm text-slate-400">
-                <Activity className="mx-auto mb-2 h-8 w-8 opacity-30" />
+              <div className="py-8 text-center text-sm font-medium text-slate-600">
+                <Activity className="mx-auto mb-2 h-8 w-8 text-slate-500" />
                 Belum ada aktivitas
               </div>
             ) : (
               <div className="space-y-3">
                 {recentActivity.map((log) => (
-                  <div key={log.id} className="flex items-start gap-3 rounded-xl border border-slate-100 p-3">
+                  <div key={log.id} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white/95 p-3">
                     <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
                       <ClipboardList className="h-4 w-4 text-blue-700" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs font-semibold text-slate-700">{log.action}</div>
-                      <div className="truncate text-[11px] text-slate-400">{log.detail}</div>
-                      <div className="mt-0.5 text-[10px] text-slate-400">{log.userName} - {formatDateTime(log.timestamp)}</div>
+                      <div className="text-xs font-extrabold text-slate-900">{log.action}</div>
+                      <div className="truncate text-[11px] font-medium text-slate-700">{log.detail}</div>
+                      <div className="mt-0.5 text-[10px] font-medium text-slate-600">{log.userName} - {formatDateTime(log.timestamp)}</div>
                     </div>
                   </div>
                 ))}
@@ -1252,7 +1299,7 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'ai' && (
-          <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-3">
             <div className="siaga-card p-5 lg:col-span-2">
               <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-900">
                 <Bot className="h-4 w-4 text-blue-700" />
@@ -1287,7 +1334,7 @@ function SurveyInvestigationTab({ projects }: { projects: ReturnType<typeof useA
   const latest = projects.flatMap((project) => project.surveys.map((survey) => ({ ...survey, projectName: project.nama, projectCode: project.kode, projectId: project.id }))).slice(0, 6)
 
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+    <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-5">
       <div className="siaga-card p-5 lg:col-span-2">
         <ModuleHeader icon={MapPin} title="Survey Investigasi" subtitle="Ringkasan laporan awal lapangan dan tindak lanjut." />
         <div className="mt-4 grid grid-cols-2 gap-3">
@@ -1347,7 +1394,7 @@ function WarningCenterTab({ stats, approvalPending, riskProjects }: { stats: any
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+    <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-5">
       <div className="siaga-card p-5 lg:col-span-2">
         <ModuleHeader icon={LifeBuoy} title="Warning Center" subtitle="Pusat ringkasan peringatan proyek dan SDA." />
         <div className="mt-4 space-y-3">
@@ -1414,7 +1461,7 @@ function ModulePreparationTab({
   checklist: string[]
 }) {
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
+    <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-5">
       <div className="siaga-card p-5 lg:col-span-3">
         <ModuleHeader icon={Icon} title={title} subtitle={subtitle} />
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -1422,7 +1469,7 @@ function ModulePreparationTab({
             <Link key={card.label} href={route} className="block rounded-xl bg-slate-50 p-4 transition hover:bg-blue-50">
               <div className="text-2xl font-black text-[#0D2C54]">{card.value}</div>
               <div className="mt-1 text-xs font-bold text-slate-700">{card.label}</div>
-              <div className="mt-0.5 text-[11px] text-slate-400">{card.desc}</div>
+              <div className="mt-0.5 text-[11px] font-medium text-slate-600">{card.desc}</div>
             </Link>
           ))}
         </div>
@@ -1456,7 +1503,7 @@ function ModuleHeader({ icon: Icon, title, subtitle }: { icon: any; title: strin
       </div>
       <div className="min-w-0">
         <div className="text-lg font-extrabold text-slate-900">{title}</div>
-        <div className="mt-0.5 text-sm text-slate-500">{subtitle}</div>
+        <div className="mt-0.5 text-sm text-slate-600">{subtitle}</div>
       </div>
     </div>
   )
@@ -1473,7 +1520,7 @@ function MiniMetric({ label, value, tone = 'slate', href }: { label: string; val
   const content = (
     <>
       <div className="text-2xl font-black">{value}</div>
-      <div className="mt-0.5 text-xs font-bold opacity-70">{label}</div>
+      <div className="mt-0.5 text-xs font-bold text-slate-600">{label}</div>
     </>
   )
 
@@ -1495,8 +1542,8 @@ function MiniMetric({ label, value, tone = 'slate', href }: { label: string; val
 function EmptyModuleState({ text }: { text: string }) {
   return (
     <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center">
-      <Waves className="mx-auto mb-2 h-8 w-8 text-slate-400" />
-      <div className="text-sm text-slate-500">{text}</div>
+      <Waves className="mx-auto mb-2 h-8 w-8 text-slate-500" />
+      <div className="text-sm font-medium text-slate-600">{text}</div>
     </div>
   )
 }
@@ -1529,13 +1576,13 @@ function ProjectTable({ projects }: { projects: ReturnType<typeof useAppStore.ge
                   <td className="px-4 py-3">
                     <Link href={`/proyek/${project.id}?from=dashboard`} className="block">
                       <div className="line-clamp-1 font-semibold text-slate-800 transition-colors hover:text-blue-600">{project.nama}</div>
-                      <div className="mt-0.5 text-[10px] text-slate-400">{project.kode} - {project.kecamatan}</div>
+                      <div className="mt-0.5 text-[10px] text-slate-500">{project.kode} - {project.kecamatan}</div>
                     </Link>
                   </td>
                   <td className="px-3 py-3">
                     <div className="text-[11px] font-bold text-blue-700">{getProjectCategoryLabel((project as any).kategoriPekerjaan)}</div>
                     <div className="text-[10px] text-slate-500">{getProjectPackageTypeLabel(getProjectPackageType(project))}</div>
-                    <div className="text-[10px] text-slate-400">{getProjectWorkStageLabel(getProjectWorkStage(project))}</div>
+                    <div className="text-[10px] text-slate-500">{getProjectWorkStageLabel(getProjectWorkStage(project))}</div>
                   </td>
                   <td className="px-3 py-3 text-center">
                     <div className="font-bold text-blue-600">{project.progressFisik}%</div>

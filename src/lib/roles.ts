@@ -43,11 +43,11 @@ export const ROLE_DEFINITIONS: RoleDefinition[] = [
     color: 'cyan',
   },
   {
-    val: 'administrasi_kontrak',
-    label: 'Administrasi Kontrak',
-    desc: 'Pengelola dokumen, masa kontrak, addendum, dan arsip kontrak.',
-    tugas: ['Mengelola data kontrak', 'Memantau masa pelaksanaan', 'Menjaga kelengkapan dokumen kontrak'],
-    hak: ['Kelola kontrak', 'Upload dokumen', 'Lihat progress dan laporan'],
+    val: 'admin_sub_kegiatan',
+    label: 'Admin Sub Kegiatan',
+    desc: 'Mengelola paket, kontrak, laporan, masalah, dan rekapitulasi pekerjaan pada sub kegiatan yang ditugaskan.',
+    tugas: ['Mengelola rekapitulasi pekerjaan sub kegiatan', 'Memantau kontrak dan progress pekerjaan', 'Menjaga kelengkapan dokumen paket'],
+    hak: ['Kelola kontrak dan paket sub kegiatan', 'Upload dokumen', 'Lihat progress, laporan, masalah, dan rekap'],
     color: 'slate',
   },
   {

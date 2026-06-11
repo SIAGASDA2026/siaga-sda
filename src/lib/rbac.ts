@@ -50,7 +50,7 @@ const ALL_ROLES: Role[] = [
   'admin',
   'pejabat_pengadaan',
   'pphp',
-  'administrasi_kontrak',
+  'admin_sub_kegiatan',
   'pptk',
   'ppk',
   'kabid',
@@ -73,21 +73,21 @@ export const PERMISSION_ROLES: Record<Permission, Role[]> = {
   view_dashboard: ALL_ROLES,
   view_map: ALL_ROLES,
   view_projects: ALL_ROLES,
-  view_reports: [...READ_ALL_CORE, ...FIELD_ROLES],
-  view_survey: [...READ_ALL_CORE, ...PLANNING_ROLES, 'pptk'],
-  view_issues: [...READ_ALL_CORE, ...FIELD_ROLES, 'pphp'],
+  view_reports: [...READ_ALL_CORE, ...FIELD_ROLES, 'admin_sub_kegiatan'],
+  view_survey: [...READ_ALL_CORE, ...PLANNING_ROLES, 'pptk', 'admin_sub_kegiatan'],
+  view_issues: [...READ_ALL_CORE, ...FIELD_ROLES, 'pphp', 'admin_sub_kegiatan'],
   view_chat: ALL_ROLES,
   view_announcements: ALL_ROLES,
-  view_rab: [...READ_ALL_CORE, ...PLANNING_ROLES, 'pejabat_pengadaan', 'administrasi_kontrak'],
-  view_contracts: [...READ_ALL_CORE, 'pejabat_pengadaan', 'administrasi_kontrak', 'pphp'],
+  view_rab: [...READ_ALL_CORE, ...PLANNING_ROLES, 'pejabat_pengadaan', 'admin_sub_kegiatan'],
+  view_contracts: [...READ_ALL_CORE, 'pejabat_pengadaan', 'admin_sub_kegiatan', 'pphp'],
   view_documents: ALL_ROLES,
-  view_approval: [...READ_ALL_CORE, 'pptk', 'direksi_teknis', 'tim_pengawasan', 'konsultan_pengawasan', 'pphp'],
+  view_approval: [...READ_ALL_CORE, 'pptk', 'direksi_teknis', 'tim_pengawasan', 'konsultan_pengawasan', 'pphp', 'admin_sub_kegiatan'],
   view_settings: ALL_ROLES,
   view_audit_log: ['super_admin', 'admin', 'ppk', 'pimpinan', 'kabid', 'auditor'],
 
   manage_users: ['super_admin', 'admin'],
   manage_admin_users: ['super_admin'],
-  manage_projects: ['super_admin', 'admin', 'ppk', 'pejabat_pengadaan', 'administrasi_kontrak'],
+  manage_projects: ['super_admin', 'admin', 'ppk', 'pejabat_pengadaan', 'admin_sub_kegiatan'],
   create_survey: ['super_admin', 'admin', 'pptk', 'tim_perencanaan', 'tim_survey', 'konsultan_perencana'],
   upload_rab: ['super_admin', 'admin', 'tim_perencanaan', 'tim_survey', 'konsultan_perencana', 'pejabat_pengadaan'],
   approve_rab: ['super_admin', 'admin', 'ppk'],
@@ -102,10 +102,10 @@ export const PERMISSION_ROLES: Record<Permission, Role[]> = {
   resolve_masalah: ['super_admin', 'admin', 'ppk', 'pptk', 'direksi_teknis'],
   send_chat: ALL_ROLES,
   delete_chat: ['super_admin', 'admin', 'ppk'],
-  manage_contracts: ['super_admin', 'admin', 'ppk', 'pejabat_pengadaan', 'administrasi_kontrak'],
-  upload_documents: ['super_admin', 'admin', 'ppk', 'pptk', 'pejabat_pengadaan', 'administrasi_kontrak', 'pphp'],
+  manage_contracts: ['super_admin', 'admin', 'ppk', 'pejabat_pengadaan', 'admin_sub_kegiatan'],
+  upload_documents: ['super_admin', 'admin', 'ppk', 'pptk', 'pejabat_pengadaan', 'admin_sub_kegiatan', 'pphp'],
   publish_announcements: ['super_admin', 'admin', 'ppk'],
-  view_keuangan: ['super_admin', 'admin', 'ppk', 'pimpinan', 'kabid', 'pejabat_pengadaan', 'administrasi_kontrak', 'auditor'],
+  view_keuangan: ['super_admin', 'admin', 'ppk', 'pimpinan', 'kabid', 'pejabat_pengadaan', 'admin_sub_kegiatan', 'auditor'],
 }
 
 export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
@@ -176,7 +176,7 @@ export function hasPermission(role: Role | string | undefined, permission: Permi
 }
 
 export function canAccessPage(role: Role | string | undefined, href: string) {
-  const permission = PAGE_PERMISSIONS[href]
+  const permission = PAGE_PERMISSIONS[href] || Object.entries(PAGE_PERMISSIONS).find(([path]) => href.startsWith(`${path}/`))?.[1]
   return permission ? hasPermission(role, permission) : true
 }
 

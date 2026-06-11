@@ -458,6 +458,90 @@ table {
 .animate-in { animation: fadeIn 0.2s ease; }
 .slide-in-from-bottom-4 { animation: fadeIn 0.2s ease; }
 
+/* Login: SIAGA-SDA black, navy, and white water theme */
+.login-water-bg {
+  isolation: isolate;
+  background:
+    radial-gradient(circle at 14% 12%, rgba(51, 185, 230, 0.20), transparent 25%),
+    radial-gradient(circle at 86% 82%, rgba(13, 44, 84, 0.34), transparent 30%),
+    linear-gradient(135deg, #000000 0%, #050608 42%, #0a0d12 72%, #10151c 100%);
+}
+
+.login-main-panel {
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.96), rgba(242,249,255,0.91)),
+    radial-gradient(circle at top right, rgba(0,172,193,0.10), transparent 30%);
+}
+
+.login-logo-float {
+  animation: login-logo-float 6s ease-in-out infinite;
+}
+
+.login-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.login-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(147,197,253,0.92);
+  box-shadow: 0 24px 58px rgba(13,44,84,0.16);
+}
+
+.login-sheen {
+  position: relative;
+}
+
+.login-sheen::after {
+  content: '';
+  position: absolute;
+  inset: -100% auto -100% -30%;
+  width: 22%;
+  transform: rotate(18deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.78), transparent);
+  animation: login-sheen-pass 7s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.login-submit-button {
+  background-size: 180% 100%;
+  animation: login-button-flow 7s ease-in-out infinite;
+}
+
+.login-submit-button:hover {
+  transform: translateY(-2px);
+  background-position: 100% 50%;
+  box-shadow: 0 18px 42px rgba(13,44,84,0.34);
+}
+
+@keyframes login-logo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes login-sheen-pass {
+  0%, 68% { left: -30%; opacity: 0; }
+  74% { opacity: 0.9; }
+  88%, 100% { left: 118%; opacity: 0; }
+}
+
+@keyframes login-button-flow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-logo-float,
+  .login-sheen::after,
+  .login-submit-button {
+    animation: none !important;
+  }
+
+  .login-card:hover,
+  .login-submit-button:hover {
+    transform: none;
+  }
+}
+
 /* ── Range input ─────────────────────────── */
 input[type="range"] {
   -webkit-appearance: none;
