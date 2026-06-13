@@ -14,19 +14,28 @@ const prayerTimes = [
 
 type PrayerName = (typeof prayerTimes)[number]['name']
 
+const PRAYER_REFRESH_INTERVAL = 24 * 60 * 60 * 1000
+
 export function LoginPrayerWidget() {
   const widgetRef = useRef<HTMLElement>(null)
-  const activePrayer = prayerTimes.find((item) => item.status === 'Berikutnya') ?? prayerTimes[0]
+  const [schedule, setSchedule] = useState(() => [...prayerTimes])
+  const activePrayer = schedule.find((item) => item.status === 'Berikutnya') ?? schedule[0]
   const [selectedName, setSelectedName] = useState<PrayerName | null>(null)
-  const selected = prayerTimes.find((item) => item.name === selectedName)
+  const selected = schedule.find((item) => item.name === selectedName)
 
   useEffect(() => {
     const closeDetail = (event: PointerEvent) => {
       if (!widgetRef.current?.contains(event.target as Node)) setSelectedName(null)
     }
 
+    const refreshSchedule = () => setSchedule([...prayerTimes])
+    refreshSchedule()
+    const scheduleRefreshInterval = window.setInterval(refreshSchedule, PRAYER_REFRESH_INTERVAL)
     document.addEventListener('pointerdown', closeDetail)
-    return () => document.removeEventListener('pointerdown', closeDetail)
+    return () => {
+      window.clearInterval(scheduleRefreshInterval)
+      document.removeEventListener('pointerdown', closeDetail)
+    }
   }, [])
 
   return (
@@ -36,6 +45,7 @@ export function LoginPrayerWidget() {
       aria-labelledby="login-prayer-title"
       onMouseLeave={() => setSelectedName(null)}
     >
+      <div className={styles.areaLabel}>WAKTU SOLAT</div>
       <div className={styles.prayerHeader}>
         <div className="flex min-w-0 items-center gap-2.5">
           <MapPin className="h-5 w-5 flex-none text-cyan-200" />
@@ -50,7 +60,7 @@ export function LoginPrayerWidget() {
       </div>
 
       <div className={styles.prayerGrid}>
-        {prayerTimes.map((item) => {
+        {schedule.map((item) => {
           const isSelected = item.name === selectedName
           const isActive = item.name === activePrayer.name
           const Icon = item.Icon

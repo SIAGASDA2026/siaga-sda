@@ -21,6 +21,7 @@ import { LoginDigitalClock } from '@/components/login/LoginDigitalClock'
 import { LoginPrayerWidget } from '@/components/login/LoginPrayerWidget'
 import { LoginStatusStrip } from '@/components/login/LoginStatusStrip'
 import { LoginTideWidget } from '@/components/login/LoginTideWidget'
+import { LoginWeatherWidget } from '@/components/login/LoginWeatherWidget'
 import styles from '@/components/login/login.module.css'
 
 const LOGO_SIAGA_SDA = logoSiagaSda.src
@@ -68,9 +69,13 @@ export default function LoginPage() {
           <div className={styles.clockSlot}>
             <LoginDigitalClock />
           </div>
+          <div className={styles.weatherSlot}>
+            <LoginWeatherWidget />
+          </div>
           <section className={`${styles.lightCard} ${styles.loginCard} ${styles.loginSlot} rounded-2xl text-white`} aria-labelledby="login-heading">
+              <div className={styles.areaLabel}>LOGIN</div>
               <div className="text-center">
-                <h2 id="login-heading" className="text-[clamp(1.15rem,2.5vh,1.8rem)] font-black leading-tight">Masuk ke Sistem</h2>
+                <h2 id="login-heading" className="text-[clamp(1.15rem,2.5vh,1.8rem)] font-black leading-tight">Selamat Datang</h2>
                 <p className="mt-1 text-[clamp(10px,1.4vh,13px)] font-medium text-slate-300">Silakan masuk untuk mengakses dashboard</p>
               </div>
 
