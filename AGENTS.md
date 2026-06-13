@@ -728,6 +728,16 @@ Audit Log hanya tampil untuk role berwenang.
 
 ---
 
+## SIAGA-SDA Login Final Lock
+
+- Halaman login SIAGA-SDA sudah final.
+- Sebelum mengubah file login, wajib baca `docs/design/SIAGA_SDA_LOGIN_FINAL_LOCK.md`.
+- Jangan mengubah halaman login kecuali user secara eksplisit meminta perubahan login.
+- Saat mengerjakan dashboard, peta monitoring, survey, paket pekerjaan, approval, surat, peil banjir, aset, administrasi, audit log, atau pengaturan, jangan ikut mengubah halaman login.
+- Jika login memang harus diubah, wajib membuat backup terlebih dahulu serta menjalankan `npx tsc --noEmit` dan `git diff --check`.
+
+---
+
 ## Prompt Pertama Wajib Untuk Codex
 
 Sebelum coding apa pun, gunakan audit dan mapping:
