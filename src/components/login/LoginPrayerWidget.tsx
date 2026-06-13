@@ -28,9 +28,7 @@ export function LoginPrayerWidget() {
       if (!widgetRef.current?.contains(event.target as Node)) setSelectedName(null)
     }
 
-    const refreshSchedule = () => setSchedule([...prayerTimes])
-    refreshSchedule()
-    const scheduleRefreshInterval = window.setInterval(refreshSchedule, PRAYER_REFRESH_INTERVAL)
+    const scheduleRefreshInterval = window.setInterval(() => setSchedule([...prayerTimes]), PRAYER_REFRESH_INTERVAL)
     document.addEventListener('pointerdown', closeDetail)
     return () => {
       window.clearInterval(scheduleRefreshInterval)

@@ -61,30 +61,51 @@ function formatCountdown(now: Date, peakDate: Date) {
   return `Pasang tertinggi dalam ${timeParts.join(' ')}`
 }
 
+function TideCountdown({ peakTime }: { peakTime: string }) {
+  const [countdown, setCountdown] = useState('Menghitung waktu menuju pasang tertinggi...')
+
+  useEffect(() => {
+    const updateCountdown = () => {
+      const now = new Date()
+      setCountdown(formatCountdown(now, dateAtLocalTime(now, peakTime)))
+    }
+
+    updateCountdown()
+    const interval = window.setInterval(updateCountdown, 1000)
+    return () => window.clearInterval(interval)
+  }, [peakTime])
+
+  return (
+    <p className={styles.tideCountdown}>
+      <Clock3 className="h-3 w-3 flex-none" />
+      {countdown}
+    </p>
+  )
+}
+
 export function LoginTideWidget() {
   const widgetRef = useRef<HTMLElement>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
-  const [now, setNow] = useState<Date | null>(null)
+  const [referenceDate, setReferenceDate] = useState<Date | null>(null)
   const [tideReadings, setTideReadings] = useState(() => [...tideData])
   const selected = tideReadings.find((item) => item.time === selectedTime)
   const peak = tideReadings.reduce((highest, item) => item.level > highest.level ? item : highest)
   const points = tideReadings.map((item) => `${item.x},${item.y}`).join(' ')
-  const referenceDate = now ?? new Date(2026, 5, 14, 0, 0, 0)
-  const peakDate = dateAtLocalTime(referenceDate, peak.time)
-  const countdown = now ? formatCountdown(now, peakDate) : 'Menghitung waktu menuju pasang tertinggi...'
+  const tideReferenceDate = referenceDate ?? new Date(2026, 5, 14, 0, 0, 0)
 
   useEffect(() => {
-    const updateTime = () => setNow(new Date())
     const closeDetail = (event: PointerEvent) => {
       if (!widgetRef.current?.contains(event.target as Node)) setSelectedTime(null)
     }
+    const refreshTideData = () => {
+      setTideReadings([...tideData])
+      setReferenceDate(new Date())
+    }
 
-    updateTime()
-    const countdownInterval = window.setInterval(updateTime, 1000)
-    const dataRefreshInterval = window.setInterval(() => setTideReadings([...tideData]), TIDE_REFRESH_INTERVAL)
+    refreshTideData()
+    const dataRefreshInterval = window.setInterval(refreshTideData, TIDE_REFRESH_INTERVAL)
     document.addEventListener('pointerdown', closeDetail)
     return () => {
-      window.clearInterval(countdownInterval)
       window.clearInterval(dataRefreshInterval)
       document.removeEventListener('pointerdown', closeDetail)
     }
@@ -211,7 +232,7 @@ export function LoginTideWidget() {
         <AlertTriangle className="h-4 w-4 flex-none text-red-300" />
         <div className="min-w-0">
           <p>Pada pukul <strong>{peak.time}</strong>, air akan naik pasang tertinggi hari ini setinggi <strong>{peak.level.toFixed(2)} m</strong>.</p>
-          <p className={styles.tideCountdown}><Clock3 className="h-3 w-3 flex-none" />{countdown}</p>
+          <TideCountdown peakTime={peak.time} />
         </div>
       </section>
 
@@ -219,7 +240,7 @@ export function LoginTideWidget() {
         <h3 id="tide-extremes-title"><CalendarDays className="h-3.5 w-3.5" /> Rekap Pasang Tertinggi</h3>
         <div className={styles.tideExtremesList}>
           {tideExtremes.map((item) => {
-            const date = dateAtLocalTime(referenceDate, item.time, item.dayOffset)
+            const date = dateAtLocalTime(tideReferenceDate, item.time, item.dayOffset)
             return (
               <div key={item.period} className={styles.tideExtremeItem}>
                 <strong>{item.period}</strong>
