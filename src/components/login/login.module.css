@@ -36,19 +36,19 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) 16px;
-  gap: 5px;
+  grid-template-rows: minmax(0, 1fr) 18px;
+  gap: 6px;
   width: min(100%, 1840px);
   height: 100%;
   margin: 0 auto;
-  padding: clamp(10px, 1.5vh, 16px) clamp(18px, 2.8vw, 54px) 5px;
+  padding: clamp(12px, 2vh, 22px) clamp(22px, 3vw, 58px) 6px;
 }
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(360px, 35%) minmax(280px, 1fr) minmax(350px, 30%);
-  grid-template-rows: minmax(250px, 37%) minmax(300px, 48%) minmax(48px, 9%);
-  gap: clamp(9px, 1.2vh, 14px) clamp(20px, 3vw, 58px);
+  grid-template-columns: minmax(390px, 36%) minmax(300px, 28%) minmax(390px, 36%);
+  grid-template-rows: 52px minmax(270px, 43%) minmax(210px, 34%) minmax(54px, 9%);
+  gap: clamp(8px, 1.1vh, 12px) clamp(18px, 2.2vw, 38px);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -57,26 +57,34 @@
 .brandSlot {
   position: relative;
   z-index: 0;
-  grid-column: 1 / 3;
-  grid-row: 1 / 3;
+  grid-column: 2;
+  grid-row: 1 / 4;
   min-width: 0;
   min-height: 0;
+}
+
+.clockSlot {
+  z-index: 3;
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
+  min-width: 0;
 }
 
 .loginSlot {
   z-index: 2;
   grid-column: 3;
-  grid-row: 1;
-  align-self: start;
-  margin-top: clamp(6px, 1.4vh, 14px);
+  grid-row: 2;
+  align-self: stretch;
+  margin-top: 0;
 }
 
 .tideSlot {
   z-index: 2;
   grid-column: 1;
-  grid-row: 2;
-  align-self: start;
-  height: min(100%, 380px);
+  grid-row: 1 / 4;
+  align-self: center;
+  height: min(100%, 590px);
   min-width: 0;
   min-height: 0;
 }
@@ -84,19 +92,19 @@
 .prayerSlot {
   z-index: 2;
   grid-column: 3;
-  grid-row: 2;
-  align-self: start;
+  grid-row: 3;
+  align-self: stretch;
   width: 100%;
-  height: min(100%, 245px);
-  margin-top: clamp(34px, 5vh, 48px);
+  height: 100%;
+  margin-top: 0;
   min-width: 0;
 }
 
 .statusSlot {
   z-index: 2;
   grid-column: 1 / 2;
-  grid-row: 3;
-  width: min(100%, 680px);
+  grid-row: 4;
+  width: 100%;
   min-width: 0;
 }
 
@@ -112,46 +120,56 @@
 
 .lightCard {
   min-width: 0;
-  border: 1px solid rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(89, 197, 255, 0.25);
   background:
-    radial-gradient(circle at 80% 8%, rgba(75, 167, 255, 0.14), transparent 32%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(233, 242, 255, 0.95));
-  box-shadow: 0 18px 48px rgba(0, 5, 22, 0.26);
+    radial-gradient(circle at 80% 8%, rgba(31, 128, 226, 0.13), transparent 34%),
+    linear-gradient(145deg, rgba(4, 34, 72, 0.9), rgba(1, 18, 42, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 18px 48px rgba(0, 5, 22, 0.3);
+  backdrop-filter: blur(18px);
 }
 
 .loginCard {
   width: 100%;
-  min-height: clamp(290px, 35vh, 350px);
-  padding: clamp(16px, 2.2vh, 24px) clamp(18px, 1.8vw, 28px);
+  min-height: 0;
+  height: 100%;
+  padding: clamp(15px, 2vh, 22px) clamp(18px, 2vw, 30px);
 }
 
 .brandHero {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
   min-width: 0;
   overflow: hidden;
+  text-align: center;
 }
 
 .brandCopy {
   position: relative;
   z-index: 2;
-  width: 47%;
+  width: 100%;
   min-width: 0;
-  padding: clamp(12px, 2vh, 24px) 0 0 clamp(4px, 0.5vw, 10px);
+  padding: 0 clamp(4px, 0.6vw, 10px);
 }
 
 .brandTitle {
-  font-size: clamp(2.4rem, 3.7vw, 4.35rem);
+  font-size: clamp(2rem, 3.1vw, 3.9rem);
+  text-shadow: 0 8px 24px rgba(0, 8, 25, 0.42);
 }
 
 .brandSummary {
-  max-width: 380px;
-  font-size: clamp(0.72rem, 0.9vw, 0.96rem);
+  max-width: 430px;
+  margin-right: auto;
+  margin-left: auto;
+  font-size: clamp(0.68rem, 0.78vw, 0.9rem);
 }
 
-.descriptionCard {
-  display: none;
+.brandSummary span {
+  display: block;
+  margin-top: 2px;
 }
 
 .institutionIdentity {
@@ -160,7 +178,7 @@
   gap: clamp(9px, 0.9vw, 13px);
   width: fit-content;
   max-width: 100%;
-  margin-top: clamp(9px, 1.3vh, 14px);
+  margin: clamp(9px, 1.3vh, 14px) auto 0;
   padding: clamp(6px, 0.8vh, 9px) clamp(9px, 0.9vw, 13px);
   border: 1px solid rgba(125, 211, 252, 0.24);
   border-radius: 14px;
@@ -203,23 +221,56 @@
 }
 
 .logoStage {
-  position: absolute;
+  position: relative;
   z-index: 1;
-  top: 2%;
-  right: 0;
-  width: 53%;
-  height: 72%;
-  max-height: 570px;
+  flex: none;
+  width: min(100%, 340px);
+  height: clamp(205px, 32vh, 330px);
+  overflow: hidden;
+  align-items: flex-start;
+  justify-content: center;
   background: radial-gradient(circle, rgba(30, 184, 255, 0.15), transparent 66%);
-  filter: drop-shadow(0 16px 30px rgba(0, 116, 224, 0.22));
+  filter: drop-shadow(0 18px 34px rgba(0, 116, 224, 0.32));
 }
 
 .logoImage {
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  width: 145%;
+  max-width: none;
+  height: auto;
+  transform: translateY(-3%);
   filter: saturate(1.05) contrast(1.03) brightness(1.03);
+}
+
+.digitalClock {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: clamp(8px, 0.8vw, 14px);
+  min-width: 0;
+  color: white;
+  text-align: center;
+  opacity: 0.96;
+}
+
+.digitalClockTime {
+  flex: none;
+  font-family: "Orbitron", "Rajdhani", "Share Tech Mono", "Courier New", monospace;
+  font-size: clamp(1.35rem, 2.1vw, 2.35rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-shadow: 0 0 8px rgba(125, 211, 252, 0.65), 0 0 20px rgba(14, 165, 233, 0.34);
+}
+
+.digitalClockDate {
+  min-width: 0;
+  overflow: hidden;
+  color: rgb(203 213 225);
+  font-size: clamp(8px, 0.72vw, 11px);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tideCard,
@@ -227,7 +278,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: clamp(9px, 1.2vh, 14px);
+  padding: clamp(10px, 1.4vh, 16px);
 }
 
 .tideCard {
@@ -235,7 +286,7 @@
 }
 
 .tideChart {
-  height: clamp(100px, 16vh, 155px);
+  height: clamp(135px, 21vh, 200px);
 }
 
 .tideTable {
@@ -259,7 +310,7 @@
 }
 
 .prayerCard {
-  padding: clamp(10px, 1.3vh, 15px);
+  padding: clamp(10px, 1.4vh, 16px);
 }
 
 .prayerHeader {
@@ -283,7 +334,7 @@
   min-width: 0;
   border: 1px solid rgba(125, 211, 252, 0.13);
   border-radius: 12px;
-  padding: clamp(6px, 1vh, 10px) 2px;
+  padding: clamp(7px, 1vh, 11px) 2px;
   color: white;
   text-align: center;
   outline: none;
@@ -379,7 +430,7 @@
 
 .statusItem {
   min-width: 0;
-  padding: clamp(5px, 0.7vh, 8px) clamp(7px, 0.8vw, 11px);
+  padding: clamp(6px, 0.8vh, 9px) clamp(8px, 0.9vw, 13px);
 }
 
 .interactive {
@@ -398,26 +449,22 @@
 
 .footer {
   min-height: 14px;
-  font-size: clamp(9px, 0.72vw, 11px);
+  font-size: clamp(9px, 0.72vw, 12px);
   line-height: 1;
 }
 
 @media (max-width: 1200px) and (min-width: 768px) {
   .workspace {
-    grid-template-columns: minmax(330px, 36%) minmax(210px, 1fr) minmax(320px, 31%);
-    column-gap: 20px;
-  }
-
-  .brandCopy {
-    width: 52%;
-  }
-
-  .logoStage {
-    width: 48%;
+    grid-template-columns: minmax(330px, 35%) minmax(260px, 30%) minmax(330px, 35%);
+    column-gap: 14px;
   }
 
   .institutionText {
     font-size: 9px;
+  }
+
+  .logoStage {
+    width: min(100%, 270px);
   }
 }
 
@@ -425,22 +472,24 @@
   .shell {
     grid-template-rows: minmax(0, 1fr) 12px;
     gap: 2px;
-    padding: 4px 5px 2px;
+    padding: 3px 5px 2px;
   }
 
   .workspace {
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows:
-      clamp(106px, 15vh, 124px)
-      clamp(208px, 27vh, 224px)
-      minmax(190px, 1fr)
-      clamp(112px, 15vh, 126px)
-      clamp(38px, 5.5vh, 46px);
-    gap: 4px;
+      clamp(140px, 18vh, 160px)
+      clamp(30px, 4.5vh, 38px)
+      clamp(224px, 28vh, 240px)
+      minmax(178px, 1fr)
+      clamp(110px, 14vh, 126px)
+      clamp(40px, 5.5vh, 48px);
+    gap: 3px;
     overflow: hidden;
   }
 
   .brandSlot,
+  .clockSlot,
   .loginSlot,
   .tideSlot,
   .prayerSlot,
@@ -454,63 +503,92 @@
   }
 
   .brandSlot { grid-row: 1; }
-  .loginSlot { grid-row: 2; align-self: stretch; margin-top: 0; }
-  .tideSlot { grid-row: 3; }
-  .prayerSlot { grid-row: 4; align-self: stretch; margin-top: 0; }
-  .statusSlot { grid-row: 5; }
+  .clockSlot { grid-row: 2; align-self: center; }
+  .loginSlot { grid-row: 3; align-self: stretch; margin-top: 0; }
+  .tideSlot { grid-row: 4; align-self: stretch; }
+  .prayerSlot { grid-row: 5; align-self: stretch; margin-top: 0; }
+  .statusSlot { grid-row: 6; }
 
   .brandHero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     overflow: hidden;
+    text-align: center;
   }
 
   .brandCopy {
-    width: calc(100% - clamp(112px, 31vw, 138px));
-    height: 100%;
-    padding: 3px 0 0 3px;
+    width: 100%;
+    padding: 0 3px;
   }
 
   .brandTitle {
-    font-size: clamp(1.35rem, 7vw, 1.9rem);
+    font-size: clamp(1.45rem, 7.6vw, 2rem);
   }
 
   .brandSummary {
-    max-width: 100%;
-    margin-top: 4px;
-    font-size: clamp(7px, 2.2vw, 9px);
-    line-height: 1.18;
+    display: none;
+  }
+
+  .brandSummary span {
+    display: none;
   }
 
   .institutionIdentity {
-    gap: 5px;
-    margin-top: 5px;
-    padding: 3px 6px;
-    border-radius: 8px;
-  }
-
-  .puLogoFrame {
-    width: 25px;
-    height: 25px;
-    border-radius: 6px;
-  }
-
-  .institutionText {
-    gap: 0;
-    font-size: clamp(6px, 1.65vw, 7.5px);
-    line-height: 1.12;
+    display: none;
   }
 
   .logoStage {
-    top: 0;
-    right: 0;
-    width: clamp(112px, 31vw, 138px);
-    height: 100%;
+    width: 108px;
+    height: 88px;
     max-height: none;
+  }
+
+  .digitalClock {
+    gap: 8px;
+  }
+
+  .digitalClockTime {
+    font-size: clamp(1rem, 5.4vw, 1.3rem);
+  }
+
+  .digitalClockDate {
+    font-size: 7px;
   }
 
   .loginCard {
     min-height: 0;
     height: 100%;
-    padding: clamp(7px, 1.2vh, 10px) 10px;
+    padding: clamp(7px, 1.1vh, 10px) 10px;
+  }
+
+  .loginCard h2 {
+    font-size: 18px;
+  }
+
+  .loginCard form {
+    margin-top: 4px !important;
+  }
+
+  .loginCard form > * + * {
+    margin-top: 4px !important;
+  }
+
+  .loginCard label {
+    margin-bottom: 2px;
+    font-size: 9px;
+  }
+
+  .loginCard input,
+  .loginCard button[type="submit"] {
+    height: 36px;
+  }
+
+  .loginCard form + div {
+    margin-top: 3px;
+    padding-top: 1px;
+    font-size: 8px;
   }
 
   .tideCard,
@@ -518,12 +596,18 @@
     padding: 6px 7px;
   }
 
+  .tideCard > div:nth-of-type(2) {
+    flex: 1;
+    grid-template-columns: 68px minmax(0, 1fr);
+  }
+
   .tideChart {
-    height: clamp(58px, 9vh, 78px);
+    height: 100%;
+    min-height: 92px;
   }
 
   .tideTable {
-    margin-top: 4px;
+    display: none;
   }
 
   .tidePopover {
@@ -594,10 +678,6 @@
     display: none;
   }
 
-  .desktopOnly {
-    display: none;
-  }
-
   .footer {
     font-size: 8px;
   }
@@ -605,7 +685,7 @@
 
 @media (max-width: 767px) and (max-height: 870px) {
   .workspace {
-    grid-template-rows: 106px 208px minmax(186px, 1fr) 112px 38px;
+    grid-template-rows: 138px 28px 230px minmax(163px, 1fr) 108px 38px;
   }
 }
 
@@ -617,13 +697,21 @@
 
 @media (min-width: 768px) and (max-height: 820px) {
   .workspace {
-    grid-template-rows: minmax(225px, 36%) minmax(280px, 48%) minmax(44px, 8%);
+    grid-template-rows: 46px minmax(250px, 43%) minmax(190px, 33%) minmax(48px, 8%);
   }
 
   .loginCard {
     min-height: 0;
     padding-top: 10px;
     padding-bottom: 10px;
+  }
+
+  .logoStage {
+    height: clamp(180px, 31vh, 250px);
+  }
+
+  .brandTitle {
+    font-size: clamp(1.8rem, 2.8vw, 3.2rem);
   }
 
 }
