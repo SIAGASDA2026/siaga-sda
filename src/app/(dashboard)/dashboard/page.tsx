@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
@@ -12,6 +12,7 @@ import { DashboardRoleHeader } from '@/components/dashboard/DashboardRoleHeader'
 import { PrayerTimeWidget } from '@/components/dashboard/PrayerTimeWidget'
 import { TideDashboardPanel } from '@/components/dashboard/TideDashboardPanel'
 import { BRAND } from '@/lib/brand'
+import { canAccessPage, canViewAllProjects } from '@/lib/rbac'
 import { filterProjectsByScope, getProjectBudgetYear, getProjectBudgetYears, getProjectCategoryLabel, getProjectPackageType, getProjectPackageTypeLabel, getProjectPrograms, getProjectSubKegiatan, getProjectWorkStage, getProjectWorkStageLabel } from '@/lib/reporting'
 import { formatCurrency, formatDateTime, getHealthBadge, getRoleLabel } from '@/lib/utils'
 
@@ -48,8 +49,23 @@ const DASHBOARD_TABS: { id: DashboardTab; label: string; desc: string; icon: Luc
   { id: 'ai', label: 'AI Analisis', desc: 'Saran teknis', icon: Bot },
 ]
 
+const DASHBOARD_TAB_ACCESS_PATH: Partial<Record<DashboardTab, string>> = {
+  monitoring: '/peta',
+  survey: '/survey',
+  paket: '/proyek',
+  approval: '/approval',
+  surat: '/surat',
+  peil: '/peil',
+  asset: '/asset',
+  operasional: '/asset',
+  'pasang-surut': '/peta',
+  warning: '/masalah',
+  aktivitas: '/audit-log',
+  ai: '/audit-log',
+}
+
 export default function DashboardPage() {
-  const { projects, currentUser, auditLogs } = useAppStore()
+  const { projects, currentUser, auditLogs, dashboardDataSource } = useAppStore()
   const [activeTab, setActiveTab] = useState<DashboardTab>('ringkasan')
   const [filterKategori, setFilterKategori] = useState('all')
   const [filterJenisProyek, setFilterJenisProyek] = useState('all')
@@ -59,12 +75,38 @@ export default function DashboardPage() {
   const [filterSubKegiatan, setFilterSubKegiatan] = useState('all')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
 
-  const budgetYears = useMemo(() => getProjectBudgetYears(projects), [projects])
-  const programs = useMemo(() => getProjectPrograms(projects), [projects])
-  const subKegiatanOptions = useMemo(() => getProjectSubKegiatan(projects), [projects])
+  const currentRole = currentUser?.role || 'pptk'
+  const normalizedRole = currentRole.toLowerCase()
+  const scopedProjects = useMemo(() => {
+    if (!currentUser || canViewAllProjects(currentRole)) return projects
+
+    const assignedProjectIds = new Set(currentUser.projectIds || [])
+    return projects.filter(
+      (project) =>
+        assignedProjectIds.has(project.id) ||
+        project.assignedUsers?.includes(currentUser.id),
+    )
+  }, [currentRole, currentUser, projects])
+  const availableTabs = useMemo(
+    () => DASHBOARD_TABS.filter((tab) => {
+      const accessPath = DASHBOARD_TAB_ACCESS_PATH[tab.id]
+      return accessPath ? canAccessPage(currentRole, accessPath) : true
+    }),
+    [currentRole],
+  )
+
+  useEffect(() => {
+    if (!availableTabs.some((tab) => tab.id === activeTab)) {
+      setActiveTab('ringkasan')
+    }
+  }, [activeTab, availableTabs])
+
+  const budgetYears = useMemo(() => getProjectBudgetYears(scopedProjects), [scopedProjects])
+  const programs = useMemo(() => getProjectPrograms(scopedProjects), [scopedProjects])
+  const subKegiatanOptions = useMemo(() => getProjectSubKegiatan(scopedProjects), [scopedProjects])
   const visibleProjects = useMemo(
-    () => filterProjectsByScope(projects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan),
-    [projects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan],
+    () => filterProjectsByScope(scopedProjects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan),
+    [scopedProjects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan],
   )
 
   const activeFilterLabels = [
@@ -116,9 +158,14 @@ export default function DashboardPage() {
     { name: 'Kritis', value: stats.kritis, fill: '#E53935' },
   ].filter((item) => item.value > 0)
 
-  const recentActivity = auditLogs.slice(0, 7)
-  const currentRole = currentUser?.role || 'pptk'
-  const normalizedRole = currentRole.toLowerCase()
+  const recentActivity = useMemo(() => {
+    if (!currentUser || canViewAllProjects(currentRole)) return auditLogs.slice(0, 7)
+
+    const scopedProjectIds = new Set(scopedProjects.map((project) => project.id))
+    return auditLogs
+      .filter((log) => log.userId === currentUser.id || Boolean(log.entityId && scopedProjectIds.has(log.entityId)))
+      .slice(0, 7)
+  }, [auditLogs, currentRole, currentUser, scopedProjects])
   const approvalPending = stats.laporanMenunggu + stats.rabMenunggu + stats.surveyMenunggu
   const riskProjects = visibleProjects
     .filter((project) => project.health === 'kritis' || project.health === 'warning' || project.masalah.some((item) => item.status === 'open'))
@@ -134,8 +181,8 @@ export default function DashboardPage() {
   const previousYear = activeYear - 1
 
   const previousYearProjects = useMemo(
-    () => projects.filter((project) => getProjectBudgetYear(project) === previousYear),
-    [projects, previousYear],
+    () => scopedProjects.filter((project) => getProjectBudgetYear(project) === previousYear),
+    [scopedProjects, previousYear],
   )
 
   const previousYearStats = useMemo(() => {
@@ -224,7 +271,7 @@ export default function DashboardPage() {
   const currentUserAction = {
     ppk: { label: 'PPK', task: 'Review approval pending dan evaluasi paket kritis', module: '/approval', priority: 'Tinggi' },
     pptk: { label: 'PPTK', task: 'Update progres dan tindak lanjut paket stuck', module: '/laporan', priority: 'Tinggi' },
-    admin_kegiatan: { label: 'Admin Kegiatan', task: 'Lengkapi data paket, kontrak, dan dokumen', module: '/proyek', priority: 'Sedang' },
+    admin_sub_kegiatan: { label: 'Admin Sub Kegiatan', task: 'Lengkapi data paket, kontrak, dan dokumen', module: '/proyek', priority: 'Sedang' },
     konsultan_pengawas: { label: 'Konsultan Pengawas', task: 'Cek deviasi dan catatan lapangan', module: '/peta', priority: 'Sedang' },
     konsultan_perencana: { label: 'Konsultan Perencana', task: 'Lengkapi dokumen perencanaan/survey', module: '/survey', priority: 'Sedang' },
     kontraktor: { label: 'Kontraktor', task: 'Update laporan harian dan dokumentasi', module: '/laporan', priority: 'Sedang' },
@@ -239,7 +286,7 @@ export default function DashboardPage() {
     const actionDefinitions = [
       { role: 'PPK', task: 'Review approval pending dan evaluasi paket kritis', module: '/approval', priority: 'Tinggi' },
       { role: 'PPTK', task: 'Update progres dan tindak lanjut paket stuck', module: '/laporan', priority: 'Tinggi' },
-      { role: 'Admin Kegiatan', task: 'Lengkapi data paket, kontrak, dan dokumen', module: '/proyek', priority: 'Sedang' },
+      { role: 'Admin Sub Kegiatan', task: 'Lengkapi data paket, kontrak, dan dokumen', module: '/proyek', priority: 'Sedang' },
       { role: 'Konsultan Pengawas', task: 'Cek deviasi dan catatan lapangan', module: '/peta', priority: 'Sedang' },
       { role: 'Konsultan Perencana', task: 'Lengkapi dokumen perencanaan/survey', module: '/survey', priority: 'Sedang' },
       { role: 'Kontraktor', task: 'Update laporan harian dan dokumentasi', module: '/laporan', priority: 'Sedang' },
@@ -358,7 +405,7 @@ export default function DashboardPage() {
           ? [
               'PPK: review approval, deviasi, dan paket kritis.',
               'PPTK: cek progres paket stuck dan validasi laporan.',
-              'Admin Kegiatan: lengkapi pagu, kontrak, dokumen, dan klasifikasi paket.',
+              'Admin Sub Kegiatan: lengkapi pagu, kontrak, dokumen, dan klasifikasi paket.',
               'Konsultan Pengawas: validasi progres lapangan dan catatan deviasi.',
               'Kontraktor/Mandor: update laporan dan dokumentasi lapangan.',
             ]
@@ -540,11 +587,17 @@ export default function DashboardPage() {
       <div className="space-y-4 p-3 sm:p-4 siaga-gemini-bg">
         <DashboardRoleHeader
           currentUser={currentUser}
-          projects={projects}
+          projects={scopedProjects}
           dateLabel={currentDateLabel}
           timeLabel={currentTimeLabel}
-          notificationCount={auditLogs.length}
+          notificationCount={recentActivity.length}
         />
+
+        {dashboardDataSource === 'demo' && (
+          <div className="relative z-10 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+            Data demo/fallback ditampilkan sementara karena data database belum berhasil dimuat.
+          </div>
+        )}
 
         <section className="relative z-10 rounded-[24px] border border-slate-200/70 bg-white/90 p-2 shadow-sm">
           <div className="flex items-center justify-between gap-3 px-1.5 pb-2 pt-1">
@@ -554,7 +607,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex min-w-full gap-1.5 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
-            {DASHBOARD_TABS.map((tab) => {
+            {availableTabs.map((tab) => {
               const TabIcon = tab.icon
               return (
                 <button
