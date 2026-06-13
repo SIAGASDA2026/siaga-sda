@@ -1,0 +1,45 @@
+{
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/.next/**": true,
+    "**/dist/**": true,
+    "**/out/**": true,
+    "**/coverage/**": true,
+    "**/backup/**": true,
+    "**/backup-ui/**": true,
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/*.rar": true,
+    "**/*.zip": true,
+    "**/*.7z": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.next": true,
+    "**/dist": true,
+    "**/out": true,
+    "**/coverage": true,
+    "**/backup": true,
+    "**/backup-ui": true,
+    "**/*.rar": true,
+    "**/*.zip": true,
+    "**/*.7z": true
+  },
+  "files.exclude": {
+    "**/.next": true,
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/out": true,
+    "**/coverage": true
+  },
+  "typescript.tsserver.maxTsServerMemory": 1024,
+  "typescript.disableAutomaticTypeAcquisition": true,
+  "npm.autoDetect": "off",
+  "git.autorefresh": false,
+  "git.autofetch": false,
+  "eslint.run": "onSave",
+  "editor.codeLens": false,
+  "editor.minimap.enabled": false,
+  "workbench.editor.enablePreview": true,
+  "extensions.ignoreRecommendations": true
+}

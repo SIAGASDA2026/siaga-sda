@@ -5,3 +5,16 @@ node_modules/
 tmp_*.js 
 tmp_*.py 
 tsconfig.tsbuildinfo 
+
+# SIAGA-SDA local heavy folders - keep Git and VS Code light
+node_modules/
+.next/
+dist/
+out/
+coverage/
+backup/
+backup-ui/
+*.rar
+*.zip
+*.7z
+.vscode/settings.backup.json
