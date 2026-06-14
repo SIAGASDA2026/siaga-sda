@@ -7,6 +7,8 @@ import { useAppStore } from '@/store/useAppStore'
 import { BRAND } from '@/lib/brand'
 import { getInitials, getRoleLabel } from '@/lib/utils'
 import { canAccessPage } from '@/lib/rbac'
+import { MAIN_NAVIGATION_ITEMS, type NavigationIconKey } from '@/lib/navigation'
+import type { LucideIcon } from 'lucide-react'
 import {
   Building2,
   ChevronLeft,
@@ -24,32 +26,20 @@ import {
   Settings,
 } from 'lucide-react'
 
-// NAV LENGKAP — semua modul SIAGA SDA
-// canAccessPage() otomatis filter berdasarkan role masing-masing
-const NAV = [
-  // --- Monitoring ---
-  { href: '/dashboard',   label: 'Dashboard',          desc: 'Command center',       icon: Home },
-  { href: '/peta',        label: 'Peta Monitoring',    desc: 'Peta dan layer SDA',   icon: Map },
-
-  // --- Lapangan ---
-  { href: '/survey',      label: 'Survey Investigasi', desc: 'Data lapangan',        icon: MapPin },
-
-  // --- Paket & Administrasi ---
-  { href: '/proyek',      label: 'Paket Pekerjaan',    desc: 'Ruang kerja paket',    icon: FolderOpen },
-  { href: '/approval',    label: 'Approval Center',    desc: 'Persetujuan formal',   icon: CheckSquare },
-
-  // --- Komunikasi ---
-  { href: '/surat',       label: 'Surat Masuk & Keluar', desc: 'Disposisi dan arsip', icon: Mail },
-  { href: '/administrasi', label: 'Administrasi',       desc: 'Kontrak dan dokumen',  icon: FileCheck },
-
-  // --- SDA Operasional ---
-  { href: '/peil',        label: 'Peil Banjir',        desc: 'Titik dan elevasi',    icon: Landmark },
-  { href: '/asset',       label: 'Asset SDA',          desc: 'Pintu air dan pompa',  icon: Building2 },
-
-  // --- Administrasi Sistem ---
-  { href: '/audit-log',   label: 'Audit Log',          desc: 'Jejak aktivitas',      icon: ClipboardList },
-  { href: '/pengaturan',  label: 'Pengaturan',         desc: 'Konfigurasi',          icon: Settings },
-]
+// Ikon tetap lokal; metadata dan route menu berasal dari shared navigation config.
+const NAV_ICON_MAP: Record<NavigationIconKey, LucideIcon> = {
+  dashboard: Home,
+  map: Map,
+  survey: MapPin,
+  projects: FolderOpen,
+  approval: CheckSquare,
+  letters: Mail,
+  administration: FileCheck,
+  'flood-level': Landmark,
+  assets: Building2,
+  audit: ClipboardList,
+  settings: Settings,
+}
 
 export function Sidebar() {
   const pathname = usePathname()
@@ -126,8 +116,8 @@ export function Sidebar() {
       {/* Nav items — filter otomatis berdasarkan role */}
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
         <div className="space-y-1">
-          {NAV.filter((item) => canAccessPage(currentUser.role, item.href)).map((item) => {
-            const Icon = item.icon
+          {MAIN_NAVIGATION_ITEMS.filter((item) => item.desktopInclude && canAccessPage(currentUser.role, item.routeKey)).map((item) => {
+            const Icon = NAV_ICON_MAP[item.iconKey]
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
             const badge = getBadge(item.href)
 
@@ -147,7 +137,7 @@ export function Sidebar() {
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-sm font-semibold leading-tight">{item.label}</span>
                       <span className={`block truncate text-[10px] leading-tight ${isActive ? 'text-white/70' : 'text-blue-200/60'}`}>
-                        {item.desc}
+                        {item.description}
                       </span>
                     </span>
                     {badge && (

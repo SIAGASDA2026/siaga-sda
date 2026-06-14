@@ -8,6 +8,8 @@ import { useAppStore } from '@/store/useAppStore'
 import { BRAND } from '@/lib/brand'
 import { canAccessPage } from '@/lib/rbac'
 import { getRoleLabel } from '@/lib/utils'
+import { MAIN_NAVIGATION_ITEMS, NAVIGATION_GROUPS, type NavigationIconKey } from '@/lib/navigation'
+import type { LucideIcon } from 'lucide-react'
 import {
   Building2,
   CheckSquare,
@@ -26,42 +28,27 @@ import {
   X,
 } from 'lucide-react'
 
-const PRIMARY_NAV = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/peta',      label: 'Peta',      icon: Map },
-  { href: '/proyek',    label: 'Paket',      icon: FolderOpen },
-  { href: '/approval',  label: 'Approval',   icon: CheckSquare },
-]
+const NAV_ICON_MAP: Record<NavigationIconKey, LucideIcon> = {
+  dashboard: LayoutDashboard,
+  map: Map,
+  survey: MapPin,
+  projects: FolderOpen,
+  approval: CheckSquare,
+  letters: Mail,
+  administration: FileCheck,
+  'flood-level': Landmark,
+  assets: Building2,
+  audit: ClipboardList,
+  settings: Settings,
+}
 
-// FIX KRITIS 2 (mobile): Semua menu ada — canAccessPage() filter otomatis berdasarkan role
-const MENU_GROUPS = [
-  {
-    section: 'Monitoring',
-    items: [
-      { href: '/dashboard',   label: 'Dashboard',          icon: LayoutDashboard },
-      { href: '/peta',        label: 'Peta Monitoring',    icon: Map },
-      { href: '/survey',      label: 'Survey Investigasi', icon: MapPin },
-    ],
-  },
-  {
-    section: 'Paket & Administrasi',
-    items: [
-      { href: '/proyek',      label: 'Paket Pekerjaan',    icon: FolderOpen },
-      { href: '/approval',    label: 'Approval Center',    icon: CheckSquare },
-      { href: '/surat',       label: 'Surat Masuk & Keluar', icon: Mail },
-      { href: '/administrasi', label: 'Administrasi',       icon: FileCheck },
-    ],
-  },
-  {
-    section: 'SDA & Sistem',
-    items: [
-      { href: '/peil',        label: 'Peil Banjir',        icon: Landmark },
-      { href: '/asset',       label: 'Asset SDA',          icon: Building2 },
-      { href: '/audit-log',   label: 'Audit Log',          icon: ClipboardList },
-      { href: '/pengaturan',  label: 'Pengaturan',         icon: Settings },
-    ],
-  },
-]
+const PRIMARY_NAV = MAIN_NAVIGATION_ITEMS.filter((item) => item.mobileBottomInclude)
+
+// Expandable menu memakai sumber yang sama dengan Sidebar.
+const MOBILE_MENU_GROUPS = NAVIGATION_GROUPS.map((group) => ({
+  section: group.label,
+  items: MAIN_NAVIGATION_ITEMS.filter((item) => item.mobileInclude && item.group === group.id),
+}))
 
 export function MobileNav() {
   const pathname = usePathname()
@@ -94,10 +81,10 @@ export function MobileNav() {
 
   const filteredGroups = useMemo(() => {
     const needle = query.trim().toLowerCase()
-    return MENU_GROUPS.map((group) => ({
+    return MOBILE_MENU_GROUPS.map((group) => ({
       ...group,
       items: group.items
-        .filter((item) => canAccessPage(currentUser?.role ?? '', item.href))
+        .filter((item) => canAccessPage(currentUser?.role ?? '', item.routeKey))
         .filter((item) => !needle || item.label.toLowerCase().includes(needle) || group.section.toLowerCase().includes(needle)),
     })).filter((group) => group.items.length > 0)
   }, [currentUser?.role, query])
@@ -153,7 +140,7 @@ export function MobileNav() {
                   <div className="mb-2 text-[10px] font-bold uppercase tracking-wide text-slate-400">{group.section}</div>
                   <div className="grid grid-cols-2 gap-2">
                     {group.items.map((item) => {
-                      const Icon = item.icon
+                      const Icon = NAV_ICON_MAP[item.iconKey]
                       const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
                       const badge = getBadge(item.href)
 
@@ -199,8 +186,8 @@ export function MobileNav() {
 
       <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white/95 pb-[env(safe-area-inset-bottom)] shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur md:hidden">
         <div className="grid h-16 grid-cols-5">
-          {PRIMARY_NAV.filter((item) => canAccessPage(currentUser?.role ?? '', item.href)).map((item) => {
-            const Icon = item.icon
+          {PRIMARY_NAV.filter((item) => canAccessPage(currentUser?.role ?? '', item.routeKey)).map((item) => {
+            const Icon = NAV_ICON_MAP[item.iconKey]
             const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
             const badge = getBadge(item.href)
 
@@ -221,7 +208,7 @@ export function MobileNav() {
                     </span>
                   )}
                 </span>
-                <span>{item.label}</span>
+                <span>{item.shortLabel ?? item.label}</span>
               </Link>
             )
           })}
