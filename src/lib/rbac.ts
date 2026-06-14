@@ -157,6 +157,7 @@ export const PAGE_PERMISSIONS: Record<string, Permission> = {
   '/pengumuman': 'view_announcements',
   '/surat': 'view_announcements',
   '/rab': 'view_rab',
+  '/serapan-anggaran': 'view_keuangan',
   '/kontrak': 'view_contracts',
   '/dokumen': 'view_documents',
   '/approval': 'view_approval',

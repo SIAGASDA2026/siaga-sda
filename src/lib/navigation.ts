@@ -16,6 +16,7 @@ export type NavigationIconKey =
 export type NavigationSubItem = {
   id: string
   label: string
+  description: string
   href: string
   routeKey: string
 }
@@ -54,7 +55,7 @@ export const MAIN_NAVIGATION_ITEMS: readonly MainNavigationItem[] = [
     mobileInclude: true,
     mobileBottomInclude: true,
     children: [
-      { id: 'announcements', label: 'Pengumuman', href: '/pengumuman', routeKey: '/pengumuman' },
+      { id: 'announcements', label: 'Pengumuman', description: 'Informasi resmi dan pemberitahuan sistem.', href: '/pengumuman', routeKey: '/pengumuman' },
     ],
   },
   {
@@ -94,11 +95,11 @@ export const MAIN_NAVIGATION_ITEMS: readonly MainNavigationItem[] = [
     mobileInclude: true,
     mobileBottomInclude: true,
     children: [
-      { id: 'daily-reports', label: 'Laporan Harian', href: '/laporan', routeKey: '/laporan' },
-      { id: 'issues', label: 'Masalah & Kendala', href: '/masalah', routeKey: '/masalah' },
-      { id: 'rab', label: 'RAB', href: '/rab', routeKey: '/rab' },
-      { id: 'documents', label: 'Dokumen', href: '/dokumen', routeKey: '/dokumen' },
-      { id: 'project-chat', label: 'Chat Proyek', href: '/chat', routeKey: '/chat' },
+      { id: 'daily-reports', label: 'Laporan Harian', description: 'Input dan tinjau laporan progres lapangan.', href: '/laporan', routeKey: '/laporan' },
+      { id: 'issues', label: 'Masalah & Kendala', description: 'Pantau kendala dan tindak lanjut paket.', href: '/masalah', routeKey: '/masalah' },
+      { id: 'rab', label: 'RAB', description: 'Kelola RAB dan bobot pekerjaan paket.', href: '/rab', routeKey: '/rab' },
+      { id: 'documents', label: 'Dokumen', description: 'Buka arsip dan dokumen terkait paket.', href: '/dokumen', routeKey: '/dokumen' },
+      { id: 'project-chat', label: 'Chat Proyek', description: 'Koordinasi internal sesuai paket yang ditugaskan.', href: '/chat', routeKey: '/chat' },
     ],
   },
   {
@@ -136,8 +137,8 @@ export const MAIN_NAVIGATION_ITEMS: readonly MainNavigationItem[] = [
     desktopInclude: true,
     mobileInclude: true,
     children: [
-      { id: 'budget-absorption', label: 'Serapan Anggaran', href: '/serapan-anggaran', routeKey: '/serapan-anggaran' },
-      { id: 'contracts', label: 'Kontrak', href: '/kontrak', routeKey: '/kontrak' },
+      { id: 'budget-absorption', label: 'Serapan Anggaran', description: 'Ringkasan pagu, kontrak, dan realisasi keuangan.', href: '/serapan-anggaran', routeKey: '/serapan-anggaran' },
+      { id: 'contracts', label: 'Kontrak', description: 'Data kontrak, penyedia, dan masa pelaksanaan.', href: '/kontrak', routeKey: '/kontrak' },
     ],
   },
   {
@@ -184,7 +185,7 @@ export const MAIN_NAVIGATION_ITEMS: readonly MainNavigationItem[] = [
     desktopInclude: true,
     mobileInclude: true,
     children: [
-      { id: 'users', label: 'Pengguna', href: '/pengguna', routeKey: '/pengguna' },
+      { id: 'users', label: 'Pengguna', description: 'Kelola pengguna, role, dan assignment sesuai kewenangan.', href: '/pengguna', routeKey: '/pengguna' },
     ],
   },
 ]

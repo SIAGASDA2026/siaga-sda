@@ -5,6 +5,7 @@ import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { useAppStore } from '@/store/useAppStore'
 import { Topbar } from '@/components/layout/Topbar'
+import { SubfeatureEntryPoints } from '@/components/navigation/SubfeatureEntryPoints'
 import { Modal, ConfirmDialog, FormField, Input, Select, EmptyState, ActionButtons } from '@/components/ui'
 import { formatCurrency, getHealthBadge, getStatusLabel, formatDate, canAccess, getRoleLabel } from '@/lib/utils'
 import {
@@ -290,6 +291,8 @@ export default function ProyekPage() {
               <PackageStatCard icon={CheckCircle2} label="Selesai" value={paketStats.selesai} desc={`${paketStats.avgFisik}% progres rata-rata`} tone="sky" />
             </div>
           </section>
+
+          <SubfeatureEntryPoints parentId="projects" title="Ruang Kerja Paket" />
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
             <main className="min-w-0 space-y-4">

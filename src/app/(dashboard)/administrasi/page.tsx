@@ -3,6 +3,7 @@
 import { FileText } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { ModuleLandingPage } from '@/components/modules/ModuleLandingPage'
+import { SubfeatureEntryPoints } from '@/components/navigation/SubfeatureEntryPoints'
 import { hasPermission } from '@/lib/rbac'
 
 export default function AdministrasiPage() {
@@ -39,6 +40,8 @@ export default function AdministrasiPage() {
       primaryLabel={canManageUsers ? 'Kelola Pengguna' : 'Buka Pengaturan'}
       cards={cards}
       checklist={checklist}
-    />
+    >
+      <SubfeatureEntryPoints parentId="administration" title="Administrasi Paket" />
+    </ModuleLandingPage>
   )
 }

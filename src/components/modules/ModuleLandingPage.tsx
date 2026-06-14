@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { ArrowRight, CheckCircle, LucideIcon } from 'lucide-react'
 import { Topbar } from '@/components/layout/Topbar'
 
@@ -12,6 +13,7 @@ type ModuleLandingPageProps = {
   checklist: string[]
   primaryHref?: string
   primaryLabel?: string
+  children?: ReactNode
 }
 
 export function ModuleLandingPage({
@@ -22,6 +24,7 @@ export function ModuleLandingPage({
   checklist,
   primaryHref = '/dashboard',
   primaryLabel = 'Kembali ke Dashboard',
+  children,
 }: ModuleLandingPageProps) {
   return (
     <>
@@ -43,6 +46,8 @@ export function ModuleLandingPage({
             </Link>
           </div>
         </section>
+
+        {children}
 
         <section className="grid grid-cols-1 gap-4 md:grid-cols-3">
           {cards.map((card) => (
