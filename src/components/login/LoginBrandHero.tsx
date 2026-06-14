@@ -21,8 +21,9 @@ export function LoginBrandHero({ logoPuSrc, logoSrc }: LoginBrandHeroProps) {
         </p>
         <div className="mt-1.5 h-0.5 w-14 rounded-full bg-cyan-300" />
         <p className={`${styles.brandSummary} mt-1.5 font-medium leading-snug text-slate-100`}>
-          Sistem Informasi, Analisis, Gerak Cepat dan Administrasi Sumber Daya Air
-          <span>Data real-time untuk keputusan yang tepat dan terintegrasi.</span>
+          <span className={styles.brandSummaryLine}>SISTEM INFORMASI, ANALISIS, GERAK CEPAT DAN ADMINISTRASI</span>
+          <span className={styles.brandSummaryLine}>SUMBER DAYA AIR</span>
+          <span className={styles.brandSummaryMeta}>Data real-time untuk keputusan yang tepat dan terintegrasi.</span>
         </p>
 
         <div className={styles.institutionIdentity}>

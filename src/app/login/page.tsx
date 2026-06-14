@@ -13,7 +13,7 @@ import {
   Mail,
   UserRoundPlus,
 } from 'lucide-react'
-import loginBgNightDam from '../../../public/brand/login-bg-night-dam.png'
+import loginBgNightDam from '../../../public/brand/Background-2.png'
 import logoPuSda from '../../../public/brand/logo-pu-sda.png'
 import logoSiagaSda from '../../../public/brand/logo-siaga-sda.png'
 import { LoginBrandHero } from '@/components/login/LoginBrandHero'

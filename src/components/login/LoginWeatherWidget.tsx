@@ -10,7 +10,7 @@ const dumaiWeatherPreview = {
   condition: 'Berawan',
   temperature: 28,
   rainChance: 35,
-  windSpeed: 12,
+  humidity: 75,
 }
 
 export function LoginWeatherWidget() {
@@ -26,7 +26,7 @@ export function LoginWeatherWidget() {
   return (
     <section
       className={styles.weatherStrip}
-      aria-label={`Cuaca ${weatherSummary.location}: ${weatherSummary.condition}, ${weatherSummary.temperature} derajat Celsius, hujan ${weatherSummary.rainChance} persen, angin ${weatherSummary.windSpeed} kilometer per jam`}
+      aria-label={`Cuaca ${weatherSummary.location}: ${weatherSummary.condition}, ${weatherSummary.temperature} derajat Celsius, hujan ${weatherSummary.rainChance} persen, kelembaban ${weatherSummary.humidity} persen`}
     >
       <span>Cuaca {weatherSummary.location}</span>
       <i aria-hidden="true">•</i>
@@ -34,7 +34,7 @@ export function LoginWeatherWidget() {
       <i aria-hidden="true">•</i>
       <span>Hujan {weatherSummary.rainChance}%</span>
       <i aria-hidden="true">•</i>
-      <span>Angin {weatherSummary.windSpeed} km/jam</span>
+      <span>Kelembaban {weatherSummary.humidity}%</span>
     </section>
   )
 }
