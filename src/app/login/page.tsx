@@ -14,8 +14,8 @@ import {
   UserRoundPlus,
 } from 'lucide-react'
 import loginBgNightDam from '../../../public/brand/login-bg-night-dam.png'
-import logoPuSda from '../../../docs/assets/logo-pu-sda.png'
-import logoSiagaSda from '../../../docs/assets/logo-siaga-sda.png'
+import logoPuSda from '../../../public/brand/logo-pu-sda.png'
+import logoSiagaSda from '../../../public/brand/logo-siaga-sda.png'
 import { LoginBrandHero } from '@/components/login/LoginBrandHero'
 import { LoginDigitalClock } from '@/components/login/LoginDigitalClock'
 import { LoginPrayerWidget } from '@/components/login/LoginPrayerWidget'
