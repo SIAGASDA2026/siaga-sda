@@ -267,7 +267,7 @@ export default function DashboardPage() {
     { time: '12:00', condition: 'Pasang Maksimum', height: '+1.36 m', status: 'Siaga' },
     { time: '18:20', condition: 'Surut Turun', height: '+0.84 m', status: 'Aman' },
   ]
-  const broadRoleView = ['super_admin', 'admin', 'admin_sistem', 'kabid', 'pimpinan'].includes(normalizedRole)
+  const broadRoleView = ['super_admin', 'admin', 'kabid', 'pimpinan'].includes(normalizedRole)
   const currentUserAction = {
     ppk: { label: 'PPK', task: 'Review approval pending dan evaluasi paket kritis', module: '/approval', priority: 'Tinggi' },
     pptk: { label: 'PPTK', task: 'Update progres dan tindak lanjut paket stuck', module: '/laporan', priority: 'Tinggi' },
@@ -275,11 +275,6 @@ export default function DashboardPage() {
     konsultan_pengawas: { label: 'Konsultan Pengawas', task: 'Cek deviasi dan catatan lapangan', module: '/peta', priority: 'Sedang' },
     konsultan_perencana: { label: 'Konsultan Perencana', task: 'Lengkapi dokumen perencanaan/survey', module: '/survey', priority: 'Sedang' },
     kontraktor: { label: 'Kontraktor', task: 'Update laporan harian dan dokumentasi', module: '/laporan', priority: 'Sedang' },
-    mandor_operasional_sda: { label: 'Mandor/Petugas', task: 'Update kondisi lapangan, pintu air, pompa, pasang surut', module: '/peta', priority: 'Tinggi' },
-    mandor_rehab_drainase: { label: 'Mandor/Petugas', task: 'Update kondisi lapangan, pintu air, pompa, pasang surut', module: '/peta', priority: 'Tinggi' },
-    admin_surat: { label: 'Admin Surat/Peil/Asset', task: 'Lengkapi data modul masing-masing', module: '/pengumuman', priority: 'Sedang' },
-    admin_peil: { label: 'Admin Surat/Peil/Asset', task: 'Lengkapi data modul masing-masing', module: '/peta', priority: 'Sedang' },
-    admin_asset: { label: 'Admin Surat/Peil/Asset', task: 'Lengkapi data modul masing-masing', module: '/peta', priority: 'Sedang' },
   }[normalizedRole] || { label: getRoleLabel(currentRole), task: 'Tindak lanjut sesuai peran Anda', module: '/peta', priority: 'Sedang' }
 
   const roleActions = useMemo(() => {

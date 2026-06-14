@@ -160,7 +160,7 @@ export const PAGE_PERMISSIONS: Record<string, Permission> = {
   '/kontrak': 'view_contracts',
   '/dokumen': 'view_documents',
   '/approval': 'view_approval',
-  '/administrasi': 'view_settings',
+  '/administrasi': 'view_contracts',
   '/peil': 'view_map',
   '/asset': 'view_map',
   '/pengguna': 'manage_users',

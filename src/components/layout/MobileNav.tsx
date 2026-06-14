@@ -9,73 +9,54 @@ import { BRAND } from '@/lib/brand'
 import { canAccessPage } from '@/lib/rbac'
 import { getRoleLabel } from '@/lib/utils'
 import {
-  AlertTriangle,
-  Archive,
   Building2,
-  Calculator,
   CheckSquare,
   ClipboardList,
   FileCheck,
-  FileText,
   FolderOpen,
   Landmark,
   LayoutDashboard,
   LogOut,
   Map,
   MapPin,
-  Megaphone,
   Menu,
-  MessageSquare,
   Mail,
   Search,
   Settings,
-  Users,
   X,
 } from 'lucide-react'
 
 const PRIMARY_NAV = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/peta',      label: 'Peta',      icon: Map },
   { href: '/proyek',    label: 'Paket',      icon: FolderOpen },
   { href: '/approval',  label: 'Approval',   icon: CheckSquare },
-  { href: '/masalah',   label: 'Masalah',    icon: AlertTriangle },
 ]
 
 // FIX KRITIS 2 (mobile): Semua menu ada — canAccessPage() filter otomatis berdasarkan role
 const MENU_GROUPS = [
   {
-    section: 'Monitoring & Lapangan',
+    section: 'Monitoring',
     items: [
       { href: '/dashboard',   label: 'Dashboard',          icon: LayoutDashboard },
       { href: '/peta',        label: 'Peta Monitoring',    icon: Map },
       { href: '/survey',      label: 'Survey Investigasi', icon: MapPin },
-      { href: '/laporan',     label: 'Laporan Harian',     icon: FileText },
-      { href: '/masalah',     label: 'Masalah & Kendala',  icon: AlertTriangle },
     ],
   },
   {
-    section: 'Paket & Kontrak',
+    section: 'Paket & Administrasi',
     items: [
       { href: '/proyek',      label: 'Paket Pekerjaan',    icon: FolderOpen },
       { href: '/approval',    label: 'Approval Center',    icon: CheckSquare },
-      { href: '/rab',         label: 'RAB',                icon: Calculator },
-      { href: '/kontrak',     label: 'Kontrak',            icon: FileCheck },
-      { href: '/dokumen',     label: 'Dokumen',            icon: Archive },
+      { href: '/surat',       label: 'Surat Masuk & Keluar', icon: Mail },
+      { href: '/administrasi', label: 'Administrasi',       icon: FileCheck },
     ],
   },
   {
-    section: 'Komunikasi',
-    items: [
-      { href: '/chat',        label: 'Chat Proyek',        icon: MessageSquare },
-      { href: '/pengumuman',  label: 'Pengumuman',         icon: Megaphone },
-      { href: '/surat',       label: 'Surat Masuk/Keluar', icon: Mail },
-    ],
-  },
-  {
-    section: 'SDA & Administrasi',
+    section: 'SDA & Sistem',
     items: [
       { href: '/peil',        label: 'Peil Banjir',        icon: Landmark },
       { href: '/asset',       label: 'Asset SDA',          icon: Building2 },
-      { href: '/pengguna',    label: 'Pengguna',           icon: Users },
       { href: '/audit-log',   label: 'Audit Log',          icon: ClipboardList },
       { href: '/pengaturan',  label: 'Pengaturan',         icon: Settings },
     ],
@@ -99,7 +80,6 @@ export function MobileNav() {
             p.ppk === currentUser?.id,
         )
 
-  const openMasalah = userProjects.reduce((sum, project) => sum + project.masalah.filter((item) => item.status === 'open').length, 0)
   const pendingApproval = userProjects.reduce((sum, project) => (
     sum +
     project.laporanHarian.filter((item) => !item.disetujui).length +
@@ -108,7 +88,6 @@ export function MobileNav() {
   ), 0)
 
   const getBadge = (href: string) => {
-    if (href === '/masalah' && openMasalah > 0) return openMasalah > 9 ? '9+' : String(openMasalah)
     if (href === '/approval' && pendingApproval > 0) return pendingApproval > 9 ? '9+' : String(pendingApproval)
     return null
   }

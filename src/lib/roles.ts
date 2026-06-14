@@ -1,5 +1,42 @@
 import { Role } from '@/types'
 
+// Alias tahap transisi. Nilai null berarti belum ada padanan frontend yang aman.
+export const FINAL_ROLE_FRONTEND_ALIASES = {
+  super_admin: 'super_admin',
+  admin_sistem: 'admin',
+  admin_bidang: 'admin',
+  admin_sda: 'admin',
+  admin_sub_kegiatan: 'admin_sub_kegiatan',
+  kepala_bidang: 'kabid',
+  kabid: 'kabid',
+  kepala_dinas: 'pimpinan',
+  pimpinan: 'pimpinan',
+  ppk: 'ppk',
+  pptk: 'pptk',
+  direksi_teknis: 'direksi_teknis',
+  pejabat_pengadaan: 'pejabat_pengadaan',
+  pphp: 'pphp',
+  admin_surat: null,
+  admin_peil: null,
+  admin_peil_banjir: null,
+  admin_asset: null,
+  tim_perencana_rutin: 'tim_perencanaan',
+  tim_perencanaan: 'tim_perencanaan',
+  tim_pengawas_rutin: 'tim_pengawasan',
+  tim_pengawasan: 'tim_pengawasan',
+  tim_survey: 'tim_survey',
+  konsultan_perencana: 'konsultan_perencana',
+  konsultan_pengawas: 'konsultan_pengawasan',
+  konsultan_pengawasan: 'konsultan_pengawasan',
+  kontraktor: 'kontraktor',
+  mandor_operasional_sda: null,
+  mandor_pintu_air: null,
+  petugas_pintu_air: null,
+  mandor_rehab_drainase: null,
+  mandor_rehabilitasi_drainase: null,
+  auditor: 'auditor',
+} as const satisfies Record<string, Role | null>
+
 export type RoleDefinition = {
   val: Role
   label: string

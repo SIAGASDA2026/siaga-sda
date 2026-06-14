@@ -6,17 +6,13 @@ import { signOut } from 'next-auth/react'
 import { useAppStore } from '@/store/useAppStore'
 import { BRAND } from '@/lib/brand'
 import { getInitials, getRoleLabel } from '@/lib/utils'
-import { canAccessPage, hasPermission } from '@/lib/rbac'
+import { canAccessPage } from '@/lib/rbac'
 import {
-  AlertTriangle,
-  Archive,
   Building2,
-  Calculator,
   ChevronLeft,
   CheckSquare,
   ClipboardList,
   FileCheck,
-  FileText,
   FolderOpen,
   Gauge,
   Home,
@@ -25,10 +21,7 @@ import {
   Mail,
   Map,
   MapPin,
-  Megaphone,
-  MessageSquare,
   Settings,
-  Users,
 } from 'lucide-react'
 
 // NAV LENGKAP — semua modul SIAGA SDA
@@ -40,28 +33,20 @@ const NAV = [
 
   // --- Lapangan ---
   { href: '/survey',      label: 'Survey Investigasi', desc: 'Data lapangan',        icon: MapPin },
-  { href: '/laporan',     label: 'Laporan Harian',     desc: 'Input & monitoring',   icon: FileText },
-  { href: '/masalah',     label: 'Masalah & Kendala',  desc: 'Laporan masalah',      icon: AlertTriangle },
 
   // --- Paket & Administrasi ---
   { href: '/proyek',      label: 'Paket Pekerjaan',    desc: 'Ruang kerja paket',    icon: FolderOpen },
   { href: '/approval',    label: 'Approval Center',    desc: 'Persetujuan formal',   icon: CheckSquare },
-  { href: '/rab',         label: 'RAB',                desc: 'Rencana Anggaran',     icon: Calculator },
-  { href: '/serapan-anggaran', label: 'Serapan Anggaran', desc: 'Program, Kegiatan, Sub Kegiatan', icon: Gauge },
-  { href: '/kontrak',     label: 'Kontrak',            desc: 'Data kontrak paket',   icon: FileCheck },
-  { href: '/dokumen',     label: 'Dokumen',            desc: 'Arsip dokumen',        icon: Archive },
 
   // --- Komunikasi ---
-  { href: '/chat',        label: 'Chat Proyek',        desc: 'Komunikasi tim',       icon: MessageSquare },
-  { href: '/pengumuman',  label: 'Pengumuman',         desc: 'Informasi resmi',      icon: Megaphone },
-  { href: '/surat',       label: 'Surat Masuk/Keluar', desc: 'Disposisi dan arsip',  icon: Mail },
+  { href: '/surat',       label: 'Surat Masuk & Keluar', desc: 'Disposisi dan arsip', icon: Mail },
+  { href: '/administrasi', label: 'Administrasi',       desc: 'Kontrak dan dokumen',  icon: FileCheck },
 
   // --- SDA Operasional ---
   { href: '/peil',        label: 'Peil Banjir',        desc: 'Titik dan elevasi',    icon: Landmark },
   { href: '/asset',       label: 'Asset SDA',          desc: 'Pintu air dan pompa',  icon: Building2 },
 
   // --- Administrasi Sistem ---
-  { href: '/pengguna',    label: 'Pengguna',           desc: 'Manajemen akun',       icon: Users },
   { href: '/audit-log',   label: 'Audit Log',          desc: 'Jejak aktivitas',      icon: ClipboardList },
   { href: '/pengaturan',  label: 'Pengaturan',         desc: 'Konfigurasi',          icon: Settings },
 ]
@@ -91,16 +76,9 @@ export function Sidebar() {
     0,
   )
 
-  const openMasalah = userProjects.reduce(
-    (sum, project) => sum + project.masalah.filter((item) => item.status === 'open').length,
-    0,
-  )
-
   const getBadge = (href: string) => {
     if (href === '/approval' && pendingApproval > 0)
       return pendingApproval > 99 ? '99+' : String(pendingApproval)
-    if (href === '/masalah' && openMasalah > 0)
-      return openMasalah > 99 ? '99+' : String(openMasalah)
     return null
   }
 
