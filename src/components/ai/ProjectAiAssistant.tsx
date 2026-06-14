@@ -222,7 +222,7 @@ function pageSpecificAnalysis(context: string, projects: Proyek[], risky: Return
 
 export function ProjectAiAssistant() {
   const pathname = usePathname()
-  const { projects } = useAppStore()
+  const projects = useAppStore((state) => state.projects)
   const [open, setOpen] = useState(false)
 
   const insights = useMemo(() => {

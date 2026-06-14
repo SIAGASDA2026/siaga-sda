@@ -18,7 +18,10 @@ export default function DashboardLayout({
   const router = useRouter()
   const { data: session, status } = useSession()
 
-  const { currentUser, isLoggedIn, sidebarOpen, hydrateFromDatabase, setAuthUser } = useAppStore()
+  const isLoggedIn = useAppStore((state) => state.isLoggedIn)
+  const sidebarOpen = useAppStore((state) => state.sidebarOpen)
+  const hydrateFromDatabase = useAppStore((state) => state.hydrateFromDatabase)
+  const setAuthUser = useAppStore((state) => state.setAuthUser)
 
   const [mounted, setMounted] = useState(false)
   const [bootstrapped, setBootstrapped] = useState(false)
@@ -42,7 +45,7 @@ export default function DashboardLayout({
 
     let active = true
 
-    if (!currentUser && session?.user) {
+    if (!useAppStore.getState().currentUser && session?.user) {
       const sessionUser = session.user as typeof session.user & { id?: string; role?: string }
       setAuthUser({
         id: sessionUser.id || sessionUser.email || 'session-user',
@@ -134,7 +137,7 @@ export default function DashboardLayout({
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleFocus)
     }
-  }, [currentUser, hydrateFromDatabase, mounted, session?.user, setAuthUser, status])
+  }, [hydrateFromDatabase, mounted, session?.user, setAuthUser, status])
 
   if (!mounted || status === 'loading') {
     return (

@@ -43,7 +43,11 @@ const NAV_ICON_MAP: Record<NavigationIconKey, LucideIcon> = {
 
 export function Sidebar() {
   const pathname = usePathname()
-  const { currentUser, logout, sidebarOpen, setSidebarOpen, projects } = useAppStore()
+  const currentUser = useAppStore((state) => state.currentUser)
+  const logout = useAppStore((state) => state.logout)
+  const sidebarOpen = useAppStore((state) => state.sidebarOpen)
+  const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
+  const projects = useAppStore((state) => state.projects)
   if (!currentUser) return null
 
   // FIX KRITIS 4: Filter proyek sesuai role/assignment user sebelum hitung badge

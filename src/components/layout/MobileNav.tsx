@@ -52,7 +52,9 @@ const MOBILE_MENU_GROUPS = NAVIGATION_GROUPS.map((group) => ({
 
 export function MobileNav() {
   const pathname = usePathname()
-  const { projects, currentUser, logout } = useAppStore()
+  const projects = useAppStore((state) => state.projects)
+  const currentUser = useAppStore((state) => state.currentUser)
+  const logout = useAppStore((state) => state.logout)
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
 

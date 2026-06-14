@@ -53,11 +53,19 @@ type AnnouncementPreview = {
   createdAt: string
 }
 
+const ANNOUNCEMENT_REFRESH_MS = 60_000
+let announcementCache: AnnouncementPreview[] = []
+let announcementCacheAt = 0
+
 export function Topbar({ title, subtitle, action }: TopbarProps) {
-  const { currentUser, sidebarOpen, projects, auditLogs, logout } = useAppStore()
+  const currentUser = useAppStore((state) => state.currentUser)
+  const sidebarOpen = useAppStore((state) => state.sidebarOpen)
+  const projects = useAppStore((state) => state.projects)
+  const auditLogs = useAppStore((state) => state.auditLogs)
+  const logout = useAppStore((state) => state.logout)
   const [showNotif, setShowNotif] = useState(false)
   const [showUser, setShowUser] = useState(false)
-  const [announcements, setAnnouncements] = useState<AnnouncementPreview[]>([])
+  const [announcements, setAnnouncements] = useState<AnnouncementPreview[]>(announcementCache)
 
   const openMasalah = projects.reduce((sum, p) => sum + p.masalah.filter((m) => m.status === 'open').length, 0)
   const masalahKritis = projects.reduce((sum, p) => sum + p.masalah.filter((m) => m.prioritas === 'kritis' && m.status !== 'closed').length, 0)
@@ -76,18 +84,24 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
 
   useEffect(() => {
     let active = true
-    const load = async () => {
+    const load = async (force = false) => {
+      if (!force && announcementCacheAt && Date.now() - announcementCacheAt < ANNOUNCEMENT_REFRESH_MS) {
+        if (active) setAnnouncements(announcementCache)
+        return
+      }
       try {
         const res = await fetch('/api/announcements', { cache: 'no-store' })
         if (!res.ok) throw new Error()
         const data = await res.json()
-        if (active) setAnnouncements(Array.isArray(data) ? data.slice(0, 5) : [])
+        announcementCache = Array.isArray(data) ? data.slice(0, 5) : []
+        announcementCacheAt = Date.now()
+        if (active) setAnnouncements(announcementCache)
       } catch {
-        if (active) setAnnouncements([])
+        if (active && announcementCache.length === 0) setAnnouncements([])
       }
     }
     load()
-    const id = window.setInterval(load, 5000)
+    const id = window.setInterval(() => load(true), ANNOUNCEMENT_REFRESH_MS)
     return () => { active = false; window.clearInterval(id) }
   }, [])
 

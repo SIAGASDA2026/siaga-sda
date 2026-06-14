@@ -65,7 +65,10 @@ const DASHBOARD_TAB_ACCESS_PATH: Partial<Record<DashboardTab, string>> = {
 }
 
 export default function DashboardPage() {
-  const { projects, currentUser, auditLogs, dashboardDataSource } = useAppStore()
+  const projects = useAppStore((state) => state.projects)
+  const currentUser = useAppStore((state) => state.currentUser)
+  const auditLogs = useAppStore((state) => state.auditLogs)
+  const dashboardDataSource = useAppStore((state) => state.dashboardDataSource)
   const [activeTab, setActiveTab] = useState<DashboardTab>('ringkasan')
   const [filterKategori, setFilterKategori] = useState('all')
   const [filterJenisProyek, setFilterJenisProyek] = useState('all')
