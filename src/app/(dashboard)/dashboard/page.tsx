@@ -9,6 +9,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { Topbar } from '@/components/layout/Topbar'
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
 import { DashboardRoleHeader } from '@/components/dashboard/DashboardRoleHeader'
+import { useApprovalSummary } from '@/components/approval/ApprovalSummaryProvider'
 import { PrayerTimeWidget } from '@/components/dashboard/PrayerTimeWidget'
 import { TideDashboardPanel } from '@/components/dashboard/TideDashboardPanel'
 import { BRAND } from '@/lib/brand'
@@ -70,6 +71,7 @@ export default function DashboardPage() {
   const currentUser = useAppStore((state) => state.currentUser)
   const auditLogs = useAppStore((state) => state.auditLogs)
   const dashboardDataSource = useAppStore((state) => state.dashboardDataSource)
+  const { summary: approvalSummary } = useApprovalSummary()
   const [activeTab, setActiveTab] = useState<DashboardTab>('ringkasan')
   const [filterKategori, setFilterKategori] = useState('all')
   const [filterJenisProyek, setFilterJenisProyek] = useState('all')
@@ -161,7 +163,7 @@ export default function DashboardPage() {
       .filter((log) => log.userId === currentUser.id || Boolean(log.entityId && scopedProjectIds.has(log.entityId)))
       .slice(0, 7)
   }, [auditLogs, currentRole, currentUser, scopedProjects])
-  const approvalPending = stats.laporanMenunggu + stats.rabMenunggu + stats.surveyMenunggu
+  const approvalPending = approvalSummary.pending
   const riskProjects = visibleProjects
     .filter((project) => project.health === 'kritis' || project.health === 'warning' || project.masalah.some((item) => item.status === 'open'))
     .sort((a, b) => (b.health === 'kritis' ? 2 : b.health === 'warning' ? 1 : 0) - (a.health === 'kritis' ? 2 : a.health === 'warning' ? 1 : 0))
@@ -189,18 +191,10 @@ export default function DashboardPage() {
         project.health === 'warning' ||
         project.masalah.some((item) => item.status === 'open'),
     ).length
-    const pending = previousYearProjects.reduce((sum, project) => {
-      return (
-        sum +
-        (project.laporanHarian?.filter((item) => !item.disetujui).length || 0) +
-        (project.rabList?.filter((item) => item.status !== 'approved' && item.status !== 'rejected').length || 0) +
-        (project.surveys?.filter((item) => item.status === 'submitted').length || 0)
-      )
-    }, 0)
     const avgFisik = total
       ? previousYearProjects.reduce((sum, project) => sum + (project.progressFisik || 0), 0) / total
       : 0
-    return { total, selesai, stuck, pending, avgFisik }
+    return { total, selesai, stuck, avgFisik }
   }, [previousYearProjects])
 
   const statusSda = useMemo(() => {
@@ -435,10 +429,9 @@ export default function DashboardPage() {
       { label: 'Total paket', current: stats.total, previous: previousYearStats.total },
       { label: 'Paket selesai', current: stats.selesai, previous: previousYearStats.selesai },
       { label: 'Paket stuck', current: stats.kritis + stats.warning, previous: previousYearStats.stuck },
-      { label: 'Approval pending', current: approvalPending, previous: previousYearStats.pending },
       { label: 'Rata-rata progres fisik', current: Math.round(stats.avgFisik), previous: Math.round(previousYearStats.avgFisik) },
     ],
-    [approvalPending, previousYearStats, stats.avgFisik, stats.kritis, stats.selesai, stats.total, stats.warning],
+    [previousYearStats, stats.avgFisik, stats.kritis, stats.selesai, stats.total, stats.warning],
   )
 
   const hasPreviousYearStats = previousYearProjects.length > 0
@@ -456,7 +449,7 @@ export default function DashboardPage() {
 
   const alertItems = [
     { label: 'Paket Kritis', value: stats.kritis, icon: AlertTriangle, href: `/proyek?tahun=${activeYear}&health=kritis&source_module=dashboard`, badge: 'Kritis', badgeClass: 'bg-rose-50 text-rose-700' },
-    { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, href: `/approval?tahun=${activeYear}&approval_status=pending&source_module=dashboard`, badge: 'Pending', badgeClass: 'bg-amber-50 text-amber-700' },
+    { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, href: '/approval?approval_status=pending&source_module=dashboard', badge: 'Pending', badgeClass: 'bg-amber-50 text-amber-700' },
     { label: 'Survey Belum Ditindaklanjuti', value: stats.surveyMenunggu, icon: FileText, href: `/survey?tahun=${activeYear}&status=belum-ditindaklanjuti&source_module=dashboard`, badge: 'Survei', badgeClass: 'bg-violet-50 text-violet-700' },
     { label: 'Laporan Harian Belum Masuk', value: stats.laporanMenunggu, icon: FileText, href: `/laporan`, badge: 'Laporan', badgeClass: 'bg-sky-50 text-sky-700' },
     { label: 'Status Pasang Surut (Simulasi)', value: tideOverview.status, icon: Waves, href: '/peta', badge: tideOverview.status, badgeClass: 'bg-amber-50 text-amber-700' },
@@ -705,7 +698,7 @@ export default function DashboardPage() {
               label: 'Approval Pending',
               value: approvalPending,
               icon: ClipboardList,
-              href: `/approval?tahun=${activeYear}&approval_status=pending&source_module=dashboard`,
+              href: '/approval?approval_status=pending&source_module=dashboard',
               tone: 'amber',
             },
             {
@@ -1321,15 +1314,15 @@ export default function DashboardPage() {
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <div className="text-sm font-extrabold text-slate-900">Ringkasan Approval</div>
-                  <div className="text-xs text-slate-500">Item pending dari data aktif</div>
+                  <div className="text-xs text-slate-500">Data formal sesuai role dan penugasan aktif</div>
                 </div>
                 <Link href="/approval" className="text-xs font-bold text-blue-700 hover:underline">Buka</Link>
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: 'Laporan', value: stats.laporanMenunggu },
-                  { label: 'RAB', value: stats.rabMenunggu },
-                  { label: 'Survey', value: stats.surveyMenunggu },
+                  { label: 'Pending', value: approvalSummary.pending },
+                  { label: 'Revisi', value: approvalSummary.revision },
+                  { label: 'Selesai', value: approvalSummary.approved },
                 ].map((item) => (
                   <div key={item.label} className="rounded-xl bg-slate-50 p-3 text-center">
                     <div className="text-2xl font-black text-[#0D2C54]">{item.value}</div>

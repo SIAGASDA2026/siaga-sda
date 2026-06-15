@@ -6,6 +6,14 @@ import { logAudit, toRole } from '@/lib/project-db'
 
 export type ApprovalActionInput = 'approve' | 'reject' | 'request_revision' | 'comment'
 
+export type ApprovalSummary = {
+  total: number
+  pending: number
+  approved: number
+  rejected: number
+  revision: number
+}
+
 const ENTITY_LABEL: Record<ApprovalEntityType, string> = {
   LAPORAN_HARIAN: 'Laporan Harian',
   LAPORAN_MINGGUAN: 'Laporan Mingguan',
@@ -63,6 +71,20 @@ function canAccessApprovalPaket(role: string, userId: string, paket: { ppkId: st
 
 function pickApprover(paket: { ppkId: string | null; pptkId: string | null }, fallbackUserId: string) {
   return paket.ppkId || paket.pptkId || fallbackUserId
+}
+
+function approvalWhereForSession(role: string, userId: string): Prisma.ApprovalWhereInput | undefined {
+  return canViewAllProjects(role)
+    ? undefined
+    : {
+        paket: {
+          OR: [
+            { ppkId: userId },
+            { pptkId: userId },
+            { assignments: { some: { userId } } },
+          ],
+        },
+      }
 }
 
 async function ensureApproval(params: {
@@ -186,17 +208,7 @@ export async function listApprovalsForSession(session: any) {
   const userId = String(session?.user?.id || '')
 
   const approvals = await prisma.approval.findMany({
-    where: canViewAllProjects(role)
-      ? undefined
-      : {
-          paket: {
-            OR: [
-              { ppkId: userId },
-              { pptkId: userId },
-              { assignments: { some: { userId } } },
-            ],
-          },
-        },
+    where: approvalWhereForSession(role, userId),
     include: {
       paket: {
         select: {
@@ -222,6 +234,36 @@ export async function listApprovalsForSession(session: any) {
   })
 
   return approvals.map((item) => serializeApproval(item as any, role))
+}
+
+/**
+ * Ringkasan formal read-only untuk badge Approval Center.
+ * Scope identik dengan daftar Approval Center dan tidak menjalankan sinkronisasi tulis.
+ */
+export async function getApprovalSummaryForSession(session: any): Promise<ApprovalSummary> {
+  const role = String(session?.user?.role || '')
+  const userId = String(session?.user?.id || '')
+  if (!userId || !hasPermission(role, 'view_approval')) {
+    return { total: 0, pending: 0, approved: 0, rejected: 0, revision: 0 }
+  }
+
+  const grouped = await prisma.approval.groupBy({
+    by: ['status'],
+    where: approvalWhereForSession(role, userId),
+    _count: { _all: true },
+  })
+
+  const countByStatus = new Map(grouped.map((item) => [item.status, item._count._all]))
+  const count = (...statuses: ApprovalStatus[]) =>
+    statuses.reduce((sum, status) => sum + (countByStatus.get(status) || 0), 0)
+
+  return {
+    total: grouped.reduce((sum, item) => sum + item._count._all, 0),
+    pending: count(ApprovalStatus.DRAFT, ApprovalStatus.SUBMITTED, ApprovalStatus.REVIEWED),
+    approved: count(ApprovalStatus.APPROVED, ApprovalStatus.FINAL),
+    rejected: count(ApprovalStatus.REJECTED),
+    revision: count(ApprovalStatus.REVISION),
+  }
 }
 
 export async function applyApprovalAction(session: any, approvalId: string, input: { action: ApprovalActionInput; note?: string }) {

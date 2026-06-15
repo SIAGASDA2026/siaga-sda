@@ -7,6 +7,7 @@ import { useAppStore } from '@/store/useAppStore'
 import Sidebar from '@/components/layout/Sidebar'
 import MobileNav from '@/components/layout/MobileNav'
 import { ProjectAiAssistant } from '@/components/ai/ProjectAiAssistant'
+import { ApprovalSummaryProvider } from '@/components/approval/ApprovalSummaryProvider'
 import { BRAND } from '@/lib/brand'
 import { Toaster } from 'react-hot-toast'
 
@@ -222,58 +223,60 @@ export default function DashboardLayout({
 
   return (
     <div className="app-surface min-h-screen">
-      <Toaster
-        position="top-right"
-        toastOptions={{
-          duration: 3000,
-          style: { fontSize: 13, borderRadius: 12 },
-        }}
-      />
+      <ApprovalSummaryProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: { fontSize: 13, borderRadius: 12 },
+          }}
+        />
 
-      <Sidebar />
-      <MobileNav />
-      <ProjectAiAssistant />
+        <Sidebar />
+        <MobileNav />
+        <ProjectAiAssistant />
 
-      <main
-        className="app-main min-h-screen transition-all duration-300"
-        style={{
-          ['--sidebar-left' as string]: `${sidebarOpen ? 256 : 76}px`,
-          paddingTop: 64,
-        }}
-      >
-        <div className="min-w-0">
-          {dashboardDataSource === 'demo' && (
-            <div className="mx-4 mt-4 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800 sm:mx-5 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <div>Data Demo/Fallback ditampilkan karena data database belum berhasil dimuat. Angka pada halaman ini bukan data resmi.</div>
-                <div className="mt-0.5 font-normal text-amber-700">
-                  {bootstrapStatus === 'retrying'
-                    ? 'Koneksi database belum stabil, mencoba ulang...'
-                    : 'Database belum berhasil dimuat. Periksa koneksi atau coba lagi.'}
+        <main
+          className="app-main min-h-screen transition-all duration-300"
+          style={{
+            ['--sidebar-left' as string]: `${sidebarOpen ? 256 : 76}px`,
+            paddingTop: 64,
+          }}
+        >
+          <div className="min-w-0">
+            {dashboardDataSource === 'demo' && (
+              <div className="mx-4 mt-4 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800 sm:mx-5 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <div>Data Demo/Fallback ditampilkan karena data database belum berhasil dimuat. Angka pada halaman ini bukan data resmi.</div>
+                  <div className="mt-0.5 font-normal text-amber-700">
+                    {bootstrapStatus === 'retrying'
+                      ? 'Koneksi database belum stabil, mencoba ulang...'
+                      : 'Database belum berhasil dimuat. Periksa koneksi atau coba lagi.'}
+                  </div>
                 </div>
+                <button
+                  type="button"
+                  disabled={bootstrapStatus === 'retrying'}
+                  onClick={() => {
+                    setBootstrapStatus('retrying')
+                    setManualRetryKey((value) => value + 1)
+                  }}
+                  className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-900 transition hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60"
+                >
+                  {bootstrapStatus === 'retrying' ? 'Mencoba Ulang...' : 'Muat Ulang Data Database'}
+                </button>
               </div>
-              <button
-                type="button"
-                disabled={bootstrapStatus === 'retrying'}
-                onClick={() => {
-                  setBootstrapStatus('retrying')
-                  setManualRetryKey((value) => value + 1)
-                }}
-                className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-900 transition hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60"
-              >
-                {bootstrapStatus === 'retrying' ? 'Mencoba Ulang...' : 'Muat Ulang Data Database'}
-              </button>
-            </div>
-          )}
-          {children}
-        </div>
+            )}
+            {children}
+          </div>
 
-        <div className="px-4 pb-6 pt-4 text-center text-[11px] leading-relaxed text-slate-400 sm:px-5">
-          <div>{BRAND.name}</div>
-          <div>{BRAND.copyright}</div>
-          <div>{BRAND.rights}</div>
-        </div>
-      </main>
+          <div className="px-4 pb-6 pt-4 text-center text-[11px] leading-relaxed text-slate-400 sm:px-5">
+            <div>{BRAND.name}</div>
+            <div>{BRAND.copyright}</div>
+            <div>{BRAND.rights}</div>
+          </div>
+        </main>
+      </ApprovalSummaryProvider>
     </div>
   )
 }

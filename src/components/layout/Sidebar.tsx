@@ -7,8 +7,8 @@ import { useAppStore } from '@/store/useAppStore'
 import { BRAND } from '@/lib/brand'
 import { getInitials, getRoleLabel } from '@/lib/utils'
 import { canAccessPage } from '@/lib/rbac'
-import { getPendingApprovalCount, getScopedProjects } from '@/lib/dashboard-scope'
 import { MAIN_NAVIGATION_ITEMS, type NavigationIconKey } from '@/lib/navigation'
+import { useApprovalSummary } from '@/components/approval/ApprovalSummaryProvider'
 import type { LucideIcon } from 'lucide-react'
 import {
   Building2,
@@ -48,11 +48,10 @@ export function Sidebar() {
   const logout = useAppStore((state) => state.logout)
   const sidebarOpen = useAppStore((state) => state.sidebarOpen)
   const setSidebarOpen = useAppStore((state) => state.setSidebarOpen)
-  const projects = useAppStore((state) => state.projects)
+  const { summary: approvalSummary } = useApprovalSummary()
   if (!currentUser) return null
 
-  const userProjects = getScopedProjects(projects, currentUser)
-  const pendingApproval = getPendingApprovalCount(userProjects)
+  const pendingApproval = approvalSummary.pending
 
   const getBadge = (href: string) => {
     if (href === '/approval' && pendingApproval > 0)

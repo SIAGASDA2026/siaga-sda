@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { canAccess } from '@/lib/utils'
 import { getScopedAuditLogs, getScopedProjects } from '@/lib/dashboard-scope'
+import { useApprovalSummary } from '@/components/approval/ApprovalSummaryProvider'
 
 interface TopbarProps {
   title: string
@@ -64,6 +65,7 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
   const projects = useAppStore((state) => state.projects)
   const auditLogs = useAppStore((state) => state.auditLogs)
   const logout = useAppStore((state) => state.logout)
+  const { summary: approvalSummary } = useApprovalSummary()
   const [showNotif, setShowNotif] = useState(false)
   const [showUser, setShowUser] = useState(false)
   const [announcements, setAnnouncements] = useState<AnnouncementPreview[]>(announcementCache)
@@ -72,9 +74,6 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
 
   const openMasalah = scopedProjects.reduce((sum, p) => sum + p.masalah.filter((m) => m.status === 'open').length, 0)
   const masalahKritis = scopedProjects.reduce((sum, p) => sum + p.masalah.filter((m) => m.prioritas === 'kritis' && m.status !== 'closed').length, 0)
-  const laporanMenunggu = scopedProjects.reduce((sum, p) => sum + p.laporanHarian.filter((l) => !l.disetujui).length, 0)
-  const rabMenunggu = scopedProjects.reduce((sum, p) => sum + p.rabList.filter((r) => r.status !== 'approved' && r.status !== 'rejected').length, 0)
-  const surveyMenunggu = scopedProjects.reduce((sum, p) => sum + p.surveys.filter((s) => s.status === 'submitted').length, 0)
   const totalChat = scopedProjects.reduce((sum, p) => sum + p.chat.length, 0)
   const kontrakAkanSelesai = scopedProjects.filter((p) => {
     if (!p.tanggalSelesai || p.status === 'selesai') return false
@@ -112,10 +111,10 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
 
   const notifications = useMemo<NotificationItem[]>(() => {
     const items: NotificationItem[] = []
-    const approvalPending = laporanMenunggu + rabMenunggu + surveyMenunggu
+    const approvalPending = approvalSummary.pending
 
     if (approvalPending > 0 && canAccess(role, 'view_approval')) {
-      items.push({ id: 'approval-pending', href: '/approval?approval_status=pending&source_module=topbar', title: `${approvalPending} item approval menunggu`, desc: `${laporanMenunggu} laporan, ${rabMenunggu} RAB, ${surveyMenunggu} survey.`, tone: 'amber', icon: ClipboardList, count: approvalPending, priority: 10, meta: 'Approval Center' })
+      items.push({ id: 'approval-pending', href: '/approval?approval_status=pending&source_module=topbar', title: `${approvalPending} item approval menunggu`, desc: 'Ringkasan formal sesuai role dan penugasan aktif.', tone: 'amber', icon: ClipboardList, count: approvalPending, priority: 10, meta: 'Approval Center' })
     }
     if (masalahKritis > 0 && canAccess(role, 'view_issues')) {
       items.push({ id: 'critical-issues', href: '/masalah', title: `${masalahKritis} masalah kritis`, desc: 'Perlu respons teknis segera.', tone: 'red', icon: AlertTriangle, count: masalahKritis, priority: 1, meta: 'Masalah' })
@@ -142,7 +141,7 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
       items.push({ id: 'clear', href: '/dashboard', title: 'Tidak ada notifikasi prioritas', desc: 'Sistem memantau approval, masalah, kontrak, dan chat.', tone: 'slate', icon: Bell, count: 0, priority: 100, meta: 'Realtime aktif' })
     }
     return items.sort((a, b) => a.priority - b.priority)
-  }, [announcements, kontrakAkanSelesai, laporanMenunggu, masalahKritis, openMasalah, proyekKritis, proyekWarning, rabMenunggu, role, surveyMenunggu, totalChat])
+  }, [announcements, approvalSummary.pending, kontrakAkanSelesai, masalahKritis, openMasalah, proyekKritis, proyekWarning, role, totalChat])
 
   const dashboardTitle = `Dashboard ${getDashboardRoleLabel(currentUser?.role || 'pptk')}`
   const pageContext = subtitle ? `${title} - ${subtitle}` : title

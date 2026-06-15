@@ -8,8 +8,8 @@ import { useAppStore } from '@/store/useAppStore'
 import { BRAND } from '@/lib/brand'
 import { canAccessPage } from '@/lib/rbac'
 import { getRoleLabel } from '@/lib/utils'
-import { getPendingApprovalCount, getScopedProjects } from '@/lib/dashboard-scope'
 import { MAIN_NAVIGATION_ITEMS, NAVIGATION_GROUPS, type NavigationIconKey } from '@/lib/navigation'
+import { useApprovalSummary } from '@/components/approval/ApprovalSummaryProvider'
 import type { LucideIcon } from 'lucide-react'
 import {
   Building2,
@@ -53,14 +53,13 @@ const MOBILE_MENU_GROUPS = NAVIGATION_GROUPS.map((group) => ({
 
 export function MobileNav() {
   const pathname = usePathname()
-  const projects = useAppStore((state) => state.projects)
   const currentUser = useAppStore((state) => state.currentUser)
   const logout = useAppStore((state) => state.logout)
+  const { summary: approvalSummary } = useApprovalSummary()
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
 
-  const userProjects = getScopedProjects(projects, currentUser)
-  const pendingApproval = getPendingApprovalCount(userProjects)
+  const pendingApproval = approvalSummary.pending
 
   const getBadge = (href: string) => {
     if (href === '/approval' && pendingApproval > 0) return pendingApproval > 9 ? '9+' : String(pendingApproval)

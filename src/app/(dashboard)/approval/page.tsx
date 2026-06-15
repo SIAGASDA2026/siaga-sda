@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Topbar } from '@/components/layout/Topbar'
+import { useApprovalSummary } from '@/components/approval/ApprovalSummaryProvider'
 import { EmptyState, Modal } from '@/components/ui'
 import { formatDate } from '@/lib/utils'
 import { CheckCircle2, ClipboardCheck, Eye, History, ListChecks, MessageSquareWarning, RotateCcw, Search, ShieldCheck, XCircle } from 'lucide-react'
@@ -108,6 +109,7 @@ async function fetchApprovals() {
 
 export default function ApprovalCenterPage() {
   const searchParams = useSearchParams()
+  const { summary: approvalSummary, refreshApprovalSummary } = useApprovalSummary()
   const searchQuery = searchParams.toString()
   const initialApprovalId = searchParams.get('approval_id')
   const [items, setItems] = useState<ApprovalItem[]>([])
@@ -208,10 +210,10 @@ export default function ApprovalCenterPage() {
   }
 
   const stats = {
-    total: items.length,
-    pending: items.filter((item) => isPending(item.status)).length,
-    revision: items.filter((item) => item.status === 'REVISION').length,
-    done: items.filter((item) => item.status === 'APPROVED' || item.status === 'FINAL').length,
+    total: approvalSummary.total,
+    pending: approvalSummary.pending,
+    revision: approvalSummary.revision,
+    done: approvalSummary.approved,
   }
 
   const processAction = async (item: ApprovalItem, action: ActionInput, actionNote?: string) => {
@@ -235,6 +237,7 @@ export default function ApprovalCenterPage() {
       setNoteTarget(null)
       setNote('')
       await load()
+      await refreshApprovalSummary()
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Gagal memproses approval')
     } finally {
