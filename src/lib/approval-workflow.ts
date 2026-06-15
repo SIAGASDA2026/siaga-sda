@@ -104,7 +104,11 @@ async function ensureApproval(params: {
   return approval
 }
 
-export async function ensurePendingApprovalsForVisiblePakets(session: any) {
+/**
+ * Operasi tulis untuk membentuk approval yang belum tersedia.
+ * Jangan panggil dari GET/polling. Gunakan hanya dari endpoint mutasi eksplisit.
+ */
+export async function syncPendingApprovalsForVisiblePakets(session: any) {
   const role = String(session?.user?.role || '')
   const userId = String(session?.user?.id || '')
   if (!userId || !hasPermission(role, 'view_approval')) return
@@ -178,8 +182,6 @@ export async function ensurePendingApprovalsForVisiblePakets(session: any) {
 }
 
 export async function listApprovalsForSession(session: any) {
-  await ensurePendingApprovalsForVisiblePakets(session)
-
   const role = String(session?.user?.role || '')
   const userId = String(session?.user?.id || '')
 
@@ -340,6 +342,10 @@ function serializeApproval(
   },
   role: string,
 ) {
+  const canApprove = role !== 'pimpinan' && role !== 'auditor' && hasPermission(role, approvalPermission(item.entityType, 'approve'))
+  const canReject = role !== 'pimpinan' && role !== 'auditor' && hasPermission(role, 'reject_item')
+  const canRequestRevision = role !== 'pimpinan' && role !== 'auditor' && hasPermission(role, 'request_revision')
+
   return {
     id: item.id,
     paketId: item.paketId,
@@ -368,7 +374,10 @@ function serializeApproval(
           role: mapDbRole(item.requester.role),
         }
       : null,
-    canAct: role !== 'pimpinan' && role !== 'auditor',
+    canAct: canApprove || canReject || canRequestRevision,
+    canApprove,
+    canReject,
+    canRequestRevision,
     histories: item.histories.map((history) => ({
       id: history.id,
       action: history.action,

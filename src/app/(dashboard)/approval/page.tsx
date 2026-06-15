@@ -44,6 +44,9 @@ type ApprovalItem = {
   approver: { id: string; name: string; role: string }
   requester: { id: string; name: string; role: string } | null
   canAct: boolean
+  canApprove: boolean
+  canReject: boolean
+  canRequestRevision: boolean
   histories: ApprovalHistory[]
 }
 
@@ -90,10 +93,16 @@ function isPending(status: ApprovalStatus) {
   return status === 'DRAFT' || status === 'SUBMITTED' || status === 'REVIEWED'
 }
 
+class ApprovalRequestError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message)
+  }
+}
+
 async function fetchApprovals() {
   const response = await fetch('/api/approval', { cache: 'no-store' })
   const data = await response.json().catch(() => null)
-  if (!response.ok) throw new Error(data?.message || 'Gagal mengambil data approval')
+  if (!response.ok) throw new ApprovalRequestError(data?.message || 'Gagal mengambil data approval', response.status)
   return data.approvals as ApprovalItem[]
 }
 
@@ -120,6 +129,7 @@ export default function ApprovalCenterPage() {
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [processingId, setProcessingId] = useState<string | null>(null)
+  const [accessDenied, setAccessDenied] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(searchQuery)
@@ -134,8 +144,11 @@ export default function ApprovalCenterPage() {
   }, [searchQuery])
 
   const load = useCallback(async () => {
+    if (accessDenied) return
+
     try {
       const approvals = await fetchApprovals()
+      setAccessDenied(false)
       setItems(approvals)
       setSelected((current) => current
         ? approvals.find((item) => item.id === current.id) || null
@@ -143,17 +156,28 @@ export default function ApprovalCenterPage() {
           ? approvals.find((item) => item.id === initialApprovalId) || null
           : null)
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Gagal memuat approval')
+      if (error instanceof ApprovalRequestError && error.status === 403) {
+        setAccessDenied(true)
+        setItems([])
+        setSelected(null)
+      } else {
+        toast.error(error instanceof Error ? error.message : 'Gagal memuat approval')
+      }
     } finally {
       setLoading(false)
     }
-  }, [initialApprovalId])
+  }, [accessDenied, initialApprovalId])
 
   useEffect(() => {
-    load()
-    const interval = window.setInterval(load, 5000)
+    void load()
+    if (accessDenied) return
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') void load()
+    }, 15000)
+
     return () => window.clearInterval(interval)
-  }, [load])
+  }, [accessDenied, load])
 
   const filtered = useMemo(() => {
     return items.filter((item) => {
@@ -232,6 +256,16 @@ export default function ApprovalCenterPage() {
             </button>
           </div>
         )}
+        {accessDenied ? (
+          <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-amber-900">
+            <div className="text-base font-extrabold">Akses Dibatasi</div>
+            <p className="mt-1 text-sm leading-6">
+              Halaman ini hanya dapat diakses oleh user yang memiliki role dan penugasan aktif sesuai kewenangan.
+              Silakan hubungi Admin Sistem jika akses ini diperlukan.
+            </p>
+          </div>
+        ) : (
+        <>
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
             { label: 'Total Item', value: stats.total, icon: ClipboardCheck, tone: 'bg-blue-50 text-blue-700' },
@@ -322,27 +356,33 @@ export default function ApprovalCenterPage() {
                       </button>
                       {item.canAct && isPending(item.status) && (
                         <>
-                          <button
-                            disabled={processingId === item.id}
-                            onClick={() => processAction(item, 'approve')}
-                            className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:bg-green-300"
-                          >
-                            <CheckCircle2 className="h-3.5 w-3.5" /> Setujui
-                          </button>
-                          <button
-                            disabled={processingId === item.id}
-                            onClick={() => processAction(item, 'request_revision')}
-                            className="flex items-center gap-1 rounded-lg bg-orange-50 px-3 py-2 text-xs font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-60"
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" /> Minta Revisi
-                          </button>
-                          <button
-                            disabled={processingId === item.id}
-                            onClick={() => processAction(item, 'reject')}
-                            className="flex items-center gap-1 rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-60"
-                          >
-                            <XCircle className="h-3.5 w-3.5" /> Tolak
-                          </button>
+                          {item.canApprove && (
+                            <button
+                              disabled={processingId === item.id}
+                              onClick={() => processAction(item, 'approve')}
+                              className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-bold text-white hover:bg-green-700 disabled:bg-green-300"
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Setujui
+                            </button>
+                          )}
+                          {item.canRequestRevision && (
+                            <button
+                              disabled={processingId === item.id}
+                              onClick={() => processAction(item, 'request_revision')}
+                              className="flex items-center gap-1 rounded-lg bg-orange-50 px-3 py-2 text-xs font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-60"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" /> Minta Revisi
+                            </button>
+                          )}
+                          {item.canReject && (
+                            <button
+                              disabled={processingId === item.id}
+                              onClick={() => processAction(item, 'reject')}
+                              className="flex items-center gap-1 rounded-lg bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-60"
+                            >
+                              <XCircle className="h-3.5 w-3.5" /> Tolak
+                            </button>
+                          )}
                         </>
                       )}
                     </div>
@@ -352,6 +392,8 @@ export default function ApprovalCenterPage() {
             </div>
           )}
         </div>
+        </>
+        )}
       </div>
 
       <Modal open={!!selected} onClose={() => setSelected(null)} title="Detail Approval" size="lg">
@@ -410,12 +452,16 @@ export default function ApprovalCenterPage() {
               </Link>
               {selected.canAct && isPending(selected.status) && (
                 <>
-                  <button onClick={() => processAction(selected, 'approve')} disabled={processingId === selected.id} className="flex-1 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-green-700 disabled:bg-green-300">
-                    Setujui
-                  </button>
-                  <button onClick={() => processAction(selected, 'request_revision')} disabled={processingId === selected.id} className="flex-1 rounded-xl bg-orange-50 px-4 py-2.5 text-sm font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-60">
-                    Minta Revisi
-                  </button>
+                  {selected.canApprove && (
+                    <button onClick={() => processAction(selected, 'approve')} disabled={processingId === selected.id} className="flex-1 rounded-xl bg-green-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-green-700 disabled:bg-green-300">
+                      Setujui
+                    </button>
+                  )}
+                  {selected.canRequestRevision && (
+                    <button onClick={() => processAction(selected, 'request_revision')} disabled={processingId === selected.id} className="flex-1 rounded-xl bg-orange-50 px-4 py-2.5 text-sm font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-60">
+                      Minta Revisi
+                    </button>
+                  )}
                 </>
               )}
             </div>
