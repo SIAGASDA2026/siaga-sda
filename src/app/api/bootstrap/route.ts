@@ -4,6 +4,16 @@ import { prisma } from '@/lib/prisma'
 import { mapDbAuditLog, mapDbPaket, mapDbUser, mapLegacyProject } from '@/lib/db-mappers'
 import { canViewAllProjects } from '@/lib/rbac'
 
+function compareProjectsByUpdatedAtThenId(
+  a: { id: string; updatedAt: string },
+  b: { id: string; updatedAt: string },
+) {
+  const dateDifference = Date.parse(b.updatedAt) - Date.parse(a.updatedAt)
+  return Number.isFinite(dateDifference) && dateDifference !== 0
+    ? dateDifference
+    : a.id.localeCompare(b.id)
+}
+
 export async function GET() {
   const session = await auth()
 
@@ -144,11 +154,15 @@ export async function GET() {
   ])
 
   const currentUser = users.find((user) => user.id === session.user.id)
+  const mappedProjects = [
+    ...pakets.map(mapDbPaket),
+    ...projects.map(mapLegacyProject),
+  ].sort(compareProjectsByUpdatedAtThenId)
 
   return NextResponse.json({
     currentUser: currentUser ? mapDbUser(currentUser) : null,
     users: users.map(mapDbUser),
-    projects: [...pakets.map(mapDbPaket), ...projects.map(mapLegacyProject)],
+    projects: mappedProjects,
     auditLogs: auditLogs.map(mapDbAuditLog),
   }, {
     headers: {

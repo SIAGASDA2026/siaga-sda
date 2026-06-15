@@ -20,11 +20,13 @@ export default function DashboardLayout({
 
   const isLoggedIn = useAppStore((state) => state.isLoggedIn)
   const sidebarOpen = useAppStore((state) => state.sidebarOpen)
+  const dashboardDataSource = useAppStore((state) => state.dashboardDataSource)
   const hydrateFromDatabase = useAppStore((state) => state.hydrateFromDatabase)
   const setAuthUser = useAppStore((state) => state.setAuthUser)
 
   const [mounted, setMounted] = useState(false)
   const [bootstrapped, setBootstrapped] = useState(false)
+  const initialBootstrapCompleteRef = useRef(false)
   const syncVersionRef = useRef<string>('')
   const syncInFlightRef = useRef(false)
 
@@ -36,6 +38,7 @@ export default function DashboardLayout({
     if (mounted && status === 'unauthenticated') {
       setAuthUser(null)
       setBootstrapped(false)
+      initialBootstrapCompleteRef.current = false
       router.replace('/login')
     }
   }, [mounted, router, setAuthUser, status])
@@ -55,7 +58,7 @@ export default function DashboardLayout({
       })
     }
 
-    setBootstrapped(true)
+    if (!initialBootstrapCompleteRef.current) setBootstrapped(false)
 
     const syncData = async () => {
       return fetch('/api/bootstrap', { cache: 'no-store' })
@@ -66,13 +69,17 @@ export default function DashboardLayout({
         .then((data) => {
           if (active) {
             hydrateFromDatabase(data)
+            initialBootstrapCompleteRef.current = true
             setBootstrapped(true)
           }
         })
         .catch(() => {
           // Jangan jatuhkan session aktif jika bootstrap data sedang lambat/gagal sementara.
           // Validasi login tetap dipegang NextAuth; data dashboard akan mencoba sync lagi.
-          if (active) setBootstrapped(true)
+          if (active) {
+            initialBootstrapCompleteRef.current = true
+            setBootstrapped(true)
+          }
         })
     }
 
@@ -113,9 +120,7 @@ export default function DashboardLayout({
       }
     }
 
-    const initialSyncId = window.setTimeout(() => {
-      syncData().then(primeSyncVersion)
-    }, 1200)
+    void syncData().then(primeSyncVersion)
 
     const intervalId = window.setInterval(() => {
       if (document.visibilityState === 'visible') syncIfChanged()
@@ -132,7 +137,6 @@ export default function DashboardLayout({
 
     return () => {
       active = false
-      window.clearTimeout(initialSyncId)
       window.clearInterval(intervalId)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleFocus)
@@ -189,6 +193,11 @@ export default function DashboardLayout({
         }}
       >
         <div className="min-w-0">
+          {dashboardDataSource === 'demo' && (
+            <div className="mx-4 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800 sm:mx-5">
+              Data Demo/Fallback ditampilkan karena data database belum berhasil dimuat. Angka pada halaman ini bukan data resmi.
+            </div>
+          )}
           {children}
         </div>
 
