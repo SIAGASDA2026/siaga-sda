@@ -10,6 +10,9 @@ import { ProjectAiAssistant } from '@/components/ai/ProjectAiAssistant'
 import { BRAND } from '@/lib/brand'
 import { Toaster } from 'react-hot-toast'
 
+const BOOTSTRAP_RETRY_DELAYS_MS = [0, 1000, 1500] as const
+type BootstrapStatus = 'idle' | 'loading' | 'retrying' | 'database' | 'fallback'
+
 export default function DashboardLayout({
   children,
 }: {
@@ -26,6 +29,8 @@ export default function DashboardLayout({
 
   const [mounted, setMounted] = useState(false)
   const [bootstrapped, setBootstrapped] = useState(false)
+  const [bootstrapStatus, setBootstrapStatus] = useState<BootstrapStatus>('idle')
+  const [manualRetryKey, setManualRetryKey] = useState(0)
   const initialBootstrapCompleteRef = useRef(false)
   const syncVersionRef = useRef<string>('')
   const syncInFlightRef = useRef(false)
@@ -38,6 +43,7 @@ export default function DashboardLayout({
     if (mounted && status === 'unauthenticated') {
       setAuthUser(null)
       setBootstrapped(false)
+      setBootstrapStatus('idle')
       initialBootstrapCompleteRef.current = false
       router.replace('/login')
     }
@@ -58,29 +64,66 @@ export default function DashboardLayout({
       })
     }
 
-    if (!initialBootstrapCompleteRef.current) setBootstrapped(false)
+    const isInitialBootstrap = !initialBootstrapCompleteRef.current
+
+    if (isInitialBootstrap) {
+      setBootstrapped(false)
+      setBootstrapStatus('loading')
+    } else if (manualRetryKey > 0) {
+      setBootstrapStatus('retrying')
+    }
+
+    const fetchBootstrap = async () => {
+      const response = await fetch('/api/bootstrap', { cache: 'no-store' })
+      if (!response.ok) throw new Error(`Gagal memuat data ${BRAND.name}`)
+      return response.json()
+    }
+
+    const hydrateBootstrapData = (data: Parameters<typeof hydrateFromDatabase>[0]) => {
+      if (!active) return
+      hydrateFromDatabase(data)
+      initialBootstrapCompleteRef.current = true
+      setBootstrapStatus('database')
+      setBootstrapped(true)
+    }
 
     const syncData = async () => {
-      return fetch('/api/bootstrap', { cache: 'no-store' })
-        .then((response) => {
-          if (!response.ok) throw new Error(`Gagal memuat data ${BRAND.name}`)
-          return response.json()
-        })
-        .then((data) => {
-          if (active) {
-            hydrateFromDatabase(data)
-            initialBootstrapCompleteRef.current = true
-            setBootstrapped(true)
-          }
-        })
-        .catch(() => {
-          // Jangan jatuhkan session aktif jika bootstrap data sedang lambat/gagal sementara.
-          // Validasi login tetap dipegang NextAuth; data dashboard akan mencoba sync lagi.
-          if (active) {
-            initialBootstrapCompleteRef.current = true
-            setBootstrapped(true)
-          }
-        })
+      try {
+        const data = await fetchBootstrap()
+        hydrateBootstrapData(data)
+        return true
+      } catch {
+        // Sinkronisasi background tidak mengubah database source menjadi fallback.
+        return false
+      }
+    }
+
+    const bootstrapWithRetry = async () => {
+      for (let attempt = 0; attempt < BOOTSTRAP_RETRY_DELAYS_MS.length; attempt += 1) {
+        const delay = BOOTSTRAP_RETRY_DELAYS_MS[attempt]
+
+        if (delay > 0) {
+          if (active) setBootstrapStatus('retrying')
+          await new Promise((resolve) => window.setTimeout(resolve, delay))
+        }
+
+        if (!active) return false
+
+        try {
+          const data = await fetchBootstrap()
+          hydrateBootstrapData(data)
+          return true
+        } catch {
+          // Detail koneksi tetap di server. Client hanya mengatur retry terbatas.
+        }
+      }
+
+      if (active) {
+        initialBootstrapCompleteRef.current = true
+        setBootstrapStatus('fallback')
+        setBootstrapped(true)
+      }
+      return false
     }
 
     const primeSyncVersion = async () => {
@@ -109,8 +152,8 @@ export default function DashboardLayout({
         const data = await response.json()
 
         if (!syncVersionRef.current || syncVersionRef.current !== data.version) {
-          syncVersionRef.current = data.version
-          await syncData()
+          const synced = await syncData()
+          if (synced) syncVersionRef.current = data.version
         }
       } catch {
         // Jangan paksa logout hanya karena cek realtime sementara gagal/lambat.
@@ -120,7 +163,9 @@ export default function DashboardLayout({
       }
     }
 
-    void syncData().then(primeSyncVersion)
+    void bootstrapWithRetry().then((success) => {
+      if (success) void primeSyncVersion()
+    })
 
     const intervalId = window.setInterval(() => {
       if (document.visibilityState === 'visible') syncIfChanged()
@@ -141,7 +186,7 @@ export default function DashboardLayout({
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       window.removeEventListener('focus', handleFocus)
     }
-  }, [hydrateFromDatabase, mounted, session?.user, setAuthUser, status])
+  }, [hydrateFromDatabase, manualRetryKey, mounted, session?.user, setAuthUser, status])
 
   if (!mounted || status === 'loading') {
     return (
@@ -164,7 +209,11 @@ export default function DashboardLayout({
             <span className="text-xl font-bold text-white">S</span>
           </div>
           <p className="text-sm text-slate-400">
-            {status === 'authenticated' ? 'Memuat data database...' : 'Mengalihkan ke halaman login...'}
+            {status !== 'authenticated'
+              ? 'Mengalihkan ke halaman login...'
+              : bootstrapStatus === 'retrying'
+                ? 'Koneksi database belum stabil, mencoba ulang...'
+                : 'Memuat data database...'}
           </p>
         </div>
       </div>
@@ -194,8 +243,26 @@ export default function DashboardLayout({
       >
         <div className="min-w-0">
           {dashboardDataSource === 'demo' && (
-            <div className="mx-4 mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800 sm:mx-5">
-              Data Demo/Fallback ditampilkan karena data database belum berhasil dimuat. Angka pada halaman ini bukan data resmi.
+            <div className="mx-4 mt-4 flex flex-col gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-medium text-amber-800 sm:mx-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <div>Data Demo/Fallback ditampilkan karena data database belum berhasil dimuat. Angka pada halaman ini bukan data resmi.</div>
+                <div className="mt-0.5 font-normal text-amber-700">
+                  {bootstrapStatus === 'retrying'
+                    ? 'Koneksi database belum stabil, mencoba ulang...'
+                    : 'Database belum berhasil dimuat. Periksa koneksi atau coba lagi.'}
+                </div>
+              </div>
+              <button
+                type="button"
+                disabled={bootstrapStatus === 'retrying'}
+                onClick={() => {
+                  setBootstrapStatus('retrying')
+                  setManualRetryKey((value) => value + 1)
+                }}
+                className="shrink-0 rounded-lg border border-amber-300 bg-white px-3 py-2 text-xs font-bold text-amber-900 transition hover:bg-amber-100 disabled:cursor-wait disabled:opacity-60"
+              >
+                {bootstrapStatus === 'retrying' ? 'Mencoba Ulang...' : 'Muat Ulang Data Database'}
+              </button>
             </div>
           )}
           {children}
