@@ -13,6 +13,7 @@ import { PrayerTimeWidget } from '@/components/dashboard/PrayerTimeWidget'
 import { TideDashboardPanel } from '@/components/dashboard/TideDashboardPanel'
 import { BRAND } from '@/lib/brand'
 import { canAccessPage, canViewAllProjects } from '@/lib/rbac'
+import { getScopedProjects } from '@/lib/dashboard-scope'
 import { filterProjectsByScope, getProjectBudgetYear, getProjectBudgetYears, getProjectCategoryLabel, getProjectPackageType, getProjectPackageTypeLabel, getProjectPrograms, getProjectSubKegiatan, getProjectWorkStage, getProjectWorkStageLabel } from '@/lib/reporting'
 import { formatCurrency, formatDateTime, getHealthBadge, getRoleLabel } from '@/lib/utils'
 
@@ -46,7 +47,7 @@ const DASHBOARD_TABS: { id: DashboardTab; label: string; desc: string; icon: Luc
   { id: 'warning', label: 'Warning Center', desc: 'Peringatan SDA', icon: AlertTriangle },
   { id: 'waktu', label: 'Waktu & Salat', desc: 'Jam dan pengingat', icon: Clock },
   { id: 'aktivitas', label: 'Aktivitas', desc: 'Audit terbaru', icon: Activity },
-  { id: 'ai', label: 'AI Analisis', desc: 'Saran teknis', icon: Bot },
+  { id: 'ai', label: 'Insight Lokal', desc: 'Rule-based, bukan resmi', icon: Bot },
 ]
 
 const DASHBOARD_TAB_ACCESS_PATH: Partial<Record<DashboardTab, string>> = {
@@ -80,16 +81,7 @@ export default function DashboardPage() {
 
   const currentRole = currentUser?.role || 'pptk'
   const normalizedRole = currentRole.toLowerCase()
-  const scopedProjects = useMemo(() => {
-    if (!currentUser || canViewAllProjects(currentRole)) return projects
-
-    const assignedProjectIds = new Set(currentUser.projectIds || [])
-    return projects.filter(
-      (project) =>
-        assignedProjectIds.has(project.id) ||
-        project.assignedUsers?.includes(currentUser.id),
-    )
-  }, [currentRole, currentUser, projects])
+  const scopedProjects = useMemo(() => getScopedProjects(projects, currentUser), [currentUser, projects])
   const availableTabs = useMemo(
     () => DASHBOARD_TABS.filter((tab) => {
       const accessPath = DASHBOARD_TAB_ACCESS_PATH[tab.id]
@@ -452,24 +444,24 @@ export default function DashboardPage() {
   const hasPreviousYearStats = previousYearProjects.length > 0
 
   const commandBriefItems = [
-    { label: 'Total Paket', value: stats.total, icon: FolderOpen, tone: 'blue' },
-    { label: 'Progres', value: stats.onTrack, icon: TrendingUp, tone: 'emerald' },
-    { label: 'Selesai', value: stats.selesai, icon: CheckCircle, tone: 'slate' },
-    { label: 'Stuck / Kritis', value: stats.kritis + stats.warning, icon: XCircle, tone: 'red' },
-    { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, tone: 'amber' },
-    { label: 'Survey Belum Ditindaklanjuti', value: stats.surveyMenunggu, icon: FileText, tone: 'violet' },
-    { label: 'Masalah Open', value: stats.openMasalah, icon: AlertTriangle, tone: 'rose' },
-    { label: 'Titik Kritis', value: riskProjects.length, icon: LifeBuoy, tone: 'orange' },
-  ]
+    { label: 'Total Paket', value: stats.total, icon: FolderOpen, tone: 'blue', accessPath: '/proyek' },
+    { label: 'Progres', value: stats.onTrack, icon: TrendingUp, tone: 'emerald', accessPath: '/proyek' },
+    { label: 'Selesai', value: stats.selesai, icon: CheckCircle, tone: 'slate', accessPath: '/proyek' },
+    { label: 'Stuck / Kritis', value: stats.kritis + stats.warning, icon: XCircle, tone: 'red', accessPath: '/proyek' },
+    { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, tone: 'amber', accessPath: '/approval' },
+    { label: 'Survey Belum Ditindaklanjuti', value: stats.surveyMenunggu, icon: FileText, tone: 'violet', accessPath: '/survey' },
+    { label: 'Masalah Open', value: stats.openMasalah, icon: AlertTriangle, tone: 'rose', accessPath: '/masalah' },
+    { label: 'Titik Kritis', value: riskProjects.length, icon: LifeBuoy, tone: 'orange', accessPath: '/peta' },
+  ].filter((item) => canAccessPage(currentRole, item.accessPath))
 
   const alertItems = [
-    { label: 'Paket Kritis', value: stats.kritis, icon: AlertTriangle, href: `/proyek?tahun=${activeYear}&health=kritis`, badge: 'Kritis', badgeClass: 'bg-rose-50 text-rose-700' },
-    { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, href: `/approval?tahun=${activeYear}&status=pending`, badge: 'Pending', badgeClass: 'bg-amber-50 text-amber-700' },
-    { label: 'Survey Belum Ditindaklanjuti', value: stats.surveyMenunggu, icon: FileText, href: `/proyek?tahun=${activeYear}&source=survey&status=belum-ditindaklanjuti`, badge: 'Survei', badgeClass: 'bg-violet-50 text-violet-700' },
+    { label: 'Paket Kritis', value: stats.kritis, icon: AlertTriangle, href: `/proyek?tahun=${activeYear}&health=kritis&source_module=dashboard`, badge: 'Kritis', badgeClass: 'bg-rose-50 text-rose-700' },
+    { label: 'Approval Pending', value: approvalPending, icon: ClipboardList, href: `/approval?tahun=${activeYear}&approval_status=pending&source_module=dashboard`, badge: 'Pending', badgeClass: 'bg-amber-50 text-amber-700' },
+    { label: 'Survey Belum Ditindaklanjuti', value: stats.surveyMenunggu, icon: FileText, href: `/survey?tahun=${activeYear}&status=belum-ditindaklanjuti&source_module=dashboard`, badge: 'Survei', badgeClass: 'bg-violet-50 text-violet-700' },
     { label: 'Laporan Harian Belum Masuk', value: stats.laporanMenunggu, icon: FileText, href: `/laporan`, badge: 'Laporan', badgeClass: 'bg-sky-50 text-sky-700' },
-    { label: 'Status Pasang Surut', value: tideOverview.status, icon: Waves, href: '/peta', badge: tideOverview.status, badgeClass: 'bg-amber-50 text-amber-700' },
-    { label: 'Masalah Open', value: stats.openMasalah, icon: AlertTriangle, href: `/proyek?tahun=${activeYear}&masalah=open`, badge: 'Open', badgeClass: 'bg-slate-50 text-slate-700' },
-  ]
+    { label: 'Status Pasang Surut (Simulasi)', value: tideOverview.status, icon: Waves, href: '/peta', badge: tideOverview.status, badgeClass: 'bg-amber-50 text-amber-700' },
+    { label: 'Masalah Open', value: stats.openMasalah, icon: AlertTriangle, href: `/masalah?status=open&source_module=dashboard`, badge: 'Open', badgeClass: 'bg-slate-50 text-slate-700' },
+  ].filter((item) => canAccessPage(currentRole, item.href.split('?')[0]))
 
   const packageTypeSummary = useMemo(() => {
     const counts: Record<string, { label: string; count: number }> = {}
@@ -547,6 +539,66 @@ export default function DashboardPage() {
       { label: 'Serapan Anggaran', href: '/serapan-anggaran', icon: TrendingUp, color: 'bg-emerald-50 text-emerald-700', desc: 'Realisasi tahun' },
       { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-cyan-50 text-cyan-700', desc: 'Sebaran SDA' },
     ],
+    kabid: [
+      { label: 'Paket Kritis', href: `/proyek?health=kritis&source_module=dashboard`, icon: ShieldAlert, color: 'bg-rose-50 text-rose-700', desc: 'Perlu perhatian', badge: stats.kritis },
+      { label: 'Approval Pending', href: `/approval?approval_status=pending&source_module=dashboard`, icon: CheckCircle, color: 'bg-emerald-50 text-emerald-700', desc: 'Pantau keputusan', badge: approvalPending },
+      { label: 'Serapan Anggaran', href: '/serapan-anggaran', icon: TrendingUp, color: 'bg-blue-50 text-blue-700', desc: 'Realisasi bidang' },
+      { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-cyan-50 text-cyan-700', desc: 'Sebaran SDA' },
+    ],
+    auditor: [
+      { label: 'Audit Log', href: '/audit-log', icon: Activity, color: 'bg-slate-100 text-slate-700', desc: 'Jejak aktivitas' },
+      { label: 'Dokumen', href: '/dokumen', icon: FileText, color: 'bg-amber-50 text-amber-700', desc: 'Pemeriksaan arsip' },
+      { label: 'Paket Kritis', href: `/proyek?health=kritis&source_module=dashboard`, icon: ShieldAlert, color: 'bg-rose-50 text-rose-700', desc: 'Review risiko', badge: stats.kritis },
+      { label: 'Serapan Anggaran', href: '/serapan-anggaran', icon: TrendingUp, color: 'bg-blue-50 text-blue-700', desc: 'Review realisasi' },
+    ],
+    admin_sub_kegiatan: [
+      { label: 'Paket Ditugaskan', href: '/proyek', icon: FolderOpen, color: 'bg-cyan-50 text-cyan-700', desc: 'Kelola paket', badge: visibleProjects.length },
+      { label: 'Administrasi', href: '/administrasi', icon: FileText, color: 'bg-blue-50 text-blue-700', desc: 'Kontrak dan dokumen' },
+      { label: 'Dokumen', href: '/dokumen', icon: ClipboardList, color: 'bg-amber-50 text-amber-700', desc: 'Lengkapi arsip' },
+      { label: 'Approval', href: '/approval', icon: CheckCircle, color: 'bg-emerald-50 text-emerald-700', desc: 'Pantau status', badge: approvalPending },
+    ],
+    direksi_teknis: [
+      { label: 'Paket Ditugaskan', href: '/proyek', icon: HardHat, color: 'bg-cyan-50 text-cyan-700', desc: 'Monitoring teknis', badge: visibleProjects.length },
+      { label: 'Masalah Lapangan', href: '/masalah', icon: AlertTriangle, color: 'bg-rose-50 text-rose-700', desc: 'Tindak lanjut', badge: stats.openMasalah },
+      { label: 'Laporan', href: '/laporan', icon: FileText, color: 'bg-blue-50 text-blue-700', desc: 'Review progres' },
+      { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-emerald-50 text-emerald-700', desc: 'Lokasi paket' },
+    ],
+    konsultan_pengawasan: [
+      { label: 'Paket Ditugaskan', href: '/proyek', icon: HardHat, color: 'bg-cyan-50 text-cyan-700', desc: 'Pengawasan aktif', badge: visibleProjects.length },
+      { label: 'Masalah Lapangan', href: '/masalah', icon: AlertTriangle, color: 'bg-rose-50 text-rose-700', desc: 'Catatan teknis', badge: stats.openMasalah },
+      { label: 'Laporan', href: '/laporan', icon: FileText, color: 'bg-blue-50 text-blue-700', desc: 'Laporan pengawasan' },
+      { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-emerald-50 text-emerald-700', desc: 'Lokasi paket' },
+    ],
+    konsultan_perencana: [
+      { label: 'Survey', href: '/survey', icon: Camera, color: 'bg-blue-50 text-blue-700', desc: 'Data perencanaan', badge: stats.surveyMenunggu },
+      { label: 'RAB', href: '/rab', icon: ClipboardList, color: 'bg-amber-50 text-amber-700', desc: 'Dokumen rencana' },
+      { label: 'Dokumen', href: '/dokumen', icon: FileText, color: 'bg-slate-100 text-slate-700', desc: 'Arsip perencanaan' },
+      { label: 'Paket Ditugaskan', href: '/proyek', icon: FolderOpen, color: 'bg-cyan-50 text-cyan-700', desc: 'Paket perencanaan', badge: visibleProjects.length },
+    ],
+    kontraktor: [
+      { label: 'Paket Saya', href: '/proyek', icon: HardHat, color: 'bg-cyan-50 text-cyan-700', desc: 'Paket ditugaskan', badge: visibleProjects.length },
+      { label: 'Masalah', href: '/masalah', icon: AlertTriangle, color: 'bg-rose-50 text-rose-700', desc: 'Kendala pekerjaan', badge: stats.openMasalah },
+      { label: 'Dokumen', href: '/dokumen', icon: FileText, color: 'bg-amber-50 text-amber-700', desc: 'Dokumen paket' },
+      { label: 'Chat Proyek', href: '/chat', icon: MessageSquare, color: 'bg-blue-50 text-blue-700', desc: 'Koordinasi paket' },
+    ],
+    pejabat_pengadaan: [
+      { label: 'Paket Pengadaan', href: '/proyek', icon: FolderOpen, color: 'bg-cyan-50 text-cyan-700', desc: 'Status pengadaan', badge: visibleProjects.length },
+      { label: 'RAB', href: '/rab', icon: ClipboardList, color: 'bg-amber-50 text-amber-700', desc: 'Dokumen pengadaan' },
+      { label: 'Kontrak', href: '/kontrak', icon: FileText, color: 'bg-blue-50 text-blue-700', desc: 'Informasi kontrak' },
+      { label: 'Dokumen', href: '/dokumen', icon: FileText, color: 'bg-slate-100 text-slate-700', desc: 'Arsip pengadaan' },
+    ],
+    pphp: [
+      { label: 'Approval Pemeriksaan', href: `/approval?approval_status=pending&source_module=dashboard`, icon: CheckCircle, color: 'bg-emerald-50 text-emerald-700', desc: 'Perlu pemeriksaan', badge: approvalPending },
+      { label: 'Paket Pemeriksaan', href: '/proyek', icon: HardHat, color: 'bg-cyan-50 text-cyan-700', desc: 'Hasil pekerjaan', badge: visibleProjects.length },
+      { label: 'Dokumen', href: '/dokumen', icon: FileText, color: 'bg-amber-50 text-amber-700', desc: 'Serah terima' },
+      { label: 'Masalah', href: '/masalah', icon: AlertTriangle, color: 'bg-rose-50 text-rose-700', desc: 'Catatan pemeriksaan', badge: stats.openMasalah },
+    ],
+    tim_perencanaan: [
+      { label: 'Survey', href: '/survey', icon: Camera, color: 'bg-blue-50 text-blue-700', desc: 'Data perencanaan', badge: stats.surveyMenunggu },
+      { label: 'RAB', href: '/rab', icon: ClipboardList, color: 'bg-amber-50 text-amber-700', desc: 'Rencana anggaran' },
+      { label: 'Paket Perencanaan', href: '/proyek', icon: FolderOpen, color: 'bg-cyan-50 text-cyan-700', desc: 'Paket ditugaskan', badge: visibleProjects.length },
+      { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-emerald-50 text-emerald-700', desc: 'Lokasi rencana' },
+    ],
     default: [
       { label: 'Input Data', href: '/laporan', icon: Plus, color: 'bg-blue-50 text-blue-700', desc: 'Laporan kerja' },
       { label: 'Surat/Dokumen', href: '/dokumen', icon: FileText, color: 'bg-amber-50 text-amber-700', desc: 'Arsip modul' },
@@ -554,7 +606,8 @@ export default function DashboardPage() {
       { label: 'Peta Monitoring', href: '/peta', icon: MapPin, color: 'bg-cyan-50 text-cyan-700', desc: 'Pantau lokasi' },
     ],
   }
-  const actions = quickActions[normalizedRole as keyof typeof quickActions] || quickActions.default
+  const actions = (quickActions[normalizedRole as keyof typeof quickActions] || quickActions.default)
+    .filter((action) => canAccessPage(currentRole, action.href.split('?')[0]))
 
   const getFocusRingFromColor = (color: string) => {
     if (!color) return 'focus:ring-blue-200'
@@ -638,31 +691,31 @@ export default function DashboardPage() {
               label: 'Total Paket Aktif',
               value: stats.total,
               icon: FolderOpen,
-              href: `/proyek?tahun=${activeYear}&status=aktif`,
+              href: `/proyek?tahun=${activeYear}&status=aktif&source_module=dashboard`,
               tone: 'blue',
             },
             {
               label: 'Paket Deviasi/Kritis',
               value: stats.kritis,
               icon: XCircle,
-              href: `/proyek?tahun=${activeYear}&health=kritis`,
+              href: `/proyek?tahun=${activeYear}&health=kritis&source_module=dashboard`,
               tone: 'red',
             },
             {
               label: 'Approval Pending',
               value: approvalPending,
               icon: ClipboardList,
-              href: `/approval?tahun=${activeYear}&status=pending`,
+              href: `/approval?tahun=${activeYear}&approval_status=pending&source_module=dashboard`,
               tone: 'amber',
             },
             {
               label: 'Survey Belum Ditindaklanjuti',
               value: stats.surveyMenunggu,
               icon: FileText,
-              href: `/proyek?tahun=${activeYear}&source=survey&status=belum-ditindaklanjuti`,
+              href: `/survey?tahun=${activeYear}&status=belum-ditindaklanjuti&source_module=dashboard`,
               tone: 'violet',
             },
-            ].map((card) => {
+            ].filter((card) => canAccessPage(currentRole, card.href.split('?')[0])).map((card) => {
               const Icon = card.icon
               return (
                 <Link
@@ -1097,6 +1150,9 @@ export default function DashboardPage() {
 
         {activeTab === 'pasang-surut' && (
           <div className="relative z-10 text-slate-900">
+            <div className="mb-2 flex justify-end">
+              <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-bold text-amber-800">Data Simulasi</span>
+            </div>
             <TideDashboardPanel />
           </div>
         )}
@@ -1116,8 +1172,8 @@ export default function DashboardPage() {
             icon={FileText}
             title="Surat Masuk & Keluar"
             subtitle="Disposisi, undangan rapat, tindak lanjut surat, dan relasi ke survey/paket/peil."
-            route="/pengumuman"
-            routeLabel="Buka Surat & Pengumuman"
+            route="/surat"
+            routeLabel="Buka Surat Masuk & Keluar"
             cards={[
               { label: 'Surat Penting', value: '0', desc: 'Belum ada tabel surat resmi' },
               { label: 'Disposisi Pending', value: '0', desc: 'Menunggu workflow surat' },
@@ -1132,8 +1188,8 @@ export default function DashboardPage() {
             icon={Landmark}
             title="Peil Banjir"
             subtitle="Ringkasan titik peil, elevasi banjir, status genangan, dan histori pengukuran."
-            route="/peta"
-            routeLabel="Buka Peta Monitoring"
+            route="/peil"
+            routeLabel="Buka Peil Banjir"
             cards={[
               { label: 'Titik Peil Aktif', value: '0', desc: 'Belum ada tabel peil' },
               { label: 'Status Siaga', value: '0', desc: 'Menunggu threshold peil' },
@@ -1148,8 +1204,8 @@ export default function DashboardPage() {
             icon={Building2}
             title="Asset SDA"
             subtitle="Inventaris pintu air, rumah pompa, pompa mobile, tanggul, drainase utama, dan kolam retensi."
-            route="/peta"
-            routeLabel="Buka Peta Monitoring"
+            route="/asset"
+            routeLabel="Buka Asset SDA"
             cards={[
               { label: 'Asset Aktif', value: '0', desc: 'Belum ada tabel asset' },
               { label: 'Asset Perlu Respon', value: '0', desc: 'Menunggu status operasional' },
@@ -1164,8 +1220,8 @@ export default function DashboardPage() {
             icon={HardHat}
             title="Operasional SDA"
             subtitle="Operasi pintu air, rumah pompa, shift mandor, petugas, dan respon warning lapangan."
-            route="/chat"
-            routeLabel="Buka Chat Koordinasi"
+            route="/asset?subtab=operasional&source_module=dashboard"
+            routeLabel="Buka Asset SDA (Operasional belum final)"
             cards={[
               { label: 'Shift Aktif', value: '0', desc: 'Belum ada tabel shift' },
               { label: 'Laporan Operasi', value: '0', desc: 'Menunggu modul operasional' },
@@ -1354,7 +1410,7 @@ export default function DashboardPage() {
             <div className="siaga-card p-5 lg:col-span-2">
               <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-900">
                 <Bot className="h-4 w-4 text-blue-700" />
-                AI Analisis Dashboard
+                Insight Lokal Dashboard
               </div>
               <div className="space-y-3">
                 {aiFindings.map((item, index) => (
@@ -1363,7 +1419,8 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="siaga-card p-5">
-              <div className="mb-3 text-sm font-extrabold text-slate-900">Saran Tindakan</div>
+              <div className="mb-1 text-sm font-extrabold text-slate-900">Saran Tindakan</div>
+              <div className="mb-3 text-xs font-medium text-slate-500">Rule-based lokal, bukan rekomendasi resmi.</div>
               <div className="space-y-2 text-sm text-slate-700">
                 <div>1. Tutup approval yang memengaruhi rekap progress.</div>
                 <div>2. Prioritaskan paket dengan status kritis/warning.</div>

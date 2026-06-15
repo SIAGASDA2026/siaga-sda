@@ -1,32 +1,39 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useAppStore } from '@/store/useAppStore'
 import { Topbar } from '@/components/layout/Topbar'
 import { Modal, ConfirmDialog, FormField, Input, Textarea, Select, EmptyState, ActionButtons } from '@/components/ui'
 import { formatDate, formatDateTime, getCurrentGPS, canAccess } from '@/lib/utils'
 import { filterProjectsByScope, getProjectBudgetYears, getProjectCategoryLabel, getProjectPackageType, getProjectPackageTypeLabel, getProjectPrograms, getProjectSubKegiatan, getProjectWorkStage, getProjectWorkStageLabel } from '@/lib/reporting'
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
+import { getScopedProjects } from '@/lib/dashboard-scope'
 import { Survey, Koordinat } from '@/types'
-import { MapPin, Camera, Plus, Search, X, CheckCircle, Eye } from 'lucide-react'
+import { MapPin, Camera, Plus, Search, X, CheckCircle, Eye, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2,7)}`
 
 export default function SurveyPage() {
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.toString()
   const { projects, currentUser, addSurvey, updateSurvey, deleteSurvey } = useAppStore()
   const [showForm, setShowForm] = useState(false)
   const [viewTarget, setViewTarget] = useState<any>(null)
   const [editTarget, setEditTarget] = useState<any>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ survey: Survey; proyekId: string } | null>(null)
-  const [search, setSearch] = useState('')
+  const [search, setSearch] = useState(() => searchParams.get('kategori_masalah') || '')
   const [filterProyek, setFilterProyek] = useState('all')
-  const [filterStatus, setFilterStatus] = useState('all')
+  const [filterStatus, setFilterStatus] = useState(() => {
+    const status = searchParams.get('status')
+    return status === 'belum-ditindaklanjuti' ? 'submitted' : status || 'all'
+  })
   const [filterKategori, setFilterKategori] = useState('all')
   const [filterJenisProyek, setFilterJenisProyek] = useState('all')
   const [filterTahap, setFilterTahap] = useState('all')
-  const [filterTahun, setFilterTahun] = useState('all')
+  const [filterTahun, setFilterTahun] = useState(() => searchParams.get('tahun') || 'all')
   const [filterProgram, setFilterProgram] = useState('all')
-  const [filterSubKegiatan, setFilterSubKegiatan] = useState('all')
+  const [filterSubKegiatan, setFilterSubKegiatan] = useState(() => searchParams.get('sub_kegiatan_id') || 'all')
   const [selectedProyekId, setSelectedProyekId] = useState('')
   const [gps, setGps] = useState<Koordinat | null>(null)
   const [loadingGps, setLoadingGps] = useState(false)
@@ -36,22 +43,59 @@ export default function SurveyPage() {
   const fileRef = useRef<HTMLInputElement>(null)
   const cameraRef = useRef<HTMLInputElement>(null)
 
+  useEffect(() => {
+    const params = new URLSearchParams(searchQuery)
+    const status = params.get('status')
+    setSearch(params.get('kategori_masalah') || '')
+    setFilterStatus(status === 'belum-ditindaklanjuti' ? 'submitted' : status || 'all')
+    setFilterTahun(params.get('tahun') || 'all')
+    setFilterSubKegiatan(params.get('sub_kegiatan_id') || 'all')
+  }, [searchQuery])
+
   const canCreate = canAccess(currentUser?.role || 'pptk', 'create_survey')
-  const budgetYears = getProjectBudgetYears(projects)
-  const programs = getProjectPrograms(projects)
-  const subKegiatanOptions = getProjectSubKegiatan(projects)
-  const visibleProjects = filterProjectsByScope(projects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan)
+  const assignmentScopedProjects = useMemo(() => getScopedProjects(projects, currentUser), [currentUser, projects])
+  const budgetYears = getProjectBudgetYears(assignmentScopedProjects)
+  const programs = getProjectPrograms(assignmentScopedProjects)
+  const subKegiatanOptions = getProjectSubKegiatan(assignmentScopedProjects)
+  const visibleProjects = filterProjectsByScope(assignmentScopedProjects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan)
 
   const allSurvey = visibleProjects.flatMap(p =>
     p.surveys.map(s => ({ ...s, proyekNama: p.nama, proyekKode: p.kode, proyekId: p.id }))
   ).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
   const filtered = allSurvey.filter(s => {
-    const mQ = s.proyekNama.toLowerCase().includes(search.toLowerCase()) || s.kondisiEksisting.toLowerCase().includes(search.toLowerCase())
+    const needle = search.toLowerCase()
+    const mQ =
+      s.proyekNama.toLowerCase().includes(needle) ||
+      s.kondisiEksisting.toLowerCase().includes(needle) ||
+      s.permasalahan.toLowerCase().includes(needle) ||
+      (s.rekomendasi || '').toLowerCase().includes(needle)
     const mP = filterProyek === 'all' || s.proyekId === filterProyek
     const mS = filterStatus === 'all' || s.status === filterStatus
-    return mQ && mP && mS
+    const mId = !searchParams.get('survey_id') || s.id === searchParams.get('survey_id')
+    return mQ && mP && mS && mId
   })
+
+  const activeQueryLabels = [
+    searchParams.get('source_module') ? `Sumber: ${searchParams.get('source_module')}` : null,
+    filterStatus !== 'all' ? `Status: ${filterStatus === 'submitted' ? 'Belum Ditindaklanjuti' : filterStatus}` : null,
+    filterTahun !== 'all' ? `Tahun: ${filterTahun}` : null,
+    filterSubKegiatan !== 'all' ? `Sub Kegiatan: ${filterSubKegiatan}` : null,
+    search ? `Pencarian: ${search}` : null,
+    searchParams.get('survey_id') ? `Survey: ${searchParams.get('survey_id')}` : null,
+  ].filter(Boolean)
+
+  const resetFilters = () => {
+    setSearch('')
+    setFilterProyek('all')
+    setFilterStatus('all')
+    setFilterKategori('all')
+    setFilterJenisProyek('all')
+    setFilterTahap('all')
+    setFilterTahun('all')
+    setFilterProgram('all')
+    setFilterSubKegiatan('all')
+  }
 
   const getGPS = async () => {
     setLoadingGps(true)
@@ -137,6 +181,17 @@ export default function SurveyPage() {
           itemLabel="survey"
           className="mb-5"
         />
+
+        {activeQueryLabels.length > 0 && (
+          <div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+            {activeQueryLabels.map((label) => (
+              <span key={label} className="rounded-full border border-blue-200 bg-white px-2.5 py-1 text-[11px] font-bold text-blue-700">{label}</span>
+            ))}
+            <button type="button" onClick={resetFilters} className="ml-auto inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm">
+              <RotateCcw className="h-3.5 w-3.5" /> Reset Filter
+            </button>
+          </div>
+        )}
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-5">

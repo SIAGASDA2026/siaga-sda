@@ -8,6 +8,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { BRAND } from '@/lib/brand'
 import { canAccessPage } from '@/lib/rbac'
 import { getRoleLabel } from '@/lib/utils'
+import { getPendingApprovalCount, getScopedProjects } from '@/lib/dashboard-scope'
 import { MAIN_NAVIGATION_ITEMS, NAVIGATION_GROUPS, type NavigationIconKey } from '@/lib/navigation'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -58,23 +59,8 @@ export function MobileNav() {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
 
-  // FIX KRITIS 4 (mobile): Filter proyek berdasarkan role/assignment user
-  const userProjects =
-    currentUser?.role === 'super_admin' || currentUser?.role === 'admin'
-      ? projects
-      : projects.filter(
-          (p) =>
-            p.assignedUsers?.includes(currentUser?.id ?? '') ||
-            p.pptk === currentUser?.id ||
-            p.ppk === currentUser?.id,
-        )
-
-  const pendingApproval = userProjects.reduce((sum, project) => (
-    sum +
-    project.laporanHarian.filter((item) => !item.disetujui).length +
-    project.rabList.filter((item) => item.status !== 'approved').length +
-    project.surveys.filter((item) => item.status === 'submitted').length
-  ), 0)
+  const userProjects = getScopedProjects(projects, currentUser)
+  const pendingApproval = getPendingApprovalCount(userProjects)
 
   const getBadge = (href: string) => {
     if (href === '/approval' && pendingApproval > 0) return pendingApproval > 9 ? '9+' : String(pendingApproval)

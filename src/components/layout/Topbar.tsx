@@ -18,6 +18,7 @@ import {
   ShieldAlert,
 } from 'lucide-react'
 import { canAccess } from '@/lib/utils'
+import { getScopedAuditLogs, getScopedProjects } from '@/lib/dashboard-scope'
 
 interface TopbarProps {
   title: string
@@ -66,21 +67,25 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
   const [showNotif, setShowNotif] = useState(false)
   const [showUser, setShowUser] = useState(false)
   const [announcements, setAnnouncements] = useState<AnnouncementPreview[]>(announcementCache)
+  const role = currentUser?.role || 'pptk'
+  const scopedProjects = useMemo(() => getScopedProjects(projects, currentUser), [currentUser, projects])
 
-  const openMasalah = projects.reduce((sum, p) => sum + p.masalah.filter((m) => m.status === 'open').length, 0)
-  const masalahKritis = projects.reduce((sum, p) => sum + p.masalah.filter((m) => m.prioritas === 'kritis' && m.status !== 'closed').length, 0)
-  const laporanMenunggu = projects.reduce((sum, p) => sum + p.laporanHarian.filter((l) => !l.disetujui).length, 0)
-  const rabMenunggu = projects.reduce((sum, p) => sum + p.rabList.filter((r) => r.status !== 'approved' && r.status !== 'rejected').length, 0)
-  const surveyMenunggu = projects.reduce((sum, p) => sum + p.surveys.filter((s) => s.status === 'submitted').length, 0)
-  const totalChat = projects.reduce((sum, p) => sum + p.chat.length, 0)
-  const kontrakAkanSelesai = projects.filter((p) => {
+  const openMasalah = scopedProjects.reduce((sum, p) => sum + p.masalah.filter((m) => m.status === 'open').length, 0)
+  const masalahKritis = scopedProjects.reduce((sum, p) => sum + p.masalah.filter((m) => m.prioritas === 'kritis' && m.status !== 'closed').length, 0)
+  const laporanMenunggu = scopedProjects.reduce((sum, p) => sum + p.laporanHarian.filter((l) => !l.disetujui).length, 0)
+  const rabMenunggu = scopedProjects.reduce((sum, p) => sum + p.rabList.filter((r) => r.status !== 'approved' && r.status !== 'rejected').length, 0)
+  const surveyMenunggu = scopedProjects.reduce((sum, p) => sum + p.surveys.filter((s) => s.status === 'submitted').length, 0)
+  const totalChat = scopedProjects.reduce((sum, p) => sum + p.chat.length, 0)
+  const kontrakAkanSelesai = scopedProjects.filter((p) => {
     if (!p.tanggalSelesai || p.status === 'selesai') return false
     const days = Math.ceil((new Date(p.tanggalSelesai).getTime() - Date.now()) / (1000 * 60 * 60 * 24))
     return days >= 0 && days <= 30
   })
-  const proyekKritis = projects.filter((p) => p.health === 'kritis')
-  const proyekWarning = projects.filter((p) => p.health === 'warning')
-  const recentLogs = auditLogs.slice(0, 5)
+  const proyekKritis = scopedProjects.filter((p) => p.health === 'kritis')
+  const proyekWarning = scopedProjects.filter((p) => p.health === 'warning')
+  const recentLogs = canAccess(role, 'view_audit_log')
+    ? getScopedAuditLogs(auditLogs, scopedProjects, currentUser).slice(0, 5)
+    : []
 
   useEffect(() => {
     let active = true
@@ -107,30 +112,29 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
 
   const notifications = useMemo<NotificationItem[]>(() => {
     const items: NotificationItem[] = []
-    const role = currentUser?.role || 'pptk'
     const approvalPending = laporanMenunggu + rabMenunggu + surveyMenunggu
 
     if (approvalPending > 0 && canAccess(role, 'view_approval')) {
-      items.push({ id: 'approval-pending', href: '/approval', title: `${approvalPending} item approval menunggu`, desc: `${laporanMenunggu} laporan, ${rabMenunggu} RAB, ${surveyMenunggu} survey.`, tone: 'amber', icon: ClipboardList, count: approvalPending, priority: 10, meta: 'Approval Center' })
+      items.push({ id: 'approval-pending', href: '/approval?approval_status=pending&source_module=topbar', title: `${approvalPending} item approval menunggu`, desc: `${laporanMenunggu} laporan, ${rabMenunggu} RAB, ${surveyMenunggu} survey.`, tone: 'amber', icon: ClipboardList, count: approvalPending, priority: 10, meta: 'Approval Center' })
     }
-    if (masalahKritis > 0) {
+    if (masalahKritis > 0 && canAccess(role, 'view_issues')) {
       items.push({ id: 'critical-issues', href: '/masalah', title: `${masalahKritis} masalah kritis`, desc: 'Perlu respons teknis segera.', tone: 'red', icon: AlertTriangle, count: masalahKritis, priority: 1, meta: 'Masalah' })
-    } else if (openMasalah > 0) {
+    } else if (openMasalah > 0 && canAccess(role, 'view_issues')) {
       items.push({ id: 'open-issues', href: '/masalah', title: `${openMasalah} masalah masih open`, desc: 'Perlu tindak lanjut.', tone: 'amber', icon: AlertTriangle, count: openMasalah, priority: 20, meta: 'Masalah' })
     }
-    if (proyekKritis.length > 0) {
-      items.push({ id: 'critical-projects', href: '/proyek', title: `${proyekKritis.length} proyek kritis`, desc: proyekKritis.map((p) => p.kode).join(', '), tone: 'red', icon: ShieldAlert, count: proyekKritis.length, priority: 2, meta: 'Warning Center' })
+    if (proyekKritis.length > 0 && canAccess(role, 'view_projects')) {
+      items.push({ id: 'critical-projects', href: '/proyek?health=kritis&source_module=topbar', title: `${proyekKritis.length} proyek kritis`, desc: proyekKritis.map((p) => p.kode).join(', '), tone: 'red', icon: ShieldAlert, count: proyekKritis.length, priority: 2, meta: 'Warning Center' })
     }
-    if (proyekWarning.length > 0) {
-      items.push({ id: 'warning-projects', href: '/proyek', title: `${proyekWarning.length} peringatan AI`, desc: 'Evaluasi deviasi sebelum kritis.', tone: 'amber', icon: Bot, count: proyekWarning.length, priority: 30, meta: 'AI' })
+    if (proyekWarning.length > 0 && canAccess(role, 'view_projects')) {
+      items.push({ id: 'warning-projects', href: '/proyek?health=warning&source_module=topbar', title: `${proyekWarning.length} peringatan deviasi`, desc: 'Insight lokal: evaluasi deviasi sebelum kritis.', tone: 'amber', icon: Bot, count: proyekWarning.length, priority: 30, meta: 'Insight Lokal' })
     }
-    if (kontrakAkanSelesai.length > 0) {
+    if (kontrakAkanSelesai.length > 0 && canAccess(role, 'view_contracts')) {
       items.push({ id: 'contract-ending', href: '/kontrak', title: `${kontrakAkanSelesai.length} kontrak mendekati selesai`, desc: kontrakAkanSelesai.map((p) => p.kode).join(', '), tone: 'amber', icon: ClipboardList, count: kontrakAkanSelesai.length, priority: 40, meta: 'Kontrak' })
     }
-    if (totalChat > 0) {
+    if (totalChat > 0 && canAccess(role, 'view_chat')) {
       items.push({ id: 'project-chat', href: '/chat', title: `${totalChat} pesan chat proyek`, desc: 'Pantau koordinasi terbaru.', tone: 'blue', icon: MessageSquare, count: totalChat, priority: 70, meta: 'Chat' })
     }
-    if (announcements.length > 0) {
+    if (announcements.length > 0 && canAccess(role, 'view_announcements')) {
       const pinned = announcements.filter((a) => a.pinned).length
       items.push({ id: 'announcements', href: '/pengumuman', title: `${announcements.length} pengumuman terbaru`, desc: pinned > 0 ? `${pinned} diprioritaskan.` : announcements[0]?.judul || '', tone: pinned > 0 ? 'green' : 'blue', icon: Megaphone, count: announcements.length, priority: pinned > 0 ? 15 : 80, meta: 'Pengumuman' })
     }
@@ -138,7 +142,7 @@ export function Topbar({ title, subtitle, action }: TopbarProps) {
       items.push({ id: 'clear', href: '/dashboard', title: 'Tidak ada notifikasi prioritas', desc: 'Sistem memantau approval, masalah, kontrak, dan chat.', tone: 'slate', icon: Bell, count: 0, priority: 100, meta: 'Realtime aktif' })
     }
     return items.sort((a, b) => a.priority - b.priority)
-  }, [announcements, currentUser?.role, kontrakAkanSelesai, laporanMenunggu, masalahKritis, openMasalah, proyekKritis, proyekWarning, rabMenunggu, surveyMenunggu, totalChat])
+  }, [announcements, kontrakAkanSelesai, laporanMenunggu, masalahKritis, openMasalah, proyekKritis, proyekWarning, rabMenunggu, role, surveyMenunggu, totalChat])
 
   const dashboardTitle = `Dashboard ${getDashboardRoleLabel(currentUser?.role || 'pptk')}`
   const pageContext = subtitle ? `${title} - ${subtitle}` : title

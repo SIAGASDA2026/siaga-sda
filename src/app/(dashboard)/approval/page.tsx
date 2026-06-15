@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Topbar } from '@/components/layout/Topbar'
 import { EmptyState, Modal } from '@/components/ui'
@@ -97,27 +98,56 @@ async function fetchApprovals() {
 }
 
 export default function ApprovalCenterPage() {
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.toString()
+  const initialApprovalId = searchParams.get('approval_id')
   const [items, setItems] = useState<ApprovalItem[]>([])
   const [search, setSearch] = useState('')
-  const [filterKind, setFilterKind] = useState<ApprovalEntityType | 'all'>('all')
-  const [filterStatus, setFilterStatus] = useState<ApprovalStatus | 'all'>('all')
+  const [filterKind, setFilterKind] = useState<ApprovalEntityType | 'all'>(() => {
+    const value = searchParams.get('entity_type')?.toUpperCase()
+    return value && value in ENTITY_TONE ? value as ApprovalEntityType : 'all'
+  })
+  const [filterStatus, setFilterStatus] = useState<ApprovalStatus | 'all' | 'pending'>(() => {
+    const value = searchParams.get('approval_status') || searchParams.get('status')
+    if (value?.toLowerCase() === 'pending') return 'pending'
+    const normalized = value?.toUpperCase()
+    return normalized && normalized in STATUS_LABEL ? normalized as ApprovalStatus : 'all'
+  })
+  const [filterYear, setFilterYear] = useState(() => searchParams.get('tahun') || 'all')
+  const [filterApproverRole, setFilterApproverRole] = useState(() => searchParams.get('approver_role') || 'all')
   const [selected, setSelected] = useState<ApprovalItem | null>(null)
   const [noteTarget, setNoteTarget] = useState<{ item: ApprovalItem; action: ActionInput } | null>(null)
   const [note, setNote] = useState('')
   const [loading, setLoading] = useState(true)
   const [processingId, setProcessingId] = useState<string | null>(null)
 
+  useEffect(() => {
+    const params = new URLSearchParams(searchQuery)
+    const entityType = params.get('entity_type')?.toUpperCase()
+    const status = params.get('approval_status') || params.get('status')
+    const normalizedStatus = status?.toUpperCase()
+
+    setFilterKind(entityType && entityType in ENTITY_TONE ? entityType as ApprovalEntityType : 'all')
+    setFilterStatus(status?.toLowerCase() === 'pending' ? 'pending' : normalizedStatus && normalizedStatus in STATUS_LABEL ? normalizedStatus as ApprovalStatus : 'all')
+    setFilterYear(params.get('tahun') || 'all')
+    setFilterApproverRole(params.get('approver_role') || 'all')
+  }, [searchQuery])
+
   const load = useCallback(async () => {
     try {
       const approvals = await fetchApprovals()
       setItems(approvals)
-      setSelected((current) => current ? approvals.find((item) => item.id === current.id) || null : null)
+      setSelected((current) => current
+        ? approvals.find((item) => item.id === current.id) || null
+        : initialApprovalId
+          ? approvals.find((item) => item.id === initialApprovalId) || null
+          : null)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Gagal memuat approval')
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [initialApprovalId])
 
   useEffect(() => {
     load()
@@ -130,10 +160,28 @@ export default function ApprovalCenterPage() {
       const needle = search.trim().toLowerCase()
       const matchSearch = !needle || item.entityLabel.toLowerCase().includes(needle) || item.paketNama.toLowerCase().includes(needle) || item.paketKode.toLowerCase().includes(needle)
       const matchKind = filterKind === 'all' || item.entityType === filterKind
-      const matchStatus = filterStatus === 'all' || item.status === filterStatus
-      return matchSearch && matchKind && matchStatus
+      const matchStatus = filterStatus === 'all' || (filterStatus === 'pending' ? isPending(item.status) : item.status === filterStatus)
+      const matchYear = filterYear === 'all' || String(new Date(item.createdAt).getFullYear()) === filterYear
+      const matchApprover = filterApproverRole === 'all' || item.approver.role.toLowerCase() === filterApproverRole.toLowerCase()
+      return matchSearch && matchKind && matchStatus && matchYear && matchApprover
     })
-  }, [filterKind, filterStatus, items, search])
+  }, [filterApproverRole, filterKind, filterStatus, filterYear, items, search])
+
+  const activeQueryLabels = [
+    searchParams.get('source_module') ? `Sumber: ${searchParams.get('source_module')}` : null,
+    filterStatus !== 'all' ? `Status: ${filterStatus === 'pending' ? 'Pending' : STATUS_LABEL[filterStatus]}` : null,
+    filterKind !== 'all' ? `Jenis: ${filterKind}` : null,
+    filterYear !== 'all' ? `Tahun: ${filterYear}` : null,
+    filterApproverRole !== 'all' ? `Approver: ${filterApproverRole}` : null,
+  ].filter(Boolean)
+
+  const resetFilters = () => {
+    setSearch('')
+    setFilterKind('all')
+    setFilterStatus('all')
+    setFilterYear('all')
+    setFilterApproverRole('all')
+  }
 
   const stats = {
     total: items.length,
@@ -174,6 +222,16 @@ export default function ApprovalCenterPage() {
     <>
       <Topbar title="Approval Center" subtitle="Histori formal, catatan revisi, dan status approval sesuai role" />
       <div className="space-y-5 p-4 sm:p-5">
+        {activeQueryLabels.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+            {activeQueryLabels.map((label) => (
+              <span key={label} className="rounded-full border border-blue-200 bg-white px-2.5 py-1 text-[11px] font-bold text-blue-700">{label}</span>
+            ))}
+            <button type="button" onClick={resetFilters} className="ml-auto inline-flex items-center gap-1 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-blue-700 shadow-sm">
+              <RotateCcw className="h-3.5 w-3.5" /> Reset Filter
+            </button>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           {[
             { label: 'Total Item', value: stats.total, icon: ClipboardCheck, tone: 'bg-blue-50 text-blue-700' },
@@ -222,9 +280,9 @@ export default function ApprovalCenterPage() {
                 <option value="KONTRAK">Kontrak</option>
                 <option value="ADDENDUM">Addendum</option>
               </select>
-              <select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value as ApprovalStatus | 'all')} className="h-10 rounded-lg border border-slate-200 px-3 text-sm">
+              <select value={filterStatus} onChange={(event) => setFilterStatus(event.target.value as ApprovalStatus | 'all' | 'pending')} className="h-10 rounded-lg border border-slate-200 px-3 text-sm">
                 <option value="all">Semua Status</option>
-                <option value="SUBMITTED">Pending</option>
+                <option value="pending">Pending</option>
                 <option value="REVISION">Minta Revisi</option>
                 <option value="APPROVED">Disetujui</option>
                 <option value="REJECTED">Ditolak</option>

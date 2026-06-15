@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { useAppStore } from '@/store/useAppStore'
 import { Topbar } from '@/components/layout/Topbar'
@@ -25,6 +26,7 @@ import {
   getProjectWorkStageLabel,
 } from '@/lib/reporting'
 import { Proyek, ProjectStatus } from '@/types'
+import { getScopedProjects } from '@/lib/dashboard-scope'
 import {
   AlertTriangle,
   BarChart3,
@@ -81,22 +83,42 @@ type FormData = typeof EMPTY_FORM
 type QuickType = 'all' | 'fisik' | 'konsultan' | 'rutin'
 
 export default function ProyekPage() {
+  const searchParams = useSearchParams()
+  const searchQuery = searchParams.toString()
   const { projects, users, currentUser, addProject, updateProject, deleteProject } = useAppStore()
   const [search, setSearch] = useState('')
-  const [quickType, setQuickType] = useState<QuickType>('all')
-  const [filterHealth, setFilterHealth] = useState('all')
-  const [filterKategori, setFilterKategori] = useState('all')
-  const [filterJenisProyek, setFilterJenisProyek] = useState('all')
+  const [quickType, setQuickType] = useState<QuickType>(() => {
+    const value = searchParams.get('jenis_paket')
+    return value === 'fisik' || value === 'konsultan' || value === 'rutin' ? value : 'all'
+  })
+  const [filterHealth, setFilterHealth] = useState(() => searchParams.get('health') || searchParams.get('deviasi_status') || 'all')
+  const [filterKategori, setFilterKategori] = useState(() => searchParams.get('metode_pengadaan') || 'all')
+  const [filterJenisProyek, setFilterJenisProyek] = useState(() => searchParams.get('sub_jenis_paket') || 'all')
   const [filterTahap, setFilterTahap] = useState('all')
-  const [filterTahun, setFilterTahun] = useState('all')
+  const [filterTahun, setFilterTahun] = useState(() => searchParams.get('tahun') || 'all')
   const [filterProgram, setFilterProgram] = useState('all')
-  const [filterSubKegiatan, setFilterSubKegiatan] = useState('all')
+  const [filterSubKegiatan, setFilterSubKegiatan] = useState(() => searchParams.get('sub_kegiatan_id') || 'all')
   const [filterKec, setFilterKec] = useState('all')
+  const [filterStatus, setFilterStatus] = useState(() => searchParams.get('status') || 'all')
+  const [filterMasalah, setFilterMasalah] = useState(() => searchParams.get('masalah') || 'all')
   const [showForm, setShowForm] = useState(false)
   const [editTarget, setEditTarget] = useState<Proyek | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Proyek | null>(null)
   const [form, setForm] = useState<FormData>(EMPTY_FORM)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(searchQuery)
+    const packageType = params.get('jenis_paket')
+    setQuickType(packageType === 'fisik' || packageType === 'konsultan' || packageType === 'rutin' ? packageType : 'all')
+    setFilterHealth(params.get('health') || params.get('deviasi_status') || 'all')
+    setFilterKategori(params.get('metode_pengadaan') || 'all')
+    setFilterJenisProyek(params.get('sub_jenis_paket') || 'all')
+    setFilterTahun(params.get('tahun') || 'all')
+    setFilterSubKegiatan(params.get('sub_kegiatan_id') || 'all')
+    setFilterStatus(params.get('status') || 'all')
+    setFilterMasalah(params.get('masalah') || 'all')
+  }, [searchQuery])
 
   const canManage = canAccess(currentUser?.role || 'pptk', 'manage_projects')
   const ppkUsers = users.filter((user) => user.role === 'ppk')
@@ -106,14 +128,15 @@ export default function ProyekPage() {
   const konsultanPengawasanUsers = users.filter((user) => user.role === 'konsultan_pengawasan')
   const projectTeamUsers = users.filter((user) => user.role !== 'super_admin')
 
-  const budgetYears = getProjectBudgetYears(projects)
-  const programs = getProjectPrograms(projects)
-  const subKegiatanOptions = getProjectSubKegiatan(projects)
-  const kecamatanList = [...new Set(projects.map((project) => project.kecamatan).filter(Boolean))]
+  const assignmentScopedProjects = useMemo(() => getScopedProjects(projects, currentUser), [currentUser, projects])
+  const budgetYears = getProjectBudgetYears(assignmentScopedProjects)
+  const programs = getProjectPrograms(assignmentScopedProjects)
+  const subKegiatanOptions = getProjectSubKegiatan(assignmentScopedProjects)
+  const kecamatanList = [...new Set(assignmentScopedProjects.map((project) => project.kecamatan).filter(Boolean))]
 
   const scopedProjects = useMemo(
-    () => filterProjectsByScope(projects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan),
-    [projects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan]
+    () => filterProjectsByScope(assignmentScopedProjects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan),
+    [assignmentScopedProjects, filterKategori, filterJenisProyek, filterTahap, filterTahun, filterProgram, filterSubKegiatan]
   )
 
   const filtered = useMemo(() => {
@@ -136,10 +159,16 @@ export default function ProyekPage() {
           .includes(q)
       const matchHealth = filterHealth === 'all' || project.health === filterHealth
       const matchKec = filterKec === 'all' || project.kecamatan === filterKec
+      const matchStatus =
+        filterStatus === 'all' ||
+        (filterStatus === 'aktif' ? project.status !== 'selesai' : project.status === filterStatus)
+      const matchMasalah =
+        filterMasalah === 'all' ||
+        (filterMasalah === 'open' && project.masalah.some((item) => item.status === 'open'))
 
-      return matchQuick && matchSearch && matchHealth && matchKec
+      return matchQuick && matchSearch && matchHealth && matchKec && matchStatus && matchMasalah
     })
-  }, [filterHealth, filterKec, quickType, scopedProjects, search])
+  }, [filterHealth, filterKec, filterMasalah, filterStatus, quickType, scopedProjects, search])
 
   const selectedProject = useMemo(() => filtered.find((project) => project.id === selectedId) || filtered[0] || null, [filtered, selectedId])
 
@@ -157,7 +186,10 @@ export default function ProyekPage() {
     filterProgram !== 'all' ? `Program: ${filterProgram}` : null,
     filterSubKegiatan !== 'all' ? `Sub Kegiatan: ${filterSubKegiatan}` : null,
     filterHealth !== 'all' ? `Status: ${healthLabelMap[filterHealth] || filterHealth}` : null,
+    filterStatus !== 'all' ? `Status Paket: ${filterStatus}` : null,
+    filterMasalah !== 'all' ? `Masalah: ${filterMasalah}` : null,
     filterKec !== 'all' ? `Kecamatan: ${filterKec}` : null,
+    searchParams.get('source_module') ? `Sumber: ${searchParams.get('source_module')}` : null,
   ].filter(Boolean)
 
   const paketStats = useMemo(() => {
@@ -249,6 +281,8 @@ export default function ProyekPage() {
     setFilterProgram('all')
     setFilterSubKegiatan('all')
     setFilterKec('all')
+    setFilterStatus('all')
+    setFilterMasalah('all')
   }
 
   return (
