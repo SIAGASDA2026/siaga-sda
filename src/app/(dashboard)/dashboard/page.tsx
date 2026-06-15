@@ -9,6 +9,7 @@ import { useAppStore } from '@/store/useAppStore'
 import { Topbar } from '@/components/layout/Topbar'
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
 import { DashboardRoleHeader } from '@/components/dashboard/DashboardRoleHeader'
+import { CommandCenterOverview } from '@/components/dashboard/CommandCenterOverview'
 import { useApprovalSummary } from '@/components/approval/ApprovalSummaryProvider'
 import { PrayerTimeWidget } from '@/components/dashboard/PrayerTimeWidget'
 import { TideDashboardPanel } from '@/components/dashboard/TideDashboardPanel'
@@ -80,6 +81,7 @@ export default function DashboardPage() {
   const [filterProgram, setFilterProgram] = useState('all')
   const [filterSubKegiatan, setFilterSubKegiatan] = useState('all')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [showDetailedSummary, setShowDetailedSummary] = useState(false)
 
   const currentRole = currentUser?.role || 'pptk'
   const normalizedRole = currentRole.toLowerCase()
@@ -602,6 +604,147 @@ export default function DashboardPage() {
   const actions = (quickActions[normalizedRole as keyof typeof quickActions] || quickActions.default)
     .filter((action) => canAccessPage(currentRole, action.href.split('?')[0]))
 
+  const commandCenterKpis = [
+    {
+      id: 'packages',
+      label: 'Total Paket Aktif',
+      value: stats.total,
+      helper: `${stats.onTrack} on track`,
+      href: `/proyek?tahun=${activeYear}&status=aktif&source_module=dashboard`,
+      tone: 'blue' as const,
+      accessPath: '/proyek',
+    },
+    {
+      id: 'progress',
+      label: 'Progres Fisik / Keuangan',
+      value: `${Math.round(stats.avgFisik)}% / ${Math.round(stats.avgKeuangan)}%`,
+      helper: 'Rata-rata scoped',
+      href: `/proyek?tahun=${activeYear}&source_module=dashboard`,
+      tone: 'cyan' as const,
+      accessPath: '/proyek',
+    },
+    {
+      id: 'risk',
+      label: 'Deviasi / Risiko',
+      value: stats.kritis + stats.warning,
+      helper: `${stats.kritis} paket kritis`,
+      href: `/proyek?tahun=${activeYear}&health=kritis&source_module=dashboard`,
+      tone: 'red' as const,
+      accessPath: '/proyek',
+    },
+    {
+      id: 'approval',
+      label: 'Approval Pending',
+      value: approvalPending,
+      helper: `${approvalSummary.revision} minta revisi`,
+      href: '/approval?approval_status=pending&source_module=dashboard',
+      tone: 'amber' as const,
+      accessPath: '/approval',
+    },
+    {
+      id: 'survey',
+      label: 'Survey Belum Ditindaklanjuti',
+      value: stats.surveyMenunggu,
+      helper: 'Perlu tindak lanjut',
+      href: `/survey?status=belum-ditindaklanjuti&source_module=dashboard`,
+      tone: 'violet' as const,
+      accessPath: '/survey',
+    },
+  ].filter((item) => canAccessPage(currentRole, item.accessPath))
+
+  const commandCenterPriorities = alertItems.slice(0, 4).map((item, index) => ({
+    id: `${item.label}-${index}`,
+    label: item.label,
+    detail: typeof item.value === 'number' ? `${item.value} item perlu perhatian` : String(item.value),
+    href: item.href,
+    tone: item.label.includes('Kritis') ? 'red' as const : item.label.includes('Approval') ? 'amber' as const : item.label.includes('Survey') ? 'violet' as const : 'slate' as const,
+  }))
+
+  const commandCenterActivities = recentActivityItems.map((item) => ({
+    id: item.id,
+    userName: item.userName || item.userId || 'Nama user belum tersedia',
+    detail: item.detail || item.action,
+    time: new Date(item.timestamp).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }),
+  }))
+
+  const commandNavigationItems = [
+    {
+      id: 'summary' as const,
+      label: 'Ringkasan',
+      description: 'Kondisi utama sesuai role dan assignment aktif.',
+      value: `${stats.total} paket aktif`,
+      status: dashboardDataSource === 'database' ? 'Database' : 'Data Demo/Fallback',
+      href: '/dashboard',
+      tone: 'navy' as const,
+      accessPath: '/dashboard',
+    },
+    {
+      id: 'risk' as const,
+      label: 'Risiko & Approval',
+      description: 'Paket kritis, masalah, dan approval formal.',
+      value: canAccessPage(currentRole, '/approval') ? `${stats.kritis} kritis | ${approvalPending} pending` : `${stats.kritis} paket kritis`,
+      status: canAccessPage(currentRole, '/approval') ? 'Approval formal' : 'Paket scoped',
+      href: canAccessPage(currentRole, '/approval') ? '/approval?approval_status=pending&source_module=dashboard' : '/proyek?health=kritis&source_module=dashboard',
+      tone: 'rose' as const,
+      accessPath: canAccessPage(currentRole, '/approval') ? '/approval' : '/proyek',
+    },
+    {
+      id: 'progress' as const,
+      label: 'Progress',
+      description: 'Ringkasan fisik, keuangan, dan jenis paket.',
+      value: `${Math.round(stats.avgFisik)}% fisik | ${Math.round(stats.avgKeuangan)}% keuangan`,
+      status: dashboardDataSource === 'database' ? 'Database' : 'Data Demo/Fallback',
+      href: `/proyek?tahun=${activeYear}&source_module=dashboard`,
+      tone: 'cyan' as const,
+      accessPath: '/proyek',
+    },
+    {
+      id: 'activity' as const,
+      label: 'Aktivitas',
+      description: 'Pembaruan terbaru yang tersedia dalam scope.',
+      value: `${commandCenterActivities.length} pembaruan terbaru`,
+      status: 'Scoped activity',
+      href: '/audit-log?source_module=dashboard',
+      tone: 'slate' as const,
+      accessPath: '/audit-log',
+    },
+    {
+      id: 'map' as const,
+      label: 'Peta Monitoring',
+      description: 'Akses pusat spasial tanpa memuat peta besar di dashboard.',
+      value: `${visibleProjects.length} lokasi dalam scope`,
+      status: 'Shortcut modul',
+      href: '/peta?source_module=dashboard',
+      tone: 'cyan' as const,
+      accessPath: '/peta',
+    },
+    {
+      id: 'support' as const,
+      label: 'Modul Pendukung',
+      description: 'Surat, administrasi, peil, asset, dan utilitas.',
+      value: 'Ringkasan modul pendukung',
+      status: 'Campuran database/persiapan',
+      href: canAccessPage(currentRole, '/administrasi')
+        ? '/administrasi?source_module=dashboard'
+        : canAccessPage(currentRole, '/surat')
+        ? '/surat?source_module=dashboard'
+        : canAccessPage(currentRole, '/asset')
+        ? '/asset?source_module=dashboard'
+        : '/dashboard',
+      tone: 'amber' as const,
+      accessPath: '/dashboard',
+    },
+  ].filter((item) => canAccessPage(currentRole, item.accessPath))
+
+  const commandSupportItems = [
+    { id: 'letters' as const, label: 'Surat Masuk & Keluar', status: 'Buka rekap surat', source: 'Persiapan', href: '/surat?source_module=dashboard', accessPath: '/surat' },
+    { id: 'flood' as const, label: 'Peil Banjir', status: 'Modul persiapan', source: 'Persiapan', href: '/peil?source_module=dashboard', accessPath: '/peil' },
+    { id: 'assets' as const, label: 'Asset SDA', status: 'Modul persiapan', source: 'Persiapan', href: '/asset?source_module=dashboard', accessPath: '/asset' },
+    { id: 'administration' as const, label: 'Administrasi', status: 'Kontrak dan dokumen', source: 'Modul', href: '/administrasi?source_module=dashboard', accessPath: '/administrasi' },
+    { id: 'prayer' as const, label: 'Waktu & Salat', status: 'Utility dashboard', source: 'Utility', accessPath: '/dashboard' },
+    { id: 'insight' as const, label: 'Insight Lokal', status: 'Bukan rekomendasi resmi', source: 'Insight Lokal', accessPath: '/dashboard' },
+  ].filter((item) => canAccessPage(currentRole, item.accessPath))
+
   const getFocusRingFromColor = (color: string) => {
     if (!color) return 'focus:ring-blue-200'
     if (color.includes('#FF6A00') || color.includes('#FF8A00')) return 'focus:ring-orange-200'
@@ -629,21 +772,23 @@ export default function DashboardPage() {
         subtitle={`${BRAND.tagline} - ${currentUser?.name?.split(' ')[0] || 'Pengguna'} - ${getRoleLabel(currentRole)}`}
       />
       <div className="space-y-4 p-3 sm:p-4 siaga-gemini-bg">
-        <DashboardRoleHeader
-          currentUser={currentUser}
-          projects={scopedProjects}
-          dateLabel={currentDateLabel}
-          timeLabel={currentTimeLabel}
-          notificationCount={recentActivity.length}
-        />
+        <div className={activeTab === 'ringkasan' ? 'hidden' : 'contents'}>
+          <DashboardRoleHeader
+            currentUser={currentUser}
+            projects={scopedProjects}
+            dateLabel={currentDateLabel}
+            timeLabel={currentTimeLabel}
+            notificationCount={recentActivity.length}
+          />
 
-        {dashboardDataSource === 'demo' && (
-          <div className="relative z-10 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
-            Data demo/fallback ditampilkan sementara karena data database belum berhasil dimuat.
-          </div>
-        )}
+          {dashboardDataSource === 'demo' && (
+            <div className="relative z-10 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900">
+              Data demo/fallback ditampilkan sementara karena data database belum berhasil dimuat.
+            </div>
+          )}
+        </div>
 
-        <section className="relative z-10 rounded-[24px] border border-slate-200/70 bg-white/90 p-2 shadow-sm">
+        <section className={`relative z-10 rounded-[24px] border border-slate-200/70 bg-white/90 p-2 shadow-sm ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between gap-3 px-1.5 pb-2 pt-1">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-cyan-700">Navigasi Dashboard</div>
@@ -671,7 +816,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="relative z-10 rounded-[24px] border border-slate-200/70 bg-white/75 p-2 shadow-sm">
+        <section className={`relative z-10 rounded-[24px] border border-slate-200/70 bg-white/75 p-2 shadow-sm ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between gap-3 px-1.5 pb-2 pt-1">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-cyan-700">Indikator Utama</div>
@@ -729,7 +874,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="relative z-10 rounded-[24px] border border-sky-200/70 bg-gradient-to-br from-white via-sky-50/80 to-cyan-50/70 p-3 shadow-sm">
+        <section className={`relative z-10 rounded-[24px] border border-sky-200/70 bg-gradient-to-br from-white via-sky-50/80 to-cyan-50/70 p-3 shadow-sm ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
           <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Filter Ringkas</div>
@@ -799,7 +944,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <section className="relative z-10 overflow-hidden rounded-[24px] border border-cyan-200/70 bg-gradient-to-br from-cyan-50/95 via-white to-teal-50/90 p-4 text-slate-900 shadow-[0_18px_50px_rgba(14,116,144,0.10)] backdrop-blur-sm">
+        <section className={`relative z-10 overflow-hidden rounded-[24px] border border-cyan-200/70 bg-gradient-to-br from-cyan-50/95 via-white to-teal-50/90 p-4 text-slate-900 shadow-[0_18px_50px_rgba(14,116,144,0.10)] backdrop-blur-sm ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
           <div className="pointer-events-none absolute -right-12 -top-16 h-36 w-36 rounded-full bg-cyan-200/35 blur-3xl" />
           <div className="pointer-events-none absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-emerald-200/30 blur-3xl" />
           <div className="relative flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -847,6 +992,44 @@ export default function DashboardPage() {
         <div className={`relative z-10 transition-all duration-200 ease-out ${activeTab === 'ringkasan' ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'}`}>
           {activeTab === 'ringkasan' && (
           <div className="space-y-3">
+            <CommandCenterOverview
+              userName={currentUserName}
+              roleLabel={getRoleLabel(currentRole)}
+              scopeLabel={`${visibleProjects.length} paket terlihat sesuai role, assignment, dan filter aktif`}
+              activeYear={activeYear}
+              dataSource={dashboardDataSource}
+              lastUpdate={lastAuditLabel}
+              kpis={commandCenterKpis}
+              priorities={commandCenterPriorities}
+              avgPhysical={stats.avgFisik}
+              avgFinancial={stats.avgKeuangan}
+              health={{ onTrack: stats.onTrack, warning: stats.warning, critical: stats.kritis }}
+              packageTypes={packageTypeSummary}
+              risk={{ critical: stats.kritis, approvalPending, revision: approvalSummary.revision, openIssues: stats.openMasalah }}
+              canViewApproval={canAccessPage(currentRole, '/approval')}
+              quickActions={actions}
+              activities={commandCenterActivities}
+              canViewAudit={canAccessPage(currentRole, '/audit-log')}
+              mapLocations={visibleProjects.length}
+              mapWarnings={riskProjects.length}
+              navigationItems={commandNavigationItems}
+              supportItems={commandSupportItems}
+              filterLabel={hasFilterActive ? `${activeFilterLabels.length} Filter Aktif` : 'Filter'}
+              onToggleFilters={() => setShowAdvancedFilters((current) => !current)}
+            />
+
+            <div className="flex justify-center pt-0.5">
+              <button
+                type="button"
+                onClick={() => setShowDetailedSummary((current) => !current)}
+                className="inline-flex h-8 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold text-slate-600 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-800"
+              >
+                {showDetailedSummary ? 'Sembunyikan Rekap Tambahan' : 'Buka Rekap Tambahan'}
+              </button>
+            </div>
+
+            {showDetailedSummary && (
+            <div className="space-y-3">
             <div className="grid gap-3 xl:grid-cols-[1.08fr_0.92fr]">
               <section className="siaga-glass-card flex h-full flex-col border border-cyan-200/70 bg-gradient-to-br from-cyan-50/90 via-white to-sky-50/90 p-3.5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -1137,6 +1320,8 @@ export default function DashboardPage() {
                 </div>
               </section>
             </div>
+            </div>
+            )}
           </div>
         )}
         </div>

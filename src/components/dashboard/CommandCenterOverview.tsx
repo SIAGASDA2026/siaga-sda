@@ -1,0 +1,380 @@
+'use client'
+
+import Link from 'next/link'
+import {
+  Activity,
+  AlertTriangle,
+  ArrowRight,
+  Building2,
+  Clock3,
+  ClipboardCheck,
+  FileText,
+  FileSearch,
+  FolderKanban,
+  Gauge,
+  Landmark,
+  ShieldAlert,
+  SlidersHorizontal,
+  Sparkles,
+  TrendingUp,
+  WalletCards,
+} from 'lucide-react'
+import { CommandCenterNavigation, type CommandNavigationItem } from './CommandCenterNavigation'
+
+type Tone = 'blue' | 'cyan' | 'green' | 'amber' | 'red' | 'violet' | 'slate'
+
+type KpiItem = {
+  id: string
+  label: string
+  value: number | string
+  helper: string
+  href: string
+  tone: Tone
+}
+
+type PriorityItem = {
+  id: string
+  label: string
+  detail: string
+  href: string
+  tone: Tone
+}
+
+type QuickActionItem = {
+  label: string
+  href: string
+  desc: string
+  badge?: number
+}
+
+type ActivityItem = {
+  id: string
+  userName: string
+  detail: string
+  time: string
+}
+
+type PackageTypeItem = {
+  label: string
+  count: number
+}
+
+type SupportItem = {
+  id: 'letters' | 'flood' | 'assets' | 'administration' | 'prayer' | 'insight'
+  label: string
+  status: string
+  source: string
+  href?: string
+}
+
+type CommandCenterOverviewProps = {
+  userName: string
+  roleLabel: string
+  scopeLabel: string
+  activeYear: number
+  dataSource: 'database' | 'demo'
+  lastUpdate: string
+  kpis: KpiItem[]
+  priorities: PriorityItem[]
+  avgPhysical: number
+  avgFinancial: number
+  health: {
+    onTrack: number
+    warning: number
+    critical: number
+  }
+  packageTypes: PackageTypeItem[]
+  risk: {
+    critical: number
+    approvalPending: number
+    revision: number
+    openIssues: number
+  }
+  canViewApproval: boolean
+  quickActions: QuickActionItem[]
+  activities: ActivityItem[]
+  canViewAudit: boolean
+  mapLocations: number
+  mapWarnings: number
+  navigationItems: CommandNavigationItem[]
+  supportItems: SupportItem[]
+  filterLabel: string
+  onToggleFilters: () => void
+}
+
+const toneStyles: Record<Tone, { card: string; icon: string; dot: string }> = {
+  blue: { card: 'border-blue-100 bg-blue-50/70', icon: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500' },
+  cyan: { card: 'border-cyan-100 bg-cyan-50/70', icon: 'bg-cyan-100 text-cyan-700', dot: 'bg-cyan-500' },
+  green: { card: 'border-emerald-100 bg-emerald-50/70', icon: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+  amber: { card: 'border-amber-100 bg-amber-50/70', icon: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+  red: { card: 'border-rose-100 bg-rose-50/70', icon: 'bg-rose-100 text-rose-700', dot: 'bg-rose-500' },
+  violet: { card: 'border-violet-100 bg-violet-50/70', icon: 'bg-violet-100 text-violet-700', dot: 'bg-violet-500' },
+  slate: { card: 'border-slate-200 bg-slate-50/80', icon: 'bg-slate-200 text-slate-700', dot: 'bg-slate-500' },
+}
+
+const kpiIcons = {
+  packages: FolderKanban,
+  progress: TrendingUp,
+  risk: ShieldAlert,
+  approval: ClipboardCheck,
+  survey: FileSearch,
+} as const
+
+const supportIcons = {
+  letters: FileText,
+  flood: Landmark,
+  assets: Building2,
+  administration: WalletCards,
+  prayer: Clock3,
+  insight: Sparkles,
+} as const
+
+function ProgressBar({ label, value, tone }: { label: string; value: number; tone: 'cyan' | 'green' }) {
+  const safeValue = Math.min(100, Math.max(0, Math.round(value)))
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between gap-3 text-[11px] font-bold text-slate-600">
+        <span>{label}</span>
+        <span className="text-slate-950">{safeValue}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+        <div
+          className={`h-full rounded-full ${tone === 'cyan' ? 'bg-cyan-500' : 'bg-emerald-500'}`}
+          style={{ width: `${safeValue}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+export function CommandCenterOverview({
+  userName,
+  roleLabel,
+  scopeLabel,
+  activeYear,
+  dataSource,
+  lastUpdate,
+  kpis,
+  priorities,
+  avgPhysical,
+  avgFinancial,
+  health,
+  packageTypes,
+  risk,
+  canViewApproval,
+  quickActions,
+  activities,
+  canViewAudit,
+  mapLocations,
+  mapWarnings,
+  navigationItems,
+  supportItems,
+  filterLabel,
+  onToggleFilters,
+}: CommandCenterOverviewProps) {
+  const deviation = Math.round(avgPhysical - avgFinancial)
+
+  return (
+    <div className="space-y-2.5">
+      <section className="overflow-hidden rounded-2xl border border-sky-200 bg-white shadow-[0_10px_30px_rgba(13,44,84,0.08)]">
+        <div className="flex flex-col gap-3 bg-gradient-to-r from-[#0d2c54] via-[#104b73] to-[#0f6b78] px-4 py-3 text-white lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-cyan-200">Dashboard Command Center SDA</div>
+            <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
+              <h1 className="text-lg font-black tracking-tight sm:text-xl">Ringkasan keputusan hari ini</h1>
+              <span className="text-xs font-semibold text-blue-100">{userName} | {roleLabel}</span>
+            </div>
+            <div className="mt-1 text-[11px] text-blue-100">{scopeLabel}</div>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
+            <span className="rounded-lg border border-white/15 bg-white/10 px-2.5 py-1.5">Tahun {activeYear}</span>
+            <span className={`rounded-lg border px-2.5 py-1.5 ${dataSource === 'database' ? 'border-emerald-300/40 bg-emerald-300/15 text-emerald-100' : 'border-amber-300/50 bg-amber-300/15 text-amber-100'}`}>
+              {dataSource === 'database' ? 'Data Database' : 'Data Demo/Fallback'}
+            </span>
+            <span className="rounded-lg border border-white/15 bg-white/10 px-2.5 py-1.5">{lastUpdate}</span>
+            <button type="button" onClick={onToggleFilters} className="inline-flex items-center gap-1.5 rounded-lg border border-cyan-200/30 bg-cyan-100/10 px-2.5 py-1.5 text-cyan-50 transition hover:bg-cyan-100/20">
+              <SlidersHorizontal className="h-3.5 w-3.5" /> {filterLabel}
+            </button>
+          </div>
+        </div>
+        {dataSource === 'demo' && (
+          <div className="border-t border-amber-200 bg-amber-50 px-4 py-2 text-[11px] font-semibold text-amber-900">
+            Data demo/fallback sedang ditampilkan. Angka pada ringkasan ini bukan data resmi.
+          </div>
+        )}
+      </section>
+
+      <CommandCenterNavigation items={navigationItems} />
+
+      <section className="grid grid-cols-2 gap-1.5 rounded-2xl border border-sky-100 bg-white p-2 shadow-sm sm:grid-cols-3 xl:grid-cols-5">
+        {kpis.map((item) => {
+          const Icon = kpiIcons[item.id as keyof typeof kpiIcons] || Gauge
+          const style = toneStyles[item.tone]
+          return (
+            <Link
+              key={item.id}
+              href={item.href}
+              className={`group min-w-0 rounded-xl border p-2.5 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-white ${style.card}`}
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <div className="line-clamp-2 text-[10px] font-extrabold uppercase tracking-[0.08em] text-slate-600">{item.label}</div>
+                  <div className="mt-1 text-xl font-black leading-none text-slate-950 sm:text-2xl">{item.value}</div>
+                </div>
+                <span className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl ${style.icon}`}>
+                  <Icon className="h-4 w-4" />
+                </span>
+              </div>
+              <div className="mt-1.5 line-clamp-1 text-[10px] font-medium text-slate-500">{item.helper}</div>
+            </Link>
+          )
+        })}
+      </section>
+
+      <section className="grid gap-2.5 xl:grid-cols-[1.08fr_0.92fr_0.92fr]">
+        <div className="rounded-2xl border border-cyan-100 bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-cyan-700">Command Brief</div>
+              <h2 className="mt-0.5 text-sm font-black text-slate-950">Prioritas tindakan</h2>
+            </div>
+            <AlertTriangle className="h-5 w-5 text-amber-500" />
+          </div>
+          <div className="mt-2 space-y-1.5">
+            {priorities.slice(0, 4).map((item) => (
+              <Link key={item.id} href={item.href} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 px-2.5 py-2 transition hover:border-cyan-200 hover:bg-cyan-50/60">
+                <span className={`h-2 w-2 shrink-0 rounded-full ${toneStyles[item.tone].dot}`} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[11px] font-extrabold text-slate-900">{item.label}</div>
+                  <div className="truncate text-[10px] text-slate-500">{item.detail}</div>
+                </div>
+                <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-100 bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sky-700">Progress</div>
+              <h2 className="mt-0.5 text-sm font-black text-slate-950">Fisik vs keuangan</h2>
+            </div>
+            <span className={`rounded-full px-2 py-1 text-[10px] font-black ${deviation >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+              Deviasi {deviation > 0 ? '+' : ''}{deviation}%
+            </span>
+          </div>
+          <div className="mt-3 space-y-3">
+            <ProgressBar label="Progres Fisik" value={avgPhysical} tone="cyan" />
+            <ProgressBar label="Progres Keuangan" value={avgFinancial} tone="green" />
+          </div>
+          <div className="mt-3 grid grid-cols-3 gap-1.5">
+            {packageTypes.slice(0, 3).map((item) => (
+              <Link key={item.label} href={`/proyek?jenis_paket=${encodeURIComponent(item.label.toLowerCase())}&source_module=dashboard`} className="rounded-xl border border-slate-100 bg-slate-50 px-2 py-1.5 text-center transition hover:border-cyan-200">
+                <div className="text-sm font-black text-slate-950">{item.count}</div>
+                <div className="truncate text-[9px] font-bold uppercase text-slate-500">{item.label}</div>
+              </Link>
+            ))}
+          </div>
+          <div className="mt-2 flex items-center justify-between text-[10px] font-semibold text-slate-500">
+            <span className="text-emerald-700">{health.onTrack} aman</span>
+            <span className="text-amber-700">{health.warning} perhatian</span>
+            <span className="text-rose-700">{health.critical} kritis</span>
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-amber-100 bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-amber-700">Risk & Approval</div>
+              <h2 className="mt-0.5 text-sm font-black text-slate-950">Perlu perhatian</h2>
+            </div>
+            <ShieldAlert className="h-5 w-5 text-rose-500" />
+          </div>
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            {[
+              { label: 'Paket Kritis', value: risk.critical, href: '/proyek?health=kritis&source_module=dashboard', tone: 'red' as Tone },
+              { label: 'Approval Pending', value: risk.approvalPending, href: '/approval?approval_status=pending&source_module=dashboard', tone: 'amber' as Tone },
+              { label: 'Minta Revisi', value: risk.revision, href: '/approval?approval_status=REVISION&source_module=dashboard', tone: 'violet' as Tone },
+              { label: 'Masalah Open', value: risk.openIssues, href: '/masalah?status=open&source_module=dashboard', tone: 'slate' as Tone },
+            ].filter((item) => canViewApproval || !item.href.startsWith('/approval')).map((item) => (
+              <Link key={item.label} href={item.href} className={`rounded-xl border p-2 transition hover:border-cyan-300 hover:bg-white ${toneStyles[item.tone].card}`}>
+                <div className="text-lg font-black text-slate-950">{item.value}</div>
+                <div className="text-[10px] font-bold text-slate-600">{item.label}</div>
+              </Link>
+            ))}
+          </div>
+          <Link href={canViewApproval ? '/approval?source_module=dashboard' : '/proyek?health=kritis&source_module=dashboard'} className="mt-2 inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-xl bg-[#0d2c54] px-3 text-[11px] font-bold text-white transition hover:bg-[#123e70]">
+            {canViewApproval ? 'Buka Approval Center' : 'Buka Paket Berisiko'} <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      </section>
+
+      <section className="grid gap-2.5 lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="rounded-2xl border border-cyan-100 bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-cyan-700">Akses & Aktivitas</div>
+              <div className="text-xs font-bold text-slate-900">Aksi role-aware dan pembaruan scoped</div>
+            </div>
+            {canViewAudit && <Link href="/audit-log" className="text-[10px] font-bold text-cyan-700 hover:underline">Audit Log</Link>}
+          </div>
+          <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
+            {quickActions.slice(0, 4).map((action) => (
+              <Link key={action.label} href={action.href} className="relative min-w-[130px] rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition hover:border-cyan-300 hover:bg-cyan-50">
+                <div className="truncate text-[10px] font-extrabold text-slate-800">{action.label}</div>
+                {typeof action.badge === 'number' && action.badge > 0 && (
+                  <span className="absolute -right-1 -top-1 rounded-full bg-slate-900 px-1.5 py-0.5 text-[8px] font-black text-white">{action.badge > 99 ? '99+' : action.badge}</span>
+                )}
+              </Link>
+            ))}
+          </div>
+          <div className="mt-2 divide-y divide-slate-100 border-t border-slate-100">
+            {activities.length > 0 ? activities.slice(0, 3).map((item) => (
+              <div key={item.id} className="flex items-center gap-2 py-1.5">
+                <Activity className="h-3.5 w-3.5 shrink-0 text-cyan-600" />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[10px] font-bold text-slate-800">{item.detail}</div>
+                  <div className="truncate text-[9px] text-slate-500">{item.userName} | {item.time}</div>
+                </div>
+              </div>
+            )) : (
+              <div className="py-4 text-center text-[10px] font-semibold text-slate-500">Belum ada aktivitas scoped.</div>
+            )}
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-sky-100 bg-white p-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sky-700">Modul Pendukung</div>
+              <div className="text-xs font-bold text-slate-900">{mapLocations} lokasi | {mapWarnings} perlu perhatian</div>
+            </div>
+            <Link href="/peta?source_module=dashboard" className="text-[10px] font-bold text-cyan-700 hover:underline">Buka Peta</Link>
+          </div>
+          <div className="mt-2 divide-y divide-slate-100">
+            {supportItems.map((item) => {
+              const Icon = supportIcons[item.id]
+              const row = (
+                <>
+                  <Icon className="h-3.5 w-3.5 shrink-0 text-cyan-700" />
+                  <span className="min-w-0 flex-1 truncate text-[10px] font-bold text-slate-800">{item.label}</span>
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[8px] font-bold text-slate-600">{item.source}</span>
+                  <span className="max-w-[92px] truncate text-[9px] text-slate-500">{item.status}</span>
+                  {item.href && <ArrowRight className="h-3 w-3 shrink-0 text-slate-400" />}
+                </>
+              )
+              return item.href ? (
+                <Link key={item.id} href={item.href} className="flex items-center gap-2 py-1.5 transition hover:text-cyan-800">{row}</Link>
+              ) : (
+                <div key={item.id} className="flex items-center gap-2 py-1.5">{row}</div>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+export default CommandCenterOverview
