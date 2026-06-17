@@ -19,6 +19,7 @@ import {
   reportToExcelRow,
 } from '@/lib/reporting'
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
+import { PhotoDocumentationViewer, type PhotoDocumentationItem } from '@/components/common/PhotoDocumentationViewer'
 import { LaporanHarian, Koordinat, Photo } from '@/types'
 import { ArrowLeft, Camera, MapPin, CheckCircle, Plus, X, Eye, Search, Printer, FileSpreadsheet } from 'lucide-react'
 import { printLaporanHarian } from '@/lib/print'
@@ -27,7 +28,7 @@ import toast from 'react-hot-toast'
 const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2,7)}`
 
 export default function LaporanPage() {
-  const { projects, currentUser, addLaporan, updateLaporan, deleteLaporan, approveLaporan } = useAppStore()
+  const { projects, currentUser, addLaporan, updateLaporan, deleteLaporan, approveLaporan, dashboardDataSource } = useAppStore()
   const searchParams = useSearchParams()
   const initialProjectId = searchParams.get('proyek') || 'all'
   const fromPaket = searchParams.get('from') === 'paket' || searchParams.has('proyek')
@@ -35,6 +36,9 @@ export default function LaporanPage() {
   const [viewTarget, setViewTarget] = useState<any>(null)
   const [editTarget, setEditTarget] = useState<any>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ laporan: any; proyekId: string } | null>(null)
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false)
+  const [photoViewerItems, setPhotoViewerItems] = useState<PhotoDocumentationItem[]>([])
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0)
   const [filterProyek, setFilterProyek] = useState(initialProjectId)
   const [filterStatus, setFilterStatus] = useState('all')
   const [filterKategori, setFilterKategori] = useState('all')
@@ -76,6 +80,45 @@ export default function LaporanPage() {
     const mQ = l.proyekNama.toLowerCase().includes(search.toLowerCase()) || l.uraianPekerjaan.toLowerCase().includes(search.toLowerCase())
     return mP && mS && mQ
   })
+
+  const buildLaporanPhotoItems = (laporan: any): PhotoDocumentationItem[] => {
+    const project = visibleProjects.find((p) => p.id === laporan.proyekId)
+    const sourceLabel = dashboardDataSource === 'database' ? 'Database' : 'Demo'
+
+    return (laporan.foto || []).map((foto: any, index: number) => ({
+      id: foto.id || `${laporan.id}-foto-${index}`,
+      src: foto.url,
+      thumbnailSrc: foto.url,
+      title: foto.keterangan || `Foto Laporan Harian ${index + 1}`,
+      caption: laporan.uraianPekerjaan,
+      module: 'paket',
+      entityId: laporan.id,
+      entityCode: laporan.proyekKode || project?.kode,
+      entityName: laporan.proyekNama || project?.nama,
+      location: project?.lokasi,
+      takenAt: laporan.tanggal,
+      uploadedAt: foto.uploadedAt || laporan.createdAt,
+      uploadedBy: foto.uploadedBy || laporan.userName,
+      stage: 'Laporan Harian',
+      status: laporan.disetujui ? 'Disetujui' : 'Menunggu Persetujuan',
+      verificationStatus: laporan.disetujui ? `Disetujui ${laporan.disetujuiOleh || ''}` : 'Menunggu pemeriksaan',
+      coordinates: foto.koordinat || laporan.koordinat,
+      physicalProgress: laporan.progressFisik,
+      progressPercent: laporan.progressKumulatif,
+      sourceLabel,
+      notes: laporan.uraianPekerjaan,
+      detailHref: `/laporan?proyek=${encodeURIComponent(laporan.proyekId)}&source_module=photo_viewer`,
+    }))
+  }
+
+  const openLaporanPhotoViewer = (laporan: any, index = 0) => {
+    const items = buildLaporanPhotoItems(laporan)
+    if (!items.length) return
+
+    setPhotoViewerItems(items)
+    setPhotoViewerIndex(Math.min(index, items.length - 1))
+    setPhotoViewerOpen(true)
+  }
 
   const activeGeneratedReports = reportMode === 'mingguan' ? weeklyReports : monthlyReports
   const filteredGeneratedReports = activeGeneratedReports.filter((report) => {
@@ -339,9 +382,15 @@ export default function LaporanPage() {
                 {l.foto.length > 0 && (
                   <div className="flex gap-1.5 mt-2 overflow-x-auto pb-1">
                     {l.foto.slice(0,5).map((f: any, i: number) => (
-                      <div key={i} className="w-14 h-10 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
+                      <button
+                        type="button"
+                        key={i}
+                        onClick={() => openLaporanPhotoViewer(l, i)}
+                        className="w-14 h-10 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 ring-offset-2 transition hover:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                        aria-label={`Buka foto laporan ${i + 1}`}
+                      >
                         <img src={f.url} className="w-full h-full object-cover" alt="" onError={e => (e.target as any).style.display='none'} />
-                      </div>
+                      </button>
                     ))}
                     {l.foto.length > 5 && <div className="w-14 h-10 rounded-lg bg-slate-100 flex-shrink-0 flex items-center justify-center text-xs text-slate-500 font-semibold border border-slate-200">+{l.foto.length-5}</div>}
                   </div>
@@ -498,9 +547,15 @@ export default function LaporanPage() {
                 <div className="text-xs text-slate-500 mb-1">Foto Lapangan ({viewTarget.foto.length})</div>
                 <div className="grid grid-cols-3 gap-2">
                   {viewTarget.foto.map((f: any, i: number) => (
-                    <div key={i} className="aspect-video rounded-lg overflow-hidden bg-slate-100">
+                    <button
+                      type="button"
+                      key={i}
+                      onClick={() => openLaporanPhotoViewer(viewTarget, i)}
+                      className="aspect-video rounded-lg overflow-hidden bg-slate-100 ring-offset-2 transition hover:ring-2 hover:ring-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                      aria-label={`Buka foto laporan ${i + 1}`}
+                    >
                       <img src={f.url} className="w-full h-full object-cover" alt="" onError={e => (e.target as any).style.display='none'} />
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -517,6 +572,12 @@ export default function LaporanPage() {
       <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}
         onConfirm={() => { deleteLaporan(deleteTarget!.proyekId, deleteTarget!.laporan.id); toast.success('Laporan dihapus'); setDeleteTarget(null) }}
         title="Hapus Laporan?" message="Laporan harian ini beserta semua foto akan dihapus permanen." />
+      <PhotoDocumentationViewer
+        open={photoViewerOpen}
+        items={photoViewerItems}
+        activeIndex={photoViewerIndex}
+        onClose={() => setPhotoViewerOpen(false)}
+      />
     </>
   )
 }

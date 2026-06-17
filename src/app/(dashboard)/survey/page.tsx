@@ -8,6 +8,7 @@ import { formatDate, formatDateTime, getCurrentGPS, canAccess } from '@/lib/util
 import { filterProjectsByScope, getProjectBudgetYears, getProjectCategoryLabel, getProjectPackageType, getProjectPackageTypeLabel, getProjectPrograms, getProjectSubKegiatan, getProjectWorkStage, getProjectWorkStageLabel } from '@/lib/reporting'
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
 import { getScopedProjects } from '@/lib/dashboard-scope'
+import { PhotoDocumentationViewer, type PhotoDocumentationItem } from '@/components/common/PhotoDocumentationViewer'
 import { Survey, Koordinat } from '@/types'
 import { MapPin, Camera, Plus, Search, X, CheckCircle, Eye, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -17,11 +18,14 @@ const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2,7)}`
 export default function SurveyPage() {
   const searchParams = useSearchParams()
   const searchQuery = searchParams.toString()
-  const { projects, currentUser, addSurvey, updateSurvey, deleteSurvey } = useAppStore()
+  const { projects, currentUser, addSurvey, updateSurvey, deleteSurvey, dashboardDataSource } = useAppStore()
   const [showForm, setShowForm] = useState(false)
   const [viewTarget, setViewTarget] = useState<any>(null)
   const [editTarget, setEditTarget] = useState<any>(null)
   const [deleteTarget, setDeleteTarget] = useState<{ survey: Survey; proyekId: string } | null>(null)
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false)
+  const [photoViewerItems, setPhotoViewerItems] = useState<PhotoDocumentationItem[]>([])
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0)
   const [search, setSearch] = useState(() => searchParams.get('kategori_masalah') || '')
   const [filterProyek, setFilterProyek] = useState('all')
   const [filterStatus, setFilterStatus] = useState(() => {
@@ -95,6 +99,43 @@ export default function SurveyPage() {
     setFilterTahun('all')
     setFilterProgram('all')
     setFilterSubKegiatan('all')
+  }
+
+  const buildSurveyPhotoItems = (survey: any): PhotoDocumentationItem[] => {
+    const project = visibleProjects.find((p) => p.id === survey.proyekId)
+    const sourceLabel = dashboardDataSource === 'database' ? 'Database' : 'Demo'
+
+    return (survey.foto || []).map((foto: any, index: number) => ({
+      id: foto.id || `${survey.id}-foto-${index}`,
+      src: foto.url,
+      thumbnailSrc: foto.url,
+      title: foto.keterangan || `Foto Survey ${index + 1}`,
+      caption: survey.kondisiEksisting,
+      module: 'survey',
+      entityId: survey.id,
+      entityCode: survey.proyekKode || project?.kode,
+      entityName: survey.proyekNama || project?.nama,
+      location: project?.lokasi,
+      takenAt: survey.tanggal,
+      uploadedAt: foto.uploadedAt || survey.createdAt,
+      uploadedBy: foto.uploadedBy || survey.userName,
+      stage: 'Survey Investigasi',
+      status: survey.status === 'submitted' ? 'Belum Ditindaklanjuti' : survey.status,
+      verificationStatus: survey.status === 'submitted' ? 'Menunggu tindak lanjut' : undefined,
+      coordinates: foto.koordinat || survey.koordinat,
+      sourceLabel,
+      notes: survey.rekomendasi || survey.permasalahan,
+      detailHref: `/survey?survey_id=${encodeURIComponent(survey.id)}&source_module=photo_viewer`,
+    }))
+  }
+
+  const openSurveyPhotoViewer = (survey: any, index = 0) => {
+    const items = buildSurveyPhotoItems(survey)
+    if (!items.length) return
+
+    setPhotoViewerItems(items)
+    setPhotoViewerIndex(Math.min(index, items.length - 1))
+    setPhotoViewerOpen(true)
   }
 
   const getGPS = async () => {
@@ -297,9 +338,15 @@ export default function SurveyPage() {
                 {s.foto.length > 0 && (
                   <div className="flex gap-1.5 overflow-x-auto pb-1">
                     {s.foto.slice(0,5).map((f:any, i:number) => (
-                      <div key={i} className="w-14 h-10 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200">
+                      <button
+                        type="button"
+                        key={i}
+                        onClick={() => openSurveyPhotoViewer(s, i)}
+                        className="w-14 h-10 rounded-lg overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-200 ring-offset-2 transition hover:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                        aria-label={`Buka foto survey ${i + 1}`}
+                      >
                         <img src={f.url} className="w-full h-full object-cover" alt="" onError={e => (e.target as any).style.display='none'} />
-                      </div>
+                      </button>
                     ))}
                     {s.foto.length > 5 && <div className="w-14 h-10 rounded-lg bg-slate-100 flex-shrink-0 flex items-center justify-center text-xs text-slate-500 font-bold border border-slate-200">+{s.foto.length-5}</div>}
                   </div>
@@ -420,9 +467,15 @@ export default function SurveyPage() {
                 <div className="text-xs text-slate-500 mb-1">Foto Survey ({viewTarget.foto.length})</div>
                 <div className="grid grid-cols-3 gap-2">
                   {viewTarget.foto.map((f:any, i:number) => (
-                    <div key={i} className="aspect-video rounded-lg overflow-hidden bg-slate-100">
+                    <button
+                      type="button"
+                      key={i}
+                      onClick={() => openSurveyPhotoViewer(viewTarget, i)}
+                      className="aspect-video rounded-lg overflow-hidden bg-slate-100 ring-offset-2 transition hover:ring-2 hover:ring-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-400"
+                      aria-label={`Buka foto survey ${i + 1}`}
+                    >
                       <img src={f.url} className="w-full h-full object-cover" alt="" onError={e => (e.target as any).style.display='none'} />
-                    </div>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -434,6 +487,12 @@ export default function SurveyPage() {
       <ConfirmDialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}
         onConfirm={() => { deleteSurvey(deleteTarget!.proyekId, deleteTarget!.survey.id); toast.success('Survey dihapus'); setDeleteTarget(null) }}
         title="Hapus Survey?" message="Data survey beserta foto akan dihapus permanen." />
+      <PhotoDocumentationViewer
+        open={photoViewerOpen}
+        items={photoViewerItems}
+        activeIndex={photoViewerIndex}
+        onClose={() => setPhotoViewerOpen(false)}
+      />
     </>
   )
 }
