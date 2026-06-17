@@ -1,5 +1,6 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 
 interface ModalProps {
@@ -14,24 +15,39 @@ interface ModalProps {
 
 export function Modal({ open, onClose, title, subtitle, children, size = 'md', footer }: ModalProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (!open) return
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted || !open) return
+    const previousBodyOverflow = document.body.style.overflow
+    const previousHtmlOverflow = document.documentElement.style.overflow
+
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
+
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [open, onClose])
+    return () => {
+      document.body.style.overflow = previousBodyOverflow
+      document.documentElement.style.overflow = previousHtmlOverflow
+      window.removeEventListener('keydown', handler)
+    }
+  }, [mounted, open, onClose])
 
-  if (!open) return null
+  if (!mounted || !open) return null
 
-  const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-2xl', xl: 'max-w-4xl' }
+  const sizes = { sm: 'max-w-md', md: 'max-w-lg', lg: 'max-w-3xl', xl: 'max-w-5xl' }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center p-3 sm:items-center sm:p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-end justify-center px-3 py-4 sm:items-center sm:px-4 sm:py-6">
+      <div className="fixed inset-0 z-[9998] bg-slate-950/55 backdrop-blur-md" onClick={onClose} />
       <div
         ref={ref}
-        className={`relative flex max-h-[calc(100dvh-1.5rem)] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 sm:rounded-2xl ${sizes[size]}`}
+        className={`relative z-[9999] flex max-h-[84dvh] w-full flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200 sm:max-h-[82dvh] sm:rounded-2xl ${sizes[size]}`}
       >
         {/* Header */}
         <div className="flex flex-shrink-0 items-start justify-between border-b border-slate-100 p-4 sm:p-5">
@@ -40,7 +56,9 @@ export function Modal({ open, onClose, title, subtitle, children, size = 'md', f
             {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
           </div>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Tutup modal"
             className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 hover:text-slate-700 transition-colors ml-4 flex-shrink-0"
           >
             <X className="w-4 h-4" />
@@ -48,7 +66,7 @@ export function Modal({ open, onClose, title, subtitle, children, size = 'md', f
         </div>
 
         {/* Body */}
-        <div className="min-w-0 flex-1 overflow-y-auto p-4 sm:p-5">{children}</div>
+        <div className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain p-4 pb-5 sm:p-5 sm:pb-6">{children}</div>
 
         {/* Footer */}
         {footer && (
@@ -57,7 +75,8 @@ export function Modal({ open, onClose, title, subtitle, children, size = 'md', f
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }
 

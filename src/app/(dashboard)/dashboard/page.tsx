@@ -921,7 +921,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {showAdvancedFilters && (
+        {activeTab !== 'ringkasan' && showAdvancedFilters && (
           <div className="relative z-10 rounded-3xl border border-slate-200/70 bg-white p-4 shadow-sm sm:p-5">
             <ProjectScopeFilters
               category={filterKategori}
@@ -1016,9 +1016,41 @@ export default function DashboardPage() {
               supportItems={commandSupportItems}
               filterLabel={hasFilterActive ? `${activeFilterLabels.length} Filter Aktif` : 'Filter'}
               onToggleFilters={() => setShowAdvancedFilters((current) => !current)}
+              filterPanel={showAdvancedFilters ? (
+                <ProjectScopeFilters
+                  category={filterKategori}
+                  packageType={filterJenisProyek}
+                  workStage={filterTahap}
+                  budgetYear={filterTahun}
+                  budgetYears={budgetYears}
+                  program={filterProgram}
+                  programs={programs}
+                  subKegiatan={filterSubKegiatan}
+                  subKegiatanOptions={subKegiatanOptions}
+                  onCategoryChange={setFilterKategori}
+                  onPackageTypeChange={setFilterJenisProyek}
+                  onWorkStageChange={setFilterTahap}
+                  onBudgetYearChange={setFilterTahun}
+                  onProgramChange={setFilterProgram}
+                  onSubKegiatanChange={setFilterSubKegiatan}
+                  total={visibleProjects.length}
+                />
+              ) : undefined}
+              focusPackage={riskProjects[0] ? {
+                kode: riskProjects[0].kode,
+                nama: riskProjects[0].nama,
+                lokasi: riskProjects[0].lokasi,
+                health: riskProjects[0].health || 'warning',
+                jenis: getProjectPackageTypeLabel(getProjectPackageType(riskProjects[0])),
+                metode: getProjectCategoryLabel(riskProjects[0].kategoriPekerjaan),
+                progressFisik: riskProjects[0].progressFisik,
+                progressKeuangan: riskProjects[0].progressKeuangan,
+                ppk: riskProjects[0].ppk,
+                pptk: riskProjects[0].pptk,
+              } : undefined}
             />
 
-            <div className="flex justify-center pt-0.5">
+            <div className="flex justify-center pt-0.5 xl:hidden">
               <button
                 type="button"
                 onClick={() => setShowDetailedSummary((current) => !current)}
@@ -1029,7 +1061,7 @@ export default function DashboardPage() {
             </div>
 
             {showDetailedSummary && (
-            <div className="space-y-3">
+            <div className="space-y-3 xl:hidden">
             <div className="grid gap-3 xl:grid-cols-[1.08fr_0.92fr]">
               <section className="siaga-glass-card flex h-full flex-col border border-cyan-200/70 bg-gradient-to-br from-cyan-50/90 via-white to-sky-50/90 p-3.5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

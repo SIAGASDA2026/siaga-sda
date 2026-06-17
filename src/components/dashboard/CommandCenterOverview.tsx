@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, type ReactNode } from 'react'
 import Link from 'next/link'
 import {
   Activity,
@@ -20,6 +21,7 @@ import {
   WalletCards,
 } from 'lucide-react'
 import { CommandCenterNavigation, type CommandNavigationItem } from './CommandCenterNavigation'
+import { DashboardRightInspector, type DashboardInspectorItem } from './DashboardRightInspector'
 
 type Tone = 'blue' | 'cyan' | 'green' | 'amber' | 'red' | 'violet' | 'slate'
 
@@ -100,6 +102,19 @@ type CommandCenterOverviewProps = {
   supportItems: SupportItem[]
   filterLabel: string
   onToggleFilters: () => void
+  filterPanel?: ReactNode
+  focusPackage?: {
+    kode: string
+    nama: string
+    lokasi: string
+    health: string
+    jenis: string
+    metode: string
+    progressFisik: number
+    progressKeuangan: number
+    ppk: string
+    pptk: string
+  }
 }
 
 const toneStyles: Record<Tone, { card: string; icon: string; dot: string }> = {
@@ -171,13 +186,113 @@ export function CommandCenterOverview({
   supportItems,
   filterLabel,
   onToggleFilters,
+  filterPanel,
+  focusPackage,
 }: CommandCenterOverviewProps) {
   const deviation = Math.round(avgPhysical - avgFinancial)
+  const [selectedInspectorId, setSelectedInspectorId] = useState('overview')
+  const [inspectorModalOpen, setInspectorModalOpen] = useState(false)
+
+  const sourceLabel = dataSource === 'database' ? 'Database' : 'Data Demo/Fallback'
+  const overviewInspector: DashboardInspectorItem = {
+    id: 'overview',
+    kind: 'overview',
+    eyebrow: 'Fokus Hari Ini',
+    title: 'Ringkasan Command Center',
+    description: `${roleLabel} | ${scopeLabel}`,
+    source: sourceLabel,
+    metrics: [
+      { label: 'Paket Scoped', value: mapLocations },
+      { label: 'Paket Kritis', value: risk.critical, tone: risk.critical > 0 ? 'critical' : 'good' },
+      ...(canViewApproval ? [{ label: 'Approval Pending', value: risk.approvalPending, tone: risk.approvalPending > 0 ? 'warning' as const : 'good' as const }] : []),
+      { label: 'Survey Pending', value: kpis.find((item) => item.id === 'survey')?.value || 0, tone: 'warning' },
+    ],
+    details: [
+      `Progress fisik ${Math.round(avgPhysical)}% dan keuangan ${Math.round(avgFinancial)}%.`,
+      `${health.onTrack} paket aman, ${health.warning} perlu perhatian, ${health.critical} kritis.`,
+      `${mapWarnings} lokasi/paket memerlukan perhatian.`,
+    ],
+    href: '/proyek?status=aktif&source_module=dashboard',
+    hrefLabel: 'Buka Paket Aktif',
+    secondaryLinks: [
+      ...(canViewApproval ? [{ label: 'Approval Center', href: '/approval?approval_status=pending&source_module=dashboard' }] : []),
+      { label: 'Peta Monitoring', href: '/peta?source_module=dashboard' },
+    ],
+  }
+
+  const inspectorItems: DashboardInspectorItem[] = [
+    overviewInspector,
+    ...kpis.map((item): DashboardInspectorItem => ({
+      id: `kpi-${item.id}`,
+      kind: item.id === 'approval' ? 'approval' : item.id === 'survey' ? 'survey' : item.id === 'progress' ? 'progress' : item.id === 'risk' ? 'risk' : 'overview',
+      eyebrow: 'KPI Dashboard',
+      title: item.label,
+      description: item.helper,
+      source: item.id === 'approval' ? 'Approval Summary formal' : sourceLabel,
+      metrics: [{ label: item.label, value: item.value, tone: item.tone === 'red' ? 'critical' : item.tone === 'amber' || item.tone === 'violet' ? 'warning' : 'default' }],
+      details: item.id === 'progress'
+        ? [`Fisik ${Math.round(avgPhysical)}%.`, `Keuangan ${Math.round(avgFinancial)}%.`, `Deviasi ${deviation > 0 ? '+' : ''}${deviation}%.`]
+        : [`Nilai mengikuti role, assignment scope, dan filter aktif.`],
+      href: item.href,
+      hrefLabel: `Buka ${item.label}`,
+    })),
+    ...priorities.slice(0, 3).map((item): DashboardInspectorItem => ({
+      id: `priority-${item.id}`,
+      kind: item.label.includes('Approval') ? 'approval' : item.label.includes('Survey') ? 'survey' : item.label.includes('Kritis') ? 'package' : 'risk',
+      eyebrow: 'Command Brief',
+      title: item.label,
+      description: item.detail,
+      source: item.label.includes('Approval') ? 'Approval Summary formal' : sourceLabel,
+      metrics: [{ label: 'Perlu Perhatian', value: item.detail, tone: item.tone === 'red' ? 'critical' : 'warning' }],
+      details: focusPackage && item.label.includes('Kritis')
+        ? [
+            `${focusPackage.kode} | ${focusPackage.nama}`,
+            `Health: ${focusPackage.health} | ${focusPackage.jenis} | ${focusPackage.metode}`,
+            `Lokasi: ${focusPackage.lokasi}`,
+            `Fisik ${focusPackage.progressFisik}% | Keuangan ${focusPackage.progressKeuangan}%`,
+            `PPK: ${focusPackage.ppk} | PPTK: ${focusPackage.pptk}`,
+          ]
+        : ['Buka modul asal untuk melihat daftar dan tindak lanjut lengkap.'],
+      href: item.href,
+      hrefLabel: item.label.includes('Kritis') ? 'Buka Paket Kritis' : 'Buka Modul',
+    })),
+    ...navigationItems.map((item): DashboardInspectorItem => ({
+      id: `navigation-${item.id}`,
+      kind: item.id === 'risk' ? 'risk' : item.id === 'progress' ? 'progress' : item.id === 'activity' ? 'activity' : item.id === 'support' || item.id === 'map' ? 'module' : 'overview',
+      eyebrow: 'Navigasi Command Center',
+      title: item.label,
+      description: item.description,
+      source: item.status,
+      metrics: [{ label: 'Ringkasan', value: item.value }],
+      details: ['Akses modul tetap mengikuti role dan assignment scope aktif.'],
+      href: item.href,
+      hrefLabel: 'Buka Modul',
+    })),
+    ...supportItems.map((item): DashboardInspectorItem => ({
+      id: `support-${item.id}`,
+      kind: 'module',
+      eyebrow: 'Modul Pendukung',
+      title: item.label,
+      description: item.status,
+      source: item.source,
+      metrics: [{ label: 'Status', value: item.status }],
+      details: [item.source === 'Persiapan' ? 'Belum ditampilkan sebagai data resmi pada Command Center.' : 'Ringkasan mengikuti sumber modul existing.'],
+      href: item.href,
+      hrefLabel: item.href ? `Buka ${item.label}` : undefined,
+    })),
+  ]
+
+  const selectedInspector = inspectorItems.find((item) => item.id === selectedInspectorId) || overviewInspector
+  const selectInspector = (id: string) => {
+    setSelectedInspectorId(id)
+    setInspectorModalOpen(true)
+  }
 
   return (
     <div className="space-y-2.5">
+      <div className="space-y-2.5">
       <section className="overflow-hidden rounded-2xl border border-sky-200 bg-white shadow-[0_10px_30px_rgba(13,44,84,0.08)]">
-        <div className="flex flex-col gap-3 bg-gradient-to-r from-[#0d2c54] via-[#104b73] to-[#0f6b78] px-4 py-3 text-white lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex flex-col gap-2 bg-gradient-to-r from-[#0d2c54] via-[#104b73] to-[#0f6b78] px-4 py-2.5 text-white lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <div className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-cyan-200">Dashboard Command Center SDA</div>
             <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -204,16 +319,23 @@ export function CommandCenterOverview({
         )}
       </section>
 
-      <CommandCenterNavigation items={navigationItems} />
+      {filterPanel && (
+        <section className="rounded-2xl border border-cyan-100 bg-white p-3 shadow-sm">
+          {filterPanel}
+        </section>
+      )}
+
+      <CommandCenterNavigation items={navigationItems} onSelect={(item) => selectInspector(`navigation-${item.id}`)} />
 
       <section className="grid grid-cols-2 gap-1.5 rounded-2xl border border-sky-100 bg-white p-2 shadow-sm sm:grid-cols-3 xl:grid-cols-5">
         {kpis.map((item) => {
           const Icon = kpiIcons[item.id as keyof typeof kpiIcons] || Gauge
           const style = toneStyles[item.tone]
           return (
-            <Link
+            <button
+              type="button"
               key={item.id}
-              href={item.href}
+              onClick={() => selectInspector(`kpi-${item.id}`)}
               className={`group min-w-0 rounded-xl border p-2.5 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-white ${style.card}`}
             >
               <div className="flex items-start justify-between gap-2">
@@ -226,7 +348,7 @@ export function CommandCenterOverview({
                 </span>
               </div>
               <div className="mt-1.5 line-clamp-1 text-[10px] font-medium text-slate-500">{item.helper}</div>
-            </Link>
+            </button>
           )
         })}
       </section>
@@ -241,15 +363,15 @@ export function CommandCenterOverview({
             <AlertTriangle className="h-5 w-5 text-amber-500" />
           </div>
           <div className="mt-2 space-y-1.5">
-            {priorities.slice(0, 4).map((item) => (
-              <Link key={item.id} href={item.href} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 px-2.5 py-2 transition hover:border-cyan-200 hover:bg-cyan-50/60">
+            {priorities.slice(0, 3).map((item) => (
+              <button type="button" key={item.id} onClick={() => selectInspector(`priority-${item.id}`)} className="flex w-full items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 px-2.5 py-2 text-left transition hover:border-cyan-200 hover:bg-cyan-50/60">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${toneStyles[item.tone].dot}`} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[11px] font-extrabold text-slate-900">{item.label}</div>
                   <div className="truncate text-[10px] text-slate-500">{item.detail}</div>
                 </div>
                 <ArrowRight className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-              </Link>
+              </button>
             ))}
           </div>
         </div>
@@ -260,9 +382,9 @@ export function CommandCenterOverview({
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sky-700">Progress</div>
               <h2 className="mt-0.5 text-sm font-black text-slate-950">Fisik vs keuangan</h2>
             </div>
-            <span className={`rounded-full px-2 py-1 text-[10px] font-black ${deviation >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
+            <button type="button" onClick={() => selectInspector('kpi-progress')} className={`rounded-full px-2 py-1 text-[10px] font-black ${deviation >= 0 ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'}`}>
               Deviasi {deviation > 0 ? '+' : ''}{deviation}%
-            </span>
+            </button>
           </div>
           <div className="mt-3 space-y-3">
             <ProgressBar label="Progres Fisik" value={avgPhysical} tone="cyan" />
@@ -298,10 +420,10 @@ export function CommandCenterOverview({
               { label: 'Minta Revisi', value: risk.revision, href: '/approval?approval_status=REVISION&source_module=dashboard', tone: 'violet' as Tone },
               { label: 'Masalah Open', value: risk.openIssues, href: '/masalah?status=open&source_module=dashboard', tone: 'slate' as Tone },
             ].filter((item) => canViewApproval || !item.href.startsWith('/approval')).map((item) => (
-              <Link key={item.label} href={item.href} className={`rounded-xl border p-2 transition hover:border-cyan-300 hover:bg-white ${toneStyles[item.tone].card}`}>
+              <button type="button" key={item.label} onClick={() => selectInspector(item.href.startsWith('/approval') ? 'kpi-approval' : item.label.includes('Kritis') ? 'kpi-risk' : 'overview')} className={`rounded-xl border p-2 text-left transition hover:border-cyan-300 hover:bg-white ${toneStyles[item.tone].card}`}>
                 <div className="text-lg font-black text-slate-950">{item.value}</div>
                 <div className="text-[10px] font-bold text-slate-600">{item.label}</div>
-              </Link>
+              </button>
             ))}
           </div>
           <Link href={canViewApproval ? '/approval?source_module=dashboard' : '/proyek?health=kritis&source_module=dashboard'} className="mt-2 inline-flex h-8 w-full items-center justify-center gap-1.5 rounded-xl bg-[#0d2c54] px-3 text-[11px] font-bold text-white transition hover:bg-[#123e70]">
@@ -331,13 +453,13 @@ export function CommandCenterOverview({
           </div>
           <div className="mt-2 divide-y divide-slate-100 border-t border-slate-100">
             {activities.length > 0 ? activities.slice(0, 3).map((item) => (
-              <div key={item.id} className="flex items-center gap-2 py-1.5">
+                <button type="button" key={item.id} onClick={() => selectInspector('navigation-activity')} className="flex w-full items-center gap-2 py-1.5 text-left">
                 <Activity className="h-3.5 w-3.5 shrink-0 text-cyan-600" />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[10px] font-bold text-slate-800">{item.detail}</div>
                   <div className="truncate text-[9px] text-slate-500">{item.userName} | {item.time}</div>
                 </div>
-              </div>
+              </button>
             )) : (
               <div className="py-4 text-center text-[10px] font-semibold text-slate-500">Belum ada aktivitas scoped.</div>
             )}
@@ -364,15 +486,16 @@ export function CommandCenterOverview({
                   {item.href && <ArrowRight className="h-3 w-3 shrink-0 text-slate-400" />}
                 </>
               )
-              return item.href ? (
-                <Link key={item.id} href={item.href} className="flex items-center gap-2 py-1.5 transition hover:text-cyan-800">{row}</Link>
-              ) : (
-                <div key={item.id} className="flex items-center gap-2 py-1.5">{row}</div>
+              return (
+                <button type="button" key={item.id} onClick={() => selectInspector(`support-${item.id}`)} className="flex w-full items-center gap-2 py-1.5 text-left transition hover:text-cyan-800">{row}</button>
               )
             })}
           </div>
         </div>
       </section>
+      </div>
+
+      <DashboardRightInspector item={selectedInspector} open={inspectorModalOpen} onClose={() => setInspectorModalOpen(false)} />
     </div>
   )
 }
