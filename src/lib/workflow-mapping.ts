@@ -149,6 +149,38 @@ export const PACKAGE_DESTINATION_MAPPING = [
   'Dashboard',
 ] as const
 
+export const PACKAGE_SOURCE_EMPTY_STATE = {
+  title: 'Sumber asal paket belum terhubung secara formal.',
+  description: 'Nantinya paket dapat berasal dari Surat Masuk, Survey Investigasi, input langsung Admin/PPK/PPTK, Program Rutin, atau Paket Tahun Berjalan.',
+} as const
+
+export const PACKAGE_SOURCE_ORIGIN_OPTIONS: ReadonlyArray<{
+  label: string
+  description: string
+  href: WorkflowRoute
+}> = [
+  { label: 'Surat Masuk', description: 'Paket berasal dari surat/usulan yang sudah didisposisi.', href: '/surat' },
+  { label: 'Survey Investigasi', description: 'Paket berasal dari rekomendasi survey lapangan.', href: '/survey' },
+  { label: 'Input langsung Admin/PPK/PPTK', description: 'Paket dibuat langsung oleh role teknis berwenang.', href: '/proyek' },
+  { label: 'Program Rutin', description: 'Paket berasal dari rencana pemeliharaan atau kegiatan rutin.', href: '/proyek' },
+  { label: 'Paket Tahun Berjalan', description: 'Paket merupakan bagian dari rencana tahun anggaran aktif.', href: '/proyek' },
+]
+
+export const PACKAGE_TRACEABILITY_TARGETS: ReadonlyArray<{
+  label: string
+  description: string
+  href: WorkflowRoute | null
+  status: 'route' | 'internal' | 'concept'
+}> = [
+  { label: 'Approval Center', description: 'Persetujuan formal paket, RAB, laporan, atau dokumen.', href: '/approval', status: 'route' },
+  { label: 'Administrasi', description: 'Kontrak, addendum, dokumen administrasi, dan pembayaran.', href: null, status: 'concept' },
+  { label: 'Dokumen', description: 'Dokumen berada pada tab/detail internal paket atau route Dokumen bila tersedia.', href: null, status: 'concept' },
+  { label: 'Dokumentasi Foto', description: 'Foto lapangan berada pada survey, laporan, pengawasan, atau masalah dalam detail paket.', href: null, status: 'internal' },
+  { label: 'Laporan', description: 'Laporan harian/mingguan/bulanan berada pada tab internal detail paket atau route Laporan.', href: null, status: 'internal' },
+  { label: 'Audit Log', description: 'Jejak perubahan penting paket dan approval.', href: '/audit-log', status: 'route' },
+  { label: 'Dashboard', description: 'Rekap paket, progress, deviasi, dan risiko.', href: '/dashboard', status: 'route' },
+]
+
 export const APPROVAL_STATUS_MAPPING = [
   'Pending',
   'Approved',

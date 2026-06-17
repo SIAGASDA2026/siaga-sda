@@ -18,6 +18,7 @@ import {
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { v4 as uuid } from 'uuid'
+import { PACKAGE_SOURCE_EMPTY_STATE, PACKAGE_SOURCE_ORIGIN_OPTIONS, PACKAGE_TRACEABILITY_TARGETS } from '@/lib/workflow-mapping'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: BarChart2 },
@@ -144,6 +145,8 @@ export default function ProyekDetailPage() {
           </div>
         </div>
 
+        <PackageTraceabilityPanel onOpenTab={setActiveTab} />
+
         {/* Tabs */}
         <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
           <div className="flex overflow-x-auto border-b border-slate-100">
@@ -195,6 +198,93 @@ export default function ProyekDetailPage() {
 // ─────────────────────────────────────────────────────────────────────────────
 // OVERVIEW TAB
 // ─────────────────────────────────────────────────────────────────────────────
+function PackageTraceabilityPanel({ onOpenTab }: { onOpenTab: (tab: string) => void }) {
+  return (
+    <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.85fr)]">
+      <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-5 shadow-sm">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <div className="inline-flex rounded-full border border-blue-200 bg-white px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-blue-700">
+              Traceability Paket
+            </div>
+            <h2 className="mt-3 text-lg font-black text-slate-950">Jejak Asal Paket / Source-Origin</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{PACKAGE_SOURCE_EMPTY_STATE.description}</p>
+          </div>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs font-bold leading-5 text-amber-800">
+            {PACKAGE_SOURCE_EMPTY_STATE.title}
+          </div>
+        </div>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {PACKAGE_SOURCE_ORIGIN_OPTIONS.map((source) => (
+            <Link key={source.label} href={source.href} className="rounded-2xl border border-white bg-white/85 p-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50">
+              <div className="text-sm font-extrabold text-slate-900">{source.label}</div>
+              <p className="mt-2 text-xs leading-5 text-slate-500">{source.description}</p>
+            </Link>
+          ))}
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-100 bg-white/80 p-4 text-sm text-slate-600">
+          Jangan tampilkan asal paket spesifik sebelum field relasi resmi tersedia. Panel ini hanya menyiapkan posisi UI dan cara baca traceability.
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+        <div className="text-sm font-extrabold text-slate-900">Alur Lanjutan Paket</div>
+        <p className="mt-1 text-xs leading-5 text-slate-500">Tujuan lanjutan paket ditampilkan sebagai link resmi atau navigasi internal yang sudah ada.</p>
+        <div className="mt-4 space-y-2">
+          {PACKAGE_TRACEABILITY_TARGETS.map((target) => {
+            const content = (
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <div className="text-sm font-extrabold text-slate-900">{target.label}</div>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">{target.description}</p>
+                </div>
+                <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${
+                  target.status === 'route'
+                    ? 'bg-blue-50 text-blue-700'
+                    : target.status === 'internal'
+                      ? 'bg-emerald-50 text-emerald-700'
+                      : 'bg-slate-100 text-slate-600'
+                }`}>
+                  {target.status === 'route' ? 'Route' : target.status === 'internal' ? 'Internal' : 'Konsep'}
+                </span>
+              </div>
+            )
+
+            if (target.href) {
+              return (
+                <Link key={target.label} href={target.href} className="block rounded-2xl border border-slate-100 bg-slate-50 p-3 transition hover:border-blue-200 hover:bg-blue-50">
+                  {content}
+                </Link>
+              )
+            }
+
+            if (target.label === 'Laporan' || target.label === 'Dokumentasi Foto') {
+              return (
+                <button
+                  key={target.label}
+                  type="button"
+                  onClick={() => onOpenTab(target.label === 'Laporan' ? 'laporan' : 'survey')}
+                  className="block w-full rounded-2xl border border-slate-100 bg-slate-50 p-3 text-left transition hover:border-emerald-200 hover:bg-emerald-50"
+                >
+                  {content}
+                </button>
+              )
+            }
+
+            return (
+              <div key={target.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                {content}
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 function OverviewTab({ proyek }: { proyek: any }) {
   const weeklyReports = buildWeeklyReports([proyek])
   const monthlyReports = buildMonthlyReports([proyek])
