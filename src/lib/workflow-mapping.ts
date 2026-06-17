@@ -57,6 +57,58 @@ export const SURAT_FOLLOW_UP_ROUTES: ReadonlyArray<{
   { label: 'Audit Log', href: '/audit-log', description: 'Jejak disposisi dan tindak lanjut dicatat untuk audit.' },
 ]
 
+export const SURAT_PREPARATION_BADGE = {
+  label: 'Tahap Persiapan',
+  description: 'Modul Surat resmi masih tahap persiapan. Tampilan ini adalah peta workflow dan belum menulis data ke database.',
+} as const
+
+export const SURAT_WORKFLOW_STEPS: ReadonlyArray<{
+  id: string
+  label: string
+  description: string
+  target: string
+}> = [
+  { id: 'incoming', label: 'Surat Masuk', description: 'Surat/usulan diterima dan diklasifikasikan.', target: 'Surat Masuk & Keluar' },
+  { id: 'read', label: 'Dibaca', description: 'Petugas berwenang membaca dan memeriksa kelengkapan.', target: 'Surat Masuk & Keluar' },
+  { id: 'disposition', label: 'Disposisi Kabid', description: 'Kabid/unit terkait menetapkan arah tindak lanjut.', target: 'Surat Masuk & Keluar' },
+  { id: 'follow-up', label: 'Tindak Lanjut', description: 'Surat diarahkan ke survey, paket, peil, approval, atau arsip.', target: 'Modul Tujuan' },
+  { id: 'destination', label: 'Survey / Paket / Peil / Approval / Arsip', description: 'Data tetap dapat ditelusuri ke surat asal.', target: 'Tab Tujuan' },
+  { id: 'recap', label: 'Dashboard / Audit Log', description: 'Status masuk rekap dan jejak audit bila data resmi tersedia.', target: 'Rekap & Audit' },
+]
+
+export const SURAT_FOLLOW_UP_ACTIONS: ReadonlyArray<{
+  id: string
+  label: string
+  href: WorkflowRoute
+  status: string
+  description: string
+}> = [
+  { id: 'to-survey', label: 'Lanjut ke Survey Investigasi', href: '/survey', status: 'Perlu Survey', description: 'Dipakai saat surat/usulan membutuhkan pemeriksaan lapangan.' },
+  { id: 'to-project', label: 'Lanjut ke Paket Pekerjaan', href: '/proyek', status: 'Perlu Paket', description: 'Dipakai saat surat menjadi kandidat paket fisik, rutin, atau konsultan.' },
+  { id: 'to-peil', label: 'Lanjut ke Peil Banjir', href: '/peil', status: 'Diteruskan ke Peil Banjir', description: 'Dipakai untuk permohonan atau laporan terkait elevasi muka air.' },
+  { id: 'to-approval', label: 'Lanjut ke Approval Center', href: '/approval', status: 'Perlu Approval', description: 'Dipakai jika keputusan tindak lanjut membutuhkan persetujuan formal.' },
+  { id: 'archive', label: 'Arsipkan', href: '/surat', status: 'Arsip', description: 'Dipakai jika surat selesai, ditolak, atau tidak perlu tindak lanjut lanjutan.' },
+  { id: 'to-dashboard', label: 'Masuk Rekap Dashboard', href: '/dashboard', status: 'Ditindaklanjuti', description: 'Rekap tampil setelah data resmi tersedia dan terhubung.' },
+  { id: 'to-audit-log', label: 'Tercatat di Audit Log', href: '/audit-log', status: 'Jejak Audit', description: 'Jejak disposisi/tindak lanjut masuk audit saat backend surat tersedia.' },
+]
+
+export const SURAT_CONCEPT_DEMO_ITEMS = [
+  {
+    id: 'surat-drainase-demo',
+    title: 'Usulan perbaikan drainase lingkungan-demo',
+    category: 'Drainase',
+    status: 'Perlu Survey',
+    nextStep: 'Lanjut ke Survey Investigasi',
+  },
+  {
+    id: 'surat-peil-demo',
+    title: 'Permohonan rekomendasi peil banjir-demo',
+    category: 'Peil banjir',
+    status: 'Diteruskan ke Peil Banjir',
+    nextStep: 'Lanjut ke Peil Banjir',
+  },
+] as const
+
 export const SURVEY_STATUS_LABELS = {
   draft: 'Draft Survey',
   submitted: 'Menunggu Tindak Lanjut',
@@ -152,4 +204,3 @@ export function getSurveyWorkflowLabel(status: string | undefined) {
 export function getSurveyWorkflowDescription(status: string | undefined) {
   return SURVEY_STATUS_DESCRIPTIONS[status as keyof typeof SURVEY_STATUS_DESCRIPTIONS] || 'Status survey belum dipetakan.'
 }
-
