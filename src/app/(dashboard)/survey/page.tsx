@@ -9,6 +9,7 @@ import { filterProjectsByScope, getProjectBudgetYears, getProjectCategoryLabel, 
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
 import { getScopedProjects } from '@/lib/dashboard-scope'
 import { PhotoDocumentationViewer, type PhotoDocumentationItem } from '@/components/common/PhotoDocumentationViewer'
+import { getSurveyWorkflowDescription, getSurveyWorkflowLabel, SURVEY_FOLLOW_UP_FLOW } from '@/lib/workflow-mapping'
 import { Survey, Koordinat } from '@/types'
 import { MapPin, Camera, Plus, Search, X, CheckCircle, Eye, RotateCcw } from 'lucide-react'
 import toast from 'react-hot-toast'
@@ -82,7 +83,7 @@ export default function SurveyPage() {
 
   const activeQueryLabels = [
     searchParams.get('source_module') ? `Sumber: ${searchParams.get('source_module')}` : null,
-    filterStatus !== 'all' ? `Status: ${filterStatus === 'submitted' ? 'Belum Ditindaklanjuti' : filterStatus}` : null,
+    filterStatus !== 'all' ? `Status: ${getSurveyWorkflowLabel(filterStatus)}` : null,
     filterTahun !== 'all' ? `Tahun: ${filterTahun}` : null,
     filterSubKegiatan !== 'all' ? `Sub Kegiatan: ${filterSubKegiatan}` : null,
     search ? `Pencarian: ${search}` : null,
@@ -120,8 +121,8 @@ export default function SurveyPage() {
       uploadedAt: foto.uploadedAt || survey.createdAt,
       uploadedBy: foto.uploadedBy || survey.userName,
       stage: 'Survey Investigasi',
-      status: survey.status === 'submitted' ? 'Belum Ditindaklanjuti' : survey.status,
-      verificationStatus: survey.status === 'submitted' ? 'Menunggu tindak lanjut' : undefined,
+      status: getSurveyWorkflowLabel(survey.status),
+      verificationStatus: getSurveyWorkflowDescription(survey.status),
       coordinates: foto.koordinat || survey.koordinat,
       sourceLabel,
       notes: survey.rekomendasi || survey.permasalahan,
@@ -238,7 +239,7 @@ export default function SurveyPage() {
         <div className="grid grid-cols-3 gap-4 mb-5">
           {[
             { label: 'Total Survey', val: allSurvey.length, bg: 'bg-white', color: 'text-slate-800' },
-            { label: 'Submitted', val: allSurvey.filter(s => s.status==='submitted').length, bg: 'bg-green-50', color: 'text-green-700' },
+            { label: 'Menunggu Tindak Lanjut', val: allSurvey.filter(s => s.status==='submitted').length, bg: 'bg-green-50', color: 'text-green-700' },
             { label: 'Proyek Belum Survey', val: visibleProjects.filter(p => p.surveys.length===0).length, bg: 'bg-amber-50', color: 'text-amber-700' },
           ].map(s => (
             <div key={s.label} className={`${s.bg} rounded-xl border border-slate-100 p-4`}>
@@ -261,8 +262,10 @@ export default function SurveyPage() {
           </select>
           <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} className="border border-slate-200 rounded-lg px-3 py-2 text-sm">
             <option value="all">Semua Status</option>
-            <option value="submitted">Submitted</option>
-            <option value="draft">Draft</option>
+            <option value="submitted">{getSurveyWorkflowLabel('submitted')}</option>
+            <option value="draft">{getSurveyWorkflowLabel('draft')}</option>
+            <option value="approved">{getSurveyWorkflowLabel('approved')}</option>
+            <option value="rejected">{getSurveyWorkflowLabel('rejected')}</option>
           </select>
           <span className="text-xs text-slate-400">{filtered.length} survey</span>
           {canCreate && (
@@ -302,7 +305,7 @@ export default function SurveyPage() {
                       <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-bold">{getProjectWorkStageLabel(getProjectWorkStage(visibleProjects.find(p => p.id === s.proyekId)))}</span>
                       <span className="text-xs text-slate-400">· {formatDate(s.tanggal)}</span>
                       <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${s.status === 'submitted' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>
-                        {s.status === 'submitted' ? '✓ Submitted' : 'Draft'}
+                        {getSurveyWorkflowLabel(s.status)}
                       </span>
                     </div>
                     <div className="text-sm font-semibold text-slate-800 mb-0.5 line-clamp-1">{s.proyekNama}</div>
@@ -452,7 +455,7 @@ export default function SurveyPage() {
               {[
                 { l:'Proyek', v: viewTarget.proyekNama },
                 { l:'Tanggal', v: formatDate(viewTarget.tanggal) },
-                { l:'Status', v: <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${viewTarget.status==='submitted'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'}`}>{viewTarget.status==='submitted'?'✓ Submitted':'Draft'}</span> },
+                { l:'Status', v: <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${viewTarget.status==='submitted'?'bg-green-100 text-green-700':'bg-amber-100 text-amber-700'}`}>{getSurveyWorkflowLabel(viewTarget.status)}</span> },
                 { l:'Surveyor', v: viewTarget.userName },
                 { l:'GPS', v: <span className="font-mono text-xs">{viewTarget.koordinat.lat.toFixed(5)}, {viewTarget.koordinat.lng.toFixed(5)}</span> },
                 { l:'Dimensi', v: `${viewTarget.dimensi.panjang}m × ${viewTarget.dimensi.lebar}m × ${viewTarget.dimensi.tinggi}m` },
@@ -462,6 +465,17 @@ export default function SurveyPage() {
             <div><div className="text-xs text-slate-500 mb-1">Permasalahan</div><div className="bg-red-50 rounded-xl p-3 text-red-800">{viewTarget.permasalahan}</div></div>
             {viewTarget.material && <div><div className="text-xs text-slate-500 mb-1">Material</div><div>{viewTarget.material}</div></div>}
             {viewTarget.rekomendasi && <div><div className="text-xs text-slate-500 mb-1">Rekomendasi</div><div className="bg-blue-50 rounded-xl p-3 text-blue-800">{viewTarget.rekomendasi}</div></div>}
+            <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+              <div className="text-xs font-black uppercase tracking-wide text-blue-600">Peta tindak lanjut konseptual</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {SURVEY_FOLLOW_UP_FLOW.map((item) => (
+                  <span key={item} className="rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-blue-800">{item}</span>
+                ))}
+              </div>
+              <p className="mt-2 text-xs leading-relaxed text-blue-800">
+                Relasi formal survey ke paket atau approval belum dipaksakan sebelum tahap data model disetujui.
+              </p>
+            </div>
             {viewTarget.foto.length > 0 && (
               <div>
                 <div className="text-xs text-slate-500 mb-1">Foto Survey ({viewTarget.foto.length})</div>

@@ -5,6 +5,7 @@ import { Topbar } from '@/components/layout/Topbar'
 import { EmptyState } from '@/components/ui'
 import { formatDateTime } from '@/lib/utils'
 import { hasPermission } from '@/lib/rbac'
+import { WORKFLOW_AUDIT_ACTION_META } from '@/lib/workflow-mapping'
 import { ClipboardList, Search, Download, Activity, Clock, Shield } from 'lucide-react'
 
 const ACTION_META: Record<string, { label: string; color: string; icon: string }> = {
@@ -40,6 +41,8 @@ const ACTION_META: Record<string, { label: string; color: string; icon: string }
 }
 
 const PAGE_SIZE = 20
+
+Object.assign(ACTION_META, WORKFLOW_AUDIT_ACTION_META)
 
 export default function AuditLogPage() {
   const { auditLogs, currentUser } = useAppStore()
