@@ -71,8 +71,8 @@ const READ_ALL_CORE: Role[] = ['super_admin', 'admin', 'pimpinan', 'kabid', 'ppk
 const FIELD_ROLES: Role[] = ['pptk', 'direksi_teknis', 'tim_pengawasan', 'konsultan_pengawasan', 'kontraktor']
 const PLANNING_ROLES: Role[] = ['tim_perencanaan', 'tim_survey', 'konsultan_perencana']
 const DASHBOARD_ROLES: Role[] = [...ALL_ROLES, 'admin_peil_banjir', 'tim_teknis_peil_banjir']
-const SURAT_ROLES: Role[] = [...ALL_ROLES, 'admin_peil_banjir']
-const PEIL_ROLES: Role[] = [...ALL_ROLES, 'admin_peil_banjir', 'tim_teknis_peil_banjir']
+const SURAT_ROLES: Role[] = ['admin', 'kabid', 'pimpinan', 'ppk', 'pptk', 'auditor', 'admin_peil_banjir']
+const PEIL_ROLES: Role[] = ['admin', 'kabid', 'pimpinan', 'ppk', 'pptk', 'direksi_teknis', 'auditor', 'admin_peil_banjir', 'tim_teknis_peil_banjir']
 
 export const PERMISSION_ROLES: Record<Permission, Role[]> = {
   view_dashboard: DASHBOARD_ROLES,
