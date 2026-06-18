@@ -76,6 +76,8 @@ export function getEmptyAssignmentCopy(identity?: TaskCenterIdentity) {
     title: 'Belum Ada Tugas',
     message: EMPTY_ASSIGNMENT_MESSAGE,
     identityLabel: formatIdentityLabel(identity),
+    nextStep: 'Tugas baru akan tampil otomatis di Tugas Saya setelah admin atau pejabat berwenang memberikan penugasan.',
+    notErrorNote: 'Ini bukan error. Akun Anda aktif, hanya belum memiliki assignment.',
     guidance: `Jika Anda merasa seharusnya sudah mendapatkan tugas, silakan hubungi ${contactTarget}.`,
   }
 }
@@ -100,4 +102,3 @@ export function getStatusLabel(status: TaskStatus): string {
   }
   return labels[status]
 }
-

@@ -37,12 +37,13 @@ export function TaskCenterPanel({
               Skeleton tugas berbasis assignment scope. Data resmi belum dihubungkan ke API/database, sehingga default aman adalah empty assignment.
             </p>
           </div>
-          <div className="w-fit rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.14em] text-amber-800">
-            {dataSourceLabel}
+          <div className="inline-flex w-fit max-w-full items-center gap-2 rounded-full border border-cyan-200 bg-white/90 px-3 py-2 text-left text-[11px] font-black uppercase leading-4 tracking-[0.12em] text-cyan-800 shadow-sm">
+            <span className="h-2 w-2 flex-shrink-0 rounded-full bg-cyan-500" aria-hidden="true" />
+            <span className="min-w-0">{dataSourceLabel}</span>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-2">
+        <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
           <SummaryMetric icon={ClipboardList} label="Tugas Aktif" value={activeTasks.length} tone="cyan" />
           <SummaryMetric icon={CheckCircle2} label="Selesai" value={completedTasks.length} tone="green" />
           <SummaryMetric icon={ShieldAlert} label="Perhatian" value={attentionTasks.length} tone="amber" />
@@ -99,11 +100,10 @@ function SummaryMetric({ icon: Icon, label, value, tone }: { icon: typeof Clipbo
   return (
     <div className={`rounded-2xl border p-3 ${toneClass}`}>
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[10px] font-black uppercase tracking-[0.14em]">{label}</div>
+        <div className="min-w-0 text-[10px] font-black uppercase leading-4 tracking-[0.12em]">{label}</div>
         <Icon className="h-4 w-4" aria-hidden="true" />
       </div>
       <div className="mt-2 text-2xl font-black text-slate-950">{value}</div>
     </div>
   )
 }
-
