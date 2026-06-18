@@ -1047,6 +1047,15 @@ export default function DashboardPage() {
                   total={visibleProjects.length}
                 />
               ) : undefined}
+              afterKpiContent={(
+                <TaskCenterPanel
+                  identity={taskCenterIdentity}
+                  tasks={[]}
+                  completedTasks={[]}
+                  appreciationEvents={[]}
+                  dataSourceLabel="Belum Terhubung Data Resmi"
+                />
+              )}
               focusPackage={riskProjects[0] ? {
                 kode: riskProjects[0].kode,
                 nama: riskProjects[0].nama,
@@ -1059,14 +1068,6 @@ export default function DashboardPage() {
                 ppk: riskProjects[0].ppk,
                 pptk: riskProjects[0].pptk,
               } : undefined}
-            />
-
-            <TaskCenterPanel
-              identity={taskCenterIdentity}
-              tasks={[]}
-              completedTasks={[]}
-              appreciationEvents={[]}
-              dataSourceLabel="Belum Terhubung Data Resmi"
             />
 
             <div className="flex justify-center pt-0.5 xl:hidden">

@@ -103,6 +103,7 @@ type CommandCenterOverviewProps = {
   filterLabel: string
   onToggleFilters: () => void
   filterPanel?: ReactNode
+  afterKpiContent?: ReactNode
   focusPackage?: {
     kode: string
     nama: string
@@ -187,6 +188,7 @@ export function CommandCenterOverview({
   filterLabel,
   onToggleFilters,
   filterPanel,
+  afterKpiContent,
   focusPackage,
 }: CommandCenterOverviewProps) {
   const deviation = Math.round(avgPhysical - avgFinancial)
@@ -352,6 +354,8 @@ export function CommandCenterOverview({
           )
         })}
       </section>
+
+      {afterKpiContent}
 
       <section className="grid gap-2.5 xl:grid-cols-[1.08fr_0.92fr_0.92fr]">
         <div className="rounded-2xl border border-cyan-100 bg-white p-3 shadow-sm">
