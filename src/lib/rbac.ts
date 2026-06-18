@@ -3,6 +3,7 @@ import { Role } from '@/types'
 export type Permission =
   | 'view_dashboard'
   | 'view_map'
+  | 'view_asset_sda'
   | 'view_peil_banjir'
   | 'view_projects'
   | 'view_reports'
@@ -19,6 +20,7 @@ export type Permission =
   | 'view_audit_log'
   | 'manage_users'
   | 'manage_admin_users'
+  | 'manage_asset_sda'
   | 'manage_projects'
   | 'create_survey'
   | 'upload_rab'
@@ -77,6 +79,7 @@ const PEIL_ROLES: Role[] = ['admin', 'kabid', 'pimpinan', 'ppk', 'pptk', 'direks
 export const PERMISSION_ROLES: Record<Permission, Role[]> = {
   view_dashboard: DASHBOARD_ROLES,
   view_map: ALL_ROLES,
+  view_asset_sda: ALL_ROLES,
   view_peil_banjir: PEIL_ROLES,
   view_projects: ALL_ROLES,
   view_reports: [...READ_ALL_CORE, ...FIELD_ROLES, 'admin_sub_kegiatan'],
@@ -94,6 +97,7 @@ export const PERMISSION_ROLES: Record<Permission, Role[]> = {
 
   manage_users: ['super_admin', 'admin'],
   manage_admin_users: ['super_admin'],
+  manage_asset_sda: ['super_admin', 'admin'],
   manage_projects: ['super_admin', 'admin', 'ppk', 'pejabat_pengadaan', 'admin_sub_kegiatan'],
   create_survey: ['super_admin', 'admin', 'pptk', 'tim_perencanaan', 'tim_survey', 'konsultan_perencana'],
   upload_rab: ['super_admin', 'admin', 'tim_perencanaan', 'tim_survey', 'konsultan_perencana', 'pejabat_pengadaan'],
@@ -118,6 +122,7 @@ export const PERMISSION_ROLES: Record<Permission, Role[]> = {
 export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { key: 'view_dashboard', label: 'Lihat Dashboard', category: 'Monitoring', action: 'view', desc: 'Membuka ringkasan monitoring sesuai role dan assignment.' },
   { key: 'view_map', label: 'Lihat Peta Monitoring', category: 'Monitoring', action: 'view', desc: 'Melihat peta dan marker proyek/survey yang berhak diakses.' },
+  { key: 'view_asset_sda', label: 'Lihat Asset SDA', category: 'Monitoring', action: 'view', desc: 'Membuka modul Asset SDA sesuai role dan assignment.' },
   { key: 'view_peil_banjir', label: 'Lihat Peil Banjir', category: 'Monitoring', action: 'view', desc: 'Membuka modul rekomendasi Peil Banjir sesuai kewenangan.' },
   { key: 'view_projects', label: 'Lihat Proyek', category: 'Monitoring', action: 'view', desc: 'Melihat daftar dan detail proyek sesuai cakupan akses.' },
   { key: 'view_reports', label: 'Lihat Laporan', category: 'Lapangan', action: 'view', desc: 'Membaca laporan harian, mingguan, dan bulanan.' },
@@ -135,6 +140,7 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { key: 'view_keuangan', label: 'Lihat Keuangan', category: 'Keuangan', action: 'view', desc: 'Membaca ringkasan nilai kontrak, pagu, dan realisasi.' },
   { key: 'manage_users', label: 'Kelola Pengguna', category: 'Administrasi', action: 'manage', desc: 'Membuat, mengubah, menonaktifkan user sesuai batas role.' },
   { key: 'manage_admin_users', label: 'Kelola Admin', category: 'Administrasi', action: 'manage', desc: 'Membuat dan mengubah akun admin. Hanya Super Admin.' },
+  { key: 'manage_asset_sda', label: 'Kelola Asset SDA', category: 'Monitoring', action: 'manage', desc: 'Mengelola data Asset SDA ketika modul resmi sudah tersedia.' },
   { key: 'manage_projects', label: 'Kelola Proyek', category: 'Monitoring', action: 'manage', desc: 'Membuat, mengubah, dan mengarsipkan data proyek/paket.' },
   { key: 'create_survey', label: 'Input Survey', category: 'Lapangan', action: 'create', desc: 'Menginput survey lapangan dengan data teknis, foto, dan GPS.' },
   { key: 'upload_rab', label: 'Upload RAB', category: 'Teknis & Kontrak', action: 'upload', desc: 'Mengunggah dan memperbarui data RAB.' },
@@ -172,7 +178,7 @@ export const PAGE_PERMISSIONS: Record<string, Permission> = {
   '/approval': 'view_approval',
   '/administrasi': 'view_contracts',
   '/peil': 'view_peil_banjir',
-  '/asset': 'view_map',
+  '/asset': 'view_asset_sda',
   '/pengguna': 'manage_users',
   '/pengaturan': 'view_settings',
   '/audit-log': 'view_audit_log',
