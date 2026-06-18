@@ -18,7 +18,8 @@ import {
 import Link from 'next/link'
 import toast from 'react-hot-toast'
 import { v4 as uuid } from 'uuid'
-import { PACKAGE_SOURCE_EMPTY_STATE, PACKAGE_SOURCE_ORIGIN_OPTIONS, PACKAGE_TRACEABILITY_TARGETS } from '@/lib/workflow-mapping'
+import { PACKAGE_TRACEABILITY_TARGETS } from '@/lib/workflow-mapping'
+import { getPackageOriginViewModel } from '@/lib/source-origin-adapter'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: BarChart2 },
@@ -145,7 +146,7 @@ export default function ProyekDetailPage() {
           </div>
         </div>
 
-        <PackageTraceabilityPanel onOpenTab={setActiveTab} />
+        <PackageTraceabilityPanel proyek={proyek} onOpenTab={setActiveTab} />
 
         {/* Tabs */}
         <div className="bg-white rounded-xl border border-slate-100 overflow-hidden">
@@ -198,7 +199,9 @@ export default function ProyekDetailPage() {
 // ─────────────────────────────────────────────────────────────────────────────
 // OVERVIEW TAB
 // ─────────────────────────────────────────────────────────────────────────────
-function PackageTraceabilityPanel({ onOpenTab }: { onOpenTab: (tab: string) => void }) {
+function PackageTraceabilityPanel({ proyek, onOpenTab }: { proyek: any; onOpenTab: (tab: string) => void }) {
+  const originView = getPackageOriginViewModel(proyek)
+
   return (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.85fr)]">
       <div className="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 via-white to-cyan-50 p-5 shadow-sm">
@@ -208,24 +211,41 @@ function PackageTraceabilityPanel({ onOpenTab }: { onOpenTab: (tab: string) => v
               Traceability Paket
             </div>
             <h2 className="mt-3 text-lg font-black text-slate-950">Jejak Asal Paket / Source-Origin</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{PACKAGE_SOURCE_EMPTY_STATE.description}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{originView.emptyState.description}</p>
           </div>
-          <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-xs font-bold leading-5 text-amber-800">
-            {PACKAGE_SOURCE_EMPTY_STATE.title}
+          <div className={`rounded-2xl border px-4 py-3 text-xs font-bold leading-5 ${
+            originView.hasFormalOrigins
+              ? 'border-emerald-100 bg-emerald-50 text-emerald-800'
+              : 'border-amber-100 bg-amber-50 text-amber-800'
+          }`}>
+            {originView.hasFormalOrigins ? `${originView.origins.length} sumber asal resmi terhubung` : originView.emptyState.title}
           </div>
         </div>
 
         <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-          {PACKAGE_SOURCE_ORIGIN_OPTIONS.map((source) => (
-            <Link key={source.label} href={source.href} className="rounded-2xl border border-white bg-white/85 p-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50">
-              <div className="text-sm font-extrabold text-slate-900">{source.label}</div>
-              <p className="mt-2 text-xs leading-5 text-slate-500">{source.description}</p>
-            </Link>
-          ))}
+          {originView.hasFormalOrigins
+            ? originView.origins.map((origin) => (
+                <Link key={`${origin.module}-${origin.id}`} href={origin.href} className="rounded-2xl border border-emerald-100 bg-white/90 p-3 shadow-sm transition hover:border-emerald-200 hover:bg-emerald-50">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm font-extrabold text-slate-900">{origin.title}</div>
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black uppercase text-emerald-700">{origin.sourceLabel}</span>
+                  </div>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">{origin.moduleLabel}{origin.subtitle ? ` - ${origin.subtitle}` : ''}</p>
+                  <div className="mt-2 text-[11px] font-bold text-emerald-700">{origin.statusLabel}</div>
+                </Link>
+              ))
+            : originView.conceptOptions.map((source) => (
+                <Link key={source.label} href={source.href} className="rounded-2xl border border-white bg-white/85 p-3 shadow-sm transition hover:border-blue-200 hover:bg-blue-50">
+                  <div className="text-sm font-extrabold text-slate-900">{source.label}</div>
+                  <p className="mt-2 text-xs leading-5 text-slate-500">{source.description}</p>
+                </Link>
+              ))}
         </div>
 
         <div className="mt-4 rounded-2xl border border-slate-100 bg-white/80 p-4 text-sm text-slate-600">
-          Jangan tampilkan asal paket spesifik sebelum field relasi resmi tersedia. Panel ini hanya menyiapkan posisi UI dan cara baca traceability.
+          {originView.hasFormalOrigins
+            ? 'Daftar asal paket di atas dibaca dari metadata formal pada object paket. Adapter tidak melakukan fetch dan tidak menulis data.'
+            : 'Jangan tampilkan asal paket spesifik sebelum field relasi resmi tersedia. Panel ini hanya menyiapkan posisi UI dan cara baca traceability.'}
         </div>
       </div>
 
