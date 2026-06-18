@@ -12,10 +12,14 @@ import { KeyRound, Link2, Users, Plus, Search, Shield, Eye, EyeOff } from 'lucid
 import toast from 'react-hot-toast'
 
 const ROLES = ROLE_DEFINITIONS
+const PENDING_PRISMA_ROLES: Role[] = ['admin_peil_banjir', 'tim_teknis_peil_banjir']
+const ASSIGNABLE_ROLES = ROLES.filter((role) => !PENDING_PRISMA_ROLES.includes(role.val))
 
 const ROLE_COLORS: Record<Role, string> = {
   super_admin: 'red', admin: 'red', pejabat_pengadaan: 'amber', pphp: 'cyan', admin_sub_kegiatan: 'slate',
+  admin_peil_banjir: 'cyan',
   ppk: 'blue', kabid: 'purple', direksi_teknis: 'blue', pimpinan: 'purple',
+  tim_teknis_peil_banjir: 'teal',
   pptk: 'green', tim_perencanaan: 'teal', tim_survey: 'cyan', tim_pengawasan: 'orange',
   konsultan_perencana: 'indigo', konsultan_pengawasan: 'slate', kontraktor: 'green',
   auditor: 'slate',
@@ -85,6 +89,7 @@ export default function PenggunaPage() {
     if (!editTarget && !password) return toast.error('Password wajib diisi untuk pengguna baru')
     if (!editTarget && users.find(u => u.email === form.email)) return toast.error('Email sudah terdaftar')
     if (!canManageRole(currentUser?.role || '', form.role)) return toast.error('Anda tidak berwenang mengelola role ini')
+    if (PENDING_PRISMA_ROLES.includes(form.role)) return toast.error('Role Peil Banjir belum dapat disimpan sebelum Prisma/database dimigrasikan')
     if (!editTarget && form.role === 'super_admin' && superAdminExists) return toast.error('Super Admin hanya boleh 1 akun')
     if (editTarget && !canManageUser(editTarget)) return toast.error('Anda tidak berwenang mengubah pengguna ini')
 
@@ -142,7 +147,7 @@ export default function PenggunaPage() {
         <div className="grid grid-cols-4 gap-3 mb-5">
           {[
             { label: 'Total User', val: users.length, bg: 'bg-white', color: 'text-slate-800' },
-            { label: 'Staff Dinas', val: users.filter(u => ['ppk','pptk','pimpinan','tim_perencanaan','tim_survey','tim_pengawasan','admin','super_admin','pejabat_pengadaan','pphp','admin_sub_kegiatan','auditor'].includes(u.role)).length, bg: 'bg-blue-50', color: 'text-blue-700' },
+            { label: 'Staff Dinas', val: users.filter(u => ['ppk','pptk','pimpinan','tim_perencanaan','tim_survey','tim_pengawasan','admin','super_admin','pejabat_pengadaan','pphp','admin_sub_kegiatan','admin_peil_banjir','tim_teknis_peil_banjir','auditor'].includes(u.role)).length, bg: 'bg-blue-50', color: 'text-blue-700' },
             { label: 'Konsultan', val: users.filter(u => u.role.startsWith('konsultan')).length, bg: 'bg-purple-50', color: 'text-purple-700' },
             { label: 'Admin', val: users.filter(u => u.role === 'admin').length, bg: 'bg-red-50', color: 'text-red-700' },
           ].map(s => (
@@ -259,7 +264,7 @@ export default function PenggunaPage() {
           )}
           <FormField label="Role / Jabatan Sistem" required>
             <div className="grid grid-cols-2 gap-2">
-              {ROLES.filter(r => isSuperAdmin || !['admin', 'super_admin'].includes(r.val)).map(r => (
+              {ASSIGNABLE_ROLES.filter(r => isSuperAdmin || !['admin', 'super_admin'].includes(r.val)).map(r => (
                 r.val === 'super_admin' && superAdminExists && !editTarget ? null : (
                 <button key={r.val} onClick={() => f('role', r.val)}
                   className={`text-left p-3 rounded-xl border-2 transition-all ${form.role === r.val ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:bg-slate-50'}`}>

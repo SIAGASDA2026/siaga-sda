@@ -72,6 +72,18 @@ function getHaloRoleLabel(role?: string) {
     .join(' ')
 }
 
+function getHaloRoleSummary(role?: string) {
+  if (role === 'admin_peil' || role === 'admin_peil_banjir') {
+    return 'Fokus role: administrasi permohonan Peil Banjir, verifikasi persyaratan, dokumen, dan penghubung workflow Surat ke Peil. Aksi tulis resmi tetap menunggu data/API Peil yang formal.'
+  }
+
+  if (role === 'tim_teknis_peil_banjir') {
+    return 'Fokus role: survey lokasi Peil Banjir, koordinat, catatan teknis, dan bahan rekomendasi. Role ini tidak otomatis mendapat akses administrasi global atau approval formal.'
+  }
+
+  return null
+}
+
 export function ProjectAiAssistant() {
   const pathname = usePathname()
   const currentUser = useAppStore((state) => state.currentUser)
@@ -108,6 +120,7 @@ export function ProjectAiAssistant() {
 
   const context = useMemo(() => getPageContext(pathname), [pathname])
   const roleLabel = getHaloRoleLabel(currentUser?.role)
+  const haloRoleSummary = getHaloRoleSummary(currentUser?.role)
   const dateLabel = now
     ? now.toLocaleDateString('id-ID', {
       weekday: 'long',
@@ -231,6 +244,11 @@ export function ProjectAiAssistant() {
                   <span className="rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-bold text-blue-700">{dataSourceLabel}</span>
                 </div>
                 <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-800">{roleSentence}</p>
+                {haloRoleSummary && (
+                  <p className="mt-2 rounded-2xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs font-semibold leading-relaxed text-cyan-900">
+                    {haloRoleSummary}
+                  </p>
+                )}
                 <p className="mt-2 text-xs leading-relaxed text-slate-500">
                   Konteks halaman: {context}. Panel ini masih dalam mode panduan lokal, belum membaca misi resmi, dan belum melakukan perubahan data.
                 </p>

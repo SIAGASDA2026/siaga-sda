@@ -55,6 +55,16 @@ const NON_ASSIGNMENT_ROLE_SCOPES: Partial<Record<Role, string[]>> = {
     'Akses bersifat read-only',
     'Tidak berbasis penugasan paket',
   ],
+  admin_peil_banjir: [
+    'Cakupan administrasi Peil Banjir',
+    'Mengelola workflow permohonan, persyaratan, dan dokumen peil',
+    'Belum terikat assignment database resmi',
+  ],
+  tim_teknis_peil_banjir: [
+    'Cakupan teknis Peil Banjir',
+    'Survey lokasi, koordinat, catatan teknis, dan bahan rekomendasi',
+    'Belum terikat assignment database resmi',
+  ],
 }
 
 function SummaryPanel({ label, icon: Icon, items, emptyLabel = 'Belum tersedia' }: SummaryPanelProps) {

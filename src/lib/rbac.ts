@@ -3,12 +3,14 @@ import { Role } from '@/types'
 export type Permission =
   | 'view_dashboard'
   | 'view_map'
+  | 'view_peil_banjir'
   | 'view_projects'
   | 'view_reports'
   | 'view_survey'
   | 'view_issues'
   | 'view_chat'
   | 'view_announcements'
+  | 'view_surat'
   | 'view_rab'
   | 'view_contracts'
   | 'view_documents'
@@ -68,16 +70,21 @@ const ALL_ROLES: Role[] = [
 const READ_ALL_CORE: Role[] = ['super_admin', 'admin', 'pimpinan', 'kabid', 'ppk', 'auditor']
 const FIELD_ROLES: Role[] = ['pptk', 'direksi_teknis', 'tim_pengawasan', 'konsultan_pengawasan', 'kontraktor']
 const PLANNING_ROLES: Role[] = ['tim_perencanaan', 'tim_survey', 'konsultan_perencana']
+const DASHBOARD_ROLES: Role[] = [...ALL_ROLES, 'admin_peil_banjir', 'tim_teknis_peil_banjir']
+const SURAT_ROLES: Role[] = [...ALL_ROLES, 'admin_peil_banjir']
+const PEIL_ROLES: Role[] = [...ALL_ROLES, 'admin_peil_banjir', 'tim_teknis_peil_banjir']
 
 export const PERMISSION_ROLES: Record<Permission, Role[]> = {
-  view_dashboard: ALL_ROLES,
+  view_dashboard: DASHBOARD_ROLES,
   view_map: ALL_ROLES,
+  view_peil_banjir: PEIL_ROLES,
   view_projects: ALL_ROLES,
   view_reports: [...READ_ALL_CORE, ...FIELD_ROLES, 'admin_sub_kegiatan'],
   view_survey: [...READ_ALL_CORE, ...PLANNING_ROLES, 'pptk', 'admin_sub_kegiatan'],
   view_issues: [...READ_ALL_CORE, ...FIELD_ROLES, 'pphp', 'admin_sub_kegiatan'],
   view_chat: ALL_ROLES,
   view_announcements: ALL_ROLES,
+  view_surat: SURAT_ROLES,
   view_rab: [...READ_ALL_CORE, ...PLANNING_ROLES, 'pejabat_pengadaan', 'admin_sub_kegiatan'],
   view_contracts: [...READ_ALL_CORE, 'pejabat_pengadaan', 'admin_sub_kegiatan', 'pphp'],
   view_documents: ALL_ROLES,
@@ -111,6 +118,7 @@ export const PERMISSION_ROLES: Record<Permission, Role[]> = {
 export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { key: 'view_dashboard', label: 'Lihat Dashboard', category: 'Monitoring', action: 'view', desc: 'Membuka ringkasan monitoring sesuai role dan assignment.' },
   { key: 'view_map', label: 'Lihat Peta Monitoring', category: 'Monitoring', action: 'view', desc: 'Melihat peta dan marker proyek/survey yang berhak diakses.' },
+  { key: 'view_peil_banjir', label: 'Lihat Peil Banjir', category: 'Monitoring', action: 'view', desc: 'Membuka modul rekomendasi Peil Banjir sesuai kewenangan.' },
   { key: 'view_projects', label: 'Lihat Proyek', category: 'Monitoring', action: 'view', desc: 'Melihat daftar dan detail proyek sesuai cakupan akses.' },
   { key: 'view_reports', label: 'Lihat Laporan', category: 'Lapangan', action: 'view', desc: 'Membaca laporan harian, mingguan, dan bulanan.' },
   { key: 'view_survey', label: 'Lihat Survey', category: 'Lapangan', action: 'view', desc: 'Membaca hasil survey lapangan dan rekomendasi.' },
@@ -121,6 +129,7 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { key: 'view_approval', label: 'Lihat Approval Center', category: 'Administrasi', action: 'view', desc: 'Melihat daftar item pending sesuai role dan assignment.' },
   { key: 'view_chat', label: 'Lihat Chat', category: 'Komunikasi', action: 'view', desc: 'Membuka komunikasi internal proyek.' },
   { key: 'view_announcements', label: 'Lihat Pengumuman', category: 'Komunikasi', action: 'view', desc: 'Membaca pengumuman resmi sistem.' },
+  { key: 'view_surat', label: 'Lihat Surat Masuk & Keluar', category: 'Komunikasi', action: 'view', desc: 'Membaca peta workflow Surat Masuk & Keluar sesuai kewenangan.' },
   { key: 'view_settings', label: 'Lihat Pengaturan', category: 'Administrasi', action: 'view', desc: 'Membuka preferensi akun dan sistem.' },
   { key: 'view_audit_log', label: 'Lihat Audit Log', category: 'Administrasi', action: 'view', desc: 'Membaca rekam jejak aktivitas penting.' },
   { key: 'view_keuangan', label: 'Lihat Keuangan', category: 'Keuangan', action: 'view', desc: 'Membaca ringkasan nilai kontrak, pagu, dan realisasi.' },
@@ -155,14 +164,14 @@ export const PAGE_PERMISSIONS: Record<string, Permission> = {
   '/masalah': 'view_issues',
   '/chat': 'view_chat',
   '/pengumuman': 'view_announcements',
-  '/surat': 'view_announcements',
+  '/surat': 'view_surat',
   '/rab': 'view_rab',
   '/serapan-anggaran': 'view_keuangan',
   '/kontrak': 'view_contracts',
   '/dokumen': 'view_documents',
   '/approval': 'view_approval',
   '/administrasi': 'view_contracts',
-  '/peil': 'view_map',
+  '/peil': 'view_peil_banjir',
   '/asset': 'view_map',
   '/pengguna': 'manage_users',
   '/pengaturan': 'view_settings',

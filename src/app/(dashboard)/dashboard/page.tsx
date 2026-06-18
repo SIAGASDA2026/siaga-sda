@@ -277,6 +277,8 @@ export default function DashboardPage() {
     konsultan_pengawas: { label: 'Konsultan Pengawas', task: 'Cek deviasi dan catatan lapangan', module: '/peta', priority: 'Sedang' },
     konsultan_perencana: { label: 'Konsultan Perencana', task: 'Lengkapi dokumen perencanaan/survey', module: '/survey', priority: 'Sedang' },
     kontraktor: { label: 'Kontraktor', task: 'Update laporan harian dan dokumentasi', module: '/laporan', priority: 'Sedang' },
+    admin_peil_banjir: { label: 'Admin Peil Banjir', task: 'Verifikasi workflow permohonan dan dokumen Peil Banjir', module: '/peil', priority: 'Sedang' },
+    tim_teknis_peil_banjir: { label: 'Tim Teknis Peil Banjir', task: 'Review survey, koordinat, dan catatan teknis Peil Banjir', module: '/peil', priority: 'Sedang' },
   }[normalizedRole] || { label: getRoleLabel(currentRole), task: 'Tindak lanjut sesuai peran Anda', module: '/peta', priority: 'Sedang' }
 
   const roleActions = useMemo(() => {
@@ -598,6 +600,15 @@ export default function DashboardPage() {
       { label: 'Paket Pemeriksaan', href: '/proyek', icon: HardHat, color: 'bg-cyan-50 text-cyan-700', desc: 'Hasil pekerjaan', badge: visibleProjects.length },
       { label: 'Dokumen', href: '/dokumen', icon: FileText, color: 'bg-amber-50 text-amber-700', desc: 'Serah terima' },
       { label: 'Masalah', href: '/masalah', icon: AlertTriangle, color: 'bg-rose-50 text-rose-700', desc: 'Catatan pemeriksaan', badge: stats.openMasalah },
+    ],
+    admin_peil_banjir: [
+      { label: 'Peil Banjir', href: '/peil', icon: Landmark, color: 'bg-cyan-50 text-cyan-700', desc: 'Workflow rekomendasi peil' },
+      { label: 'Surat Masuk', href: '/surat', icon: FileText, color: 'bg-blue-50 text-blue-700', desc: 'Sumber permohonan' },
+      { label: 'Dashboard', href: '/dashboard', icon: BarChart2, color: 'bg-slate-100 text-slate-700', desc: 'Ringkasan kerja' },
+    ],
+    tim_teknis_peil_banjir: [
+      { label: 'Peil Banjir', href: '/peil', icon: Landmark, color: 'bg-cyan-50 text-cyan-700', desc: 'Survey dan catatan teknis' },
+      { label: 'Dashboard', href: '/dashboard', icon: BarChart2, color: 'bg-slate-100 text-slate-700', desc: 'Ringkasan kerja' },
     ],
     tim_perencanaan: [
       { label: 'Survey', href: '/survey', icon: Camera, color: 'bg-blue-50 text-blue-700', desc: 'Data perencanaan', badge: stats.surveyMenunggu },
