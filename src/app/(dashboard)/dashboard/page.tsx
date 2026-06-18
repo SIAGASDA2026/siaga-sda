@@ -10,12 +10,14 @@ import { Topbar } from '@/components/layout/Topbar'
 import { ProjectScopeFilters } from '@/components/project/ProjectScopeFilters'
 import { DashboardRoleHeader } from '@/components/dashboard/DashboardRoleHeader'
 import { CommandCenterOverview } from '@/components/dashboard/CommandCenterOverview'
+import { TaskCenterPanel } from '@/components/dashboard/TaskCenterPanel'
 import { useApprovalSummary } from '@/components/approval/ApprovalSummaryProvider'
 import { PrayerTimeWidget } from '@/components/dashboard/PrayerTimeWidget'
 import { TideDashboardPanel } from '@/components/dashboard/TideDashboardPanel'
 import { BRAND } from '@/lib/brand'
 import { canAccessPage, canViewAllProjects } from '@/lib/rbac'
 import { getScopedProjects } from '@/lib/dashboard-scope'
+import type { TaskCenterIdentity } from '@/lib/task-center-ui'
 import { filterProjectsByScope, getProjectBudgetYear, getProjectBudgetYears, getProjectCategoryLabel, getProjectPackageType, getProjectPackageTypeLabel, getProjectPrograms, getProjectSubKegiatan, getProjectWorkStage, getProjectWorkStageLabel } from '@/lib/reporting'
 import { formatCurrency, formatDateTime, getHealthBadge, getRoleLabel } from '@/lib/utils'
 
@@ -215,6 +217,15 @@ export default function DashboardPage() {
   }, [approvalPending, stats.kritis, stats.warning, stats.openMasalah, stats.avgFisik, statusSda])
 
   const currentUserName = currentUser?.name?.trim() || 'Nama user belum tersedia'
+  const taskCenterIdentity: TaskCenterIdentity = {
+    kind: ['kontraktor', 'konsultan_perencana', 'konsultan_pengawasan'].includes(currentRole) ? 'external' : 'internal',
+    name: currentUser?.name || 'Nama User',
+    nip: currentUser?.nip,
+    roleLabel: getRoleLabel(currentRole),
+    unit: currentUser?.jabatan || 'Bidang SDA',
+    companyName: 'Nama Perusahaan',
+    position: currentUser?.jabatan || 'Posisi',
+  }
   const currentDate = new Date()
   const currentDateLabel = currentDate.toLocaleDateString('id-ID', {
     weekday: 'long',
@@ -1048,6 +1059,14 @@ export default function DashboardPage() {
                 ppk: riskProjects[0].ppk,
                 pptk: riskProjects[0].pptk,
               } : undefined}
+            />
+
+            <TaskCenterPanel
+              identity={taskCenterIdentity}
+              tasks={[]}
+              completedTasks={[]}
+              appreciationEvents={[]}
+              dataSourceLabel="Belum Terhubung Data Resmi"
             />
 
             <div className="flex justify-center pt-0.5 xl:hidden">
