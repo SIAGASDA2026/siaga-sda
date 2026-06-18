@@ -14,6 +14,22 @@ type HaloFaqItem = {
   roles?: string[]
 }
 
+type HaloRoleGuide = {
+  focus: string
+  canView: string[]
+  canAct: string[]
+  limits: string[]
+}
+
+type HaloPageGuide = {
+  title: string
+  accessPath: string
+  function: string
+  canDo: string[]
+  nextSteps: string[]
+  limits: string[]
+}
+
 function getPageContext(pathname: string) {
   if (pathname.includes('/peta')) return 'Peta Monitoring'
   if (pathname.includes('/peil')) return 'Peil Banjir'
@@ -29,6 +45,138 @@ function getPageContext(pathname: string) {
   if (pathname.includes('/pengguna')) return 'Pengguna dan Role'
   if (pathname.includes('/pengaturan')) return 'Pengaturan'
   return 'Dashboard Utama'
+}
+
+function getPageGuide(pathname: string): HaloPageGuide {
+  if (pathname.includes('/peta')) {
+    return {
+      title: 'Peta Monitoring',
+      accessPath: '/peta',
+      function: 'Melihat lokasi pekerjaan, survey, asset, dan konteks spasial SDA sesuai akses role.',
+      canDo: ['Melihat marker dan ringkasan lokasi yang tersedia.', 'Membuka detail modul asal jika user memiliki akses.'],
+      nextSteps: ['Gunakan filter peta bila tersedia.', 'Buka detail modul asal untuk data resmi dan tindak lanjut.'],
+      limits: ['Halo tidak membaca data peta resmi secara langsung.', 'Data yang tampil tetap mengikuti assignment dan sumber modul.'],
+    }
+  }
+
+  if (pathname.includes('/survey')) {
+    return {
+      title: 'Survey Investigasi',
+      accessPath: '/survey',
+      function: 'Ruang kerja untuk melihat atau menginput survey, data lapangan, foto/GPS, dan rekomendasi teknis awal.',
+      canDo: ['Membaca hasil survey sesuai akses.', 'Menginput atau menindaklanjuti survey hanya jika role memiliki hak aksi.'],
+      nextSteps: ['Periksa assignment terlebih dahulu.', 'Lengkapi kondisi eksisting, rekomendasi, foto, dan koordinat bila Anda berwenang.'],
+      limits: ['Survey tidak boleh hilang setelah ditindaklanjuti.', 'Istilah final tetap Ditindaklanjuti, bukan Menjadi Paket.'],
+    }
+  }
+
+  if (pathname.includes('/proyek')) {
+    return {
+      title: 'Paket Pekerjaan',
+      accessPath: '/proyek',
+      function: 'Melihat dan mengelola paket pekerjaan sesuai role, assignment, progres, risiko, dokumen, dan sumber asal data.',
+      canDo: ['Melihat paket sesuai cakupan akses.', 'Mengelola paket hanya jika role memiliki kewenangan.'],
+      nextSteps: ['Cek status paket, progres fisik/keuangan, deviasi, dan dokumen.', 'Gunakan detail paket untuk melihat traceability dan tindak lanjut.'],
+      limits: ['Halo tidak mengubah data paket.', 'Data paket harus tetap mengikuti assignment scope.'],
+    }
+  }
+
+  if (pathname.includes('/approval')) {
+    return {
+      title: 'Approval Center',
+      accessPath: '/approval',
+      function: 'Pusat review, revisi, dan persetujuan formal sesuai role dan assignment.',
+      canDo: ['Melihat status approval jika memiliki akses.', 'Melakukan aksi approval hanya jika tombol aksi tersedia dan role berwenang.'],
+      nextSteps: ['Cek sumber item, riwayat approval, dan catatan revisi.', 'Untuk role read-only, gunakan halaman ini sebagai pemantauan.'],
+      limits: ['Halo tidak dapat menyetujui, menolak, atau meminta revisi.', 'GET Approval tetap harus read-only.'],
+    }
+  }
+
+  if (pathname.includes('/surat')) {
+    return {
+      title: 'Surat Masuk & Keluar',
+      accessPath: '/surat',
+      function: 'Peta workflow administrasi surat, disposisi, tindak lanjut, surat keluar, dan pintu awal permohonan Peil Banjir.',
+      canDo: ['Melihat alur surat jika role berwenang.', 'Menindaklanjuti surat hanya setelah modul database resmi tersedia dan role berwenang.'],
+      nextSteps: ['Cek kategori surat dan target tindak lanjut.', 'Gunakan tombol route resmi ke Survey, Paket, Peil, Approval, Dashboard, atau Audit Log.'],
+      limits: ['Modul surat resmi masih tahap persiapan.', 'Halo tidak membuat surat resmi otomatis.'],
+    }
+  }
+
+  if (pathname.includes('/peil')) {
+    return {
+      title: 'Peil Banjir',
+      accessPath: '/peil',
+      function: 'Layanan permohonan rekomendasi teknis Peil Banjir dari Surat Masuk sampai rekomendasi/arsip.',
+      canDo: ['Melihat workflow Peil jika memiliki akses.', 'Mengikuti panduan administrasi atau teknis sesuai role.'],
+      nextSteps: ['Pastikan sumber permohonan dari Surat Masuk.', 'Cek persyaratan, survey, koordinat, review teknis, dan arsip rekomendasi.'],
+      limits: ['Peil Banjir bukan monitoring tinggi muka air biasa.', 'Role Peil masih frontend-only sampai tahap Prisma/database khusus.'],
+    }
+  }
+
+  if (pathname.includes('/asset')) {
+    return {
+      title: 'Asset SDA',
+      accessPath: '/asset',
+      function: 'Melihat data asset SDA seperti pintu air, pompa, drainase utama, kanal, tanggul, dan bangunan operasi.',
+      canDo: ['Melihat asset sesuai akses yang tersedia.', 'Membuka detail asset bila modul menyediakan akses.'],
+      nextSteps: ['Gunakan data asset untuk konteks operasional dan monitoring.', 'Laporkan kebutuhan perubahan melalui role berwenang.'],
+      limits: ['Permission Asset masih perlu audit lanjutan karena saat ini terkait view_map.', 'Halo tidak mengubah data asset.'],
+    }
+  }
+
+  if (pathname.includes('/audit-log')) {
+    return {
+      title: 'Audit Log',
+      accessPath: '/audit-log',
+      function: 'Melihat rekam jejak aktivitas penting, perubahan data, approval, dan akses sistem.',
+      canDo: ['Membaca audit trail jika role memiliki akses.', 'Menggunakan log sebagai bukti pemeriksaan dan kontrol.'],
+      nextSteps: ['Filter log sesuai kebutuhan pemeriksaan.', 'Cocokkan aktivitas dengan modul asal dan user pelaku.'],
+      limits: ['Audit Log bersifat read-only untuk pemeriksaan.', 'Halo tidak menulis audit baru.'],
+    }
+  }
+
+  if (pathname.includes('/pengguna')) {
+    return {
+      title: 'Manajemen Pengguna',
+      accessPath: '/pengguna',
+      function: 'Mengelola akun, role, dan assignment sesuai kewenangan.',
+      canDo: ['Melihat dan mengelola user hanya jika memiliki manage_users.', 'Menjaga role pending tetap tidak disimpan sebelum Prisma siap.'],
+      nextSteps: ['Pastikan role target boleh dikelola.', 'Jangan membuka role frontend-only sebelum migration resmi.'],
+      limits: ['Tidak semua role boleh mengelola user.', 'Halo tidak membuat atau mengubah user.'],
+    }
+  }
+
+  if (pathname.includes('/pengaturan')) {
+    return {
+      title: 'Pengaturan',
+      accessPath: '/pengaturan',
+      function: 'Melihat preferensi akun dan pengaturan yang tersedia sesuai role.',
+      canDo: ['Melihat profil dan role aktif.', 'Mengakses pengaturan sistem hanya jika role memiliki kewenangan.'],
+      nextSteps: ['Gunakan pengaturan personal sesuai kebutuhan.', 'Hubungi Admin Sistem untuk perubahan role atau assignment.'],
+      limits: ['Pengaturan sistem tidak otomatis terbuka untuk semua role.', 'Halo tidak mengubah konfigurasi.'],
+    }
+  }
+
+  if (pathname.includes('/administrasi') || pathname.includes('/kontrak') || pathname.includes('/dokumen') || pathname.includes('/serapan-anggaran')) {
+    return {
+      title: 'Administrasi',
+      accessPath: '/administrasi',
+      function: 'Mengelola atau melihat administrasi paket seperti kontrak, dokumen, keuangan, dan arsip sesuai kewenangan.',
+      canDo: ['Melihat administrasi jika memiliki akses kontrak/dokumen.', 'Mengunggah atau mengubah dokumen hanya jika role memiliki hak aksi.'],
+      nextSteps: ['Cek paket asal dan status dokumen.', 'Pastikan perubahan mengikuti audit trail dan kewenangan role.'],
+      limits: ['Admin Sub Kegiatan masih memakai compatibility ADMINISTRASI_KONTRAK.', 'Halo tidak mengunggah dokumen.'],
+    }
+  }
+
+  return {
+    title: 'Dashboard SIAGA-SDA',
+    accessPath: '/dashboard',
+    function: 'Ringkasan status, misi harian, risiko, akses cepat, dan panduan sesuai role.',
+    canDo: ['Melihat ringkasan sesuai role dan assignment.', 'Membuka modul sumber data melalui card atau menu yang tersedia.'],
+    nextSteps: ['Cek misi harian dan assignment aktif.', 'Gunakan menu yang tampil sebagai daftar akses resmi Anda.'],
+    limits: ['Halo masih panduan lokal.', 'Data misi resmi belum dibaca langsung oleh Halo.'],
+  }
 }
 
 const HALO_ROLE_LABELS: Record<string, string> = {
@@ -91,6 +239,132 @@ function getHaloRoleSummary(role?: string) {
   }
 
   return null
+}
+
+function getHaloRoleGuide(role?: string): HaloRoleGuide {
+  const guides: Record<string, HaloRoleGuide> = {
+    super_admin: {
+      focus: 'Mengawasi struktur sistem, user, role, data, dan audit secara menyeluruh.',
+      canView: ['Dashboard, menu utama, audit log, user, dan pengaturan sistem.'],
+      canAct: ['Mengelola user dan role sesuai batas keamanan sistem.'],
+      limits: ['Tetap perlu menjaga audit trail dan tidak mengubah fondasi tanpa tahap khusus.'],
+    },
+    admin: {
+      focus: 'Mengelola operasional sistem, user non-admin, data master, dan kelengkapan data.',
+      canView: ['Dashboard, menu administrasi, paket, surat, peil, approval, audit sesuai akses.'],
+      canAct: ['Mengelola user non-admin dan data yang menjadi kewenangan admin.'],
+      limits: ['Admin Sistem/Admin Bidang masih dipetakan ke role admin umum sampai tahap role khusus.'],
+    },
+    admin_sub_kegiatan: {
+      focus: 'Mengelola paket, kontrak, dokumen, progress, dan rekap sub kegiatan yang ditugaskan.',
+      canView: ['Paket, administrasi, dokumen, laporan, masalah, dan rekap sesuai scope.'],
+      canAct: ['Mengelola kontrak/paket/dokumen jika role dan assignment mengizinkan.'],
+      limits: ['Database masih memakai compatibility ADMINISTRASI_KONTRAK.'],
+    },
+    kabid: {
+      focus: 'Memantau paket bidang, memberi arahan tindak lanjut, dan mengevaluasi risiko/deviasi.',
+      canView: ['Dashboard, paket, survey, approval, surat, Peil, audit sesuai akses.'],
+      canAct: ['Memberi keputusan atau review hanya pada aksi yang memang tersedia untuk role.'],
+      limits: ['Tidak semua aksi tulis otomatis tersedia.'],
+    },
+    pimpinan: {
+      focus: 'Memantau kinerja, risiko, rekap, dan prioritas strategis secara read-only.',
+      canView: ['Dashboard pimpinan, rekap, audit ringkas, approval, surat, Peil, dan risiko.'],
+      canAct: ['Memberi arahan di luar Halo melalui workflow resmi.'],
+      limits: ['Halo tidak memberi aksi tulis atau approval resmi.'],
+    },
+    ppk: {
+      focus: 'Mengendalikan paket, review keputusan, approval, risiko, dan tindak lanjut pekerjaan.',
+      canView: ['Paket, approval, laporan, surat, Peil, audit, dan rekap sesuai kewenangan.'],
+      canAct: ['Melakukan approval atau tindakan jika tombol resmi tersedia.'],
+      limits: ['Keputusan formal tetap dilakukan di modul resmi, bukan di Halo.'],
+    },
+    pptk: {
+      focus: 'Mendukung pelaksanaan teknis kegiatan, laporan, progress, dan tindak lanjut lapangan.',
+      canView: ['Paket, laporan, survey, approval tertentu, surat, dan Peil sesuai RBAC.'],
+      canAct: ['Input laporan/masalah/survey jika role dan assignment mengizinkan.'],
+      limits: ['Akses tetap mengikuti assignment dan tombol aksi resmi.'],
+    },
+    direksi_teknis: {
+      focus: 'Memberi evaluasi teknis, catatan pengawasan, dan rekomendasi lapangan.',
+      canView: ['Paket, laporan, pengawasan, approval terkait, dan Peil teknis.'],
+      canAct: ['Membuat catatan teknis atau rekomendasi jika tersedia.'],
+      limits: ['Tidak otomatis mendapat akses administrasi surat atau user.'],
+    },
+    pejabat_pengadaan: {
+      focus: 'Mengawal pengadaan, tahapan penyedia, kontrak awal, dan dokumen pengadaan.',
+      canView: ['Paket, RAB, administrasi kontrak, dan keuangan sesuai akses.'],
+      canAct: ['Memperbarui tahapan pengadaan jika fitur tersedia.'],
+      limits: ['Belum semua akun seed role ini tersedia.'],
+    },
+    pphp: {
+      focus: 'Memeriksa hasil pekerjaan, kelengkapan serah terima, dan catatan pemeriksaan.',
+      canView: ['Laporan, dokumen, approval pemeriksaan, dan kontrak sesuai akses.'],
+      canAct: ['Memberi catatan pemeriksaan jika fitur tersedia.'],
+      limits: ['Belum semua akun seed role ini tersedia.'],
+    },
+    tim_perencanaan: {
+      focus: 'Survey investigasi, rekomendasi teknis awal, data perencanaan, dan bahan awal Paket Pekerjaan sesuai assignment.',
+      canView: ['Survey, Paket Pekerjaan, RAB/perencanaan, dan Dashboard sesuai akses.'],
+      canAct: ['Input survey dan menyiapkan data awal perencanaan jika assignment tersedia.'],
+      limits: ['Tidak mendapat Peil, Surat, Approval formal, atau Manajemen User jika menu tidak muncul.'],
+    },
+    tim_survey: {
+      focus: 'Pendataan awal, foto/GPS, kondisi eksisting, dan data survey lapangan.',
+      canView: ['Survey, Paket terkait, dan Dashboard sesuai assignment.'],
+      canAct: ['Input survey jika penugasan tersedia.'],
+      limits: ['Tidak otomatis mendapat Peil, Surat, Approval formal, atau pengaturan sistem.'],
+    },
+    tim_pengawasan: {
+      focus: 'Pengawasan pekerjaan rutin, catatan lapangan, masalah, dan kualitas pekerjaan.',
+      canView: ['Paket, laporan, masalah, approval terkait, dan Dashboard sesuai assignment.'],
+      canAct: ['Input catatan pengawasan atau masalah jika fitur tersedia.'],
+      limits: ['Tidak otomatis mendapat Peil atau Surat.'],
+    },
+    konsultan_perencana: {
+      focus: 'Mendukung survey teknis, desain, RAB, dan rekomendasi perencanaan.',
+      canView: ['Survey, Paket terkait, RAB/perencanaan, dan dokumen sesuai assignment.'],
+      canAct: ['Input survey atau bahan perencanaan jika ditugaskan.'],
+      limits: ['Tidak otomatis mendapat Peil, Surat, Approval formal, atau user management.'],
+    },
+    konsultan_pengawasan: {
+      focus: 'Mendukung pengawasan pelaksanaan, laporan, masalah kualitas, dan catatan teknis.',
+      canView: ['Paket, laporan, masalah, approval terkait, dan dokumen sesuai assignment.'],
+      canAct: ['Input catatan pengawasan atau masalah jika ditugaskan.'],
+      limits: ['Tidak otomatis mendapat Peil, Surat, atau user management.'],
+    },
+    kontraktor: {
+      focus: 'Pelaporan pekerjaan, dokumentasi, masalah lapangan, dan komunikasi sesuai paket yang ditugaskan.',
+      canView: ['Paket, laporan, chat, masalah, dan dokumen sesuai assignment.'],
+      canAct: ['Input laporan, dokumentasi, atau masalah hanya jika fitur dan assignment mengizinkan.'],
+      limits: ['Tidak mendapat Peil, Surat, Approval formal, Audit Log, atau User Management.'],
+    },
+    auditor: {
+      focus: 'Pemeriksaan read-only atas audit trail, dokumen, riwayat perubahan, dan kepatuhan workflow.',
+      canView: ['Dashboard, audit log, rekap, dokumen, surat, Peil, dan approval secara baca.'],
+      canAct: ['Melakukan pemeriksaan dan penelusuran, bukan perubahan data.'],
+      limits: ['Auditor tidak boleh diberi aksi tulis.'],
+    },
+    admin_peil_banjir: {
+      focus: 'Administrasi layanan rekomendasi Peil Banjir, persyaratan, dokumen, verifikasi, dan arsip.',
+      canView: ['Dashboard, Surat Masuk & Keluar, dan Peil Banjir sesuai akses frontend.'],
+      canAct: ['Mengikuti panduan administrasi Peil secara lokal.'],
+      limits: ['Role ini belum aktif database/Prisma resmi dan belum boleh dianggap siap disimpan.'],
+    },
+    tim_teknis_peil_banjir: {
+      focus: 'Survey lokasi Peil Banjir, koordinat, catatan teknis, dan bahan rekomendasi.',
+      canView: ['Dashboard dan Peil Banjir sesuai akses frontend.'],
+      canAct: ['Mengikuti panduan teknis Peil secara lokal.'],
+      limits: ['Role ini belum aktif database/Prisma resmi dan tidak mendapat administrasi global.'],
+    },
+  }
+
+  return guides[role || ''] || {
+    focus: 'Menggunakan SIAGA-SDA sesuai role dan assignment yang tersedia.',
+    canView: ['Menu yang tampil pada Sidebar atau MobileNav adalah akses utama Anda.'],
+    canAct: ['Aksi hanya boleh dilakukan melalui tombol resmi yang tersedia pada modul.'],
+    limits: ['Jika menu tidak muncul, akses dibatasi oleh role, permission, atau assignment.'],
+  }
 }
 
 const HALO_FAQ_ITEMS: HaloFaqItem[] = [
@@ -228,6 +502,47 @@ export function ProjectAiAssistant() {
   const context = useMemo(() => getPageContext(pathname), [pathname])
   const roleLabel = getHaloRoleLabel(currentUser?.role)
   const haloRoleSummary = getHaloRoleSummary(currentUser?.role)
+  const roleGuide = useMemo(() => getHaloRoleGuide(currentUser?.role), [currentUser?.role])
+  const pageGuide = useMemo(() => getPageGuide(pathname), [pathname])
+  const userDisplayName = currentUser?.name?.trim() || 'pengguna SIAGA-SDA'
+  const userPosition = currentUser?.jabatan?.trim()
+  const pageAccessAllowed = currentUser?.role ? canAccessPage(currentUser.role, pageGuide.accessPath) : false
+  const menuAccessNotes = useMemo(() => {
+    const role = currentUser?.role
+    if (!role) {
+      return ['Menu akan mengikuti role dan assignment setelah akun aktif terbaca.']
+    }
+
+    const notes = [
+      {
+        label: 'Peil Banjir',
+        accessPath: '/peil',
+        message: 'Peil Banjir tidak muncul jika role belum memiliki akses modul Peil atau role Peil masih belum aktif database resmi.',
+      },
+      {
+        label: 'Surat Masuk & Keluar',
+        accessPath: '/surat',
+        message: 'Surat tidak muncul jika role tidak memiliki akses modul persuratan atau modul masih dibatasi untuk persiapan.',
+      },
+      {
+        label: 'Approval Center',
+        accessPath: '/approval',
+        message: 'Approval Center tidak muncul jika role tidak memiliki akses approval formal atau item approval berada di luar scope.',
+      },
+      {
+        label: 'Manajemen Pengguna',
+        accessPath: '/pengguna',
+        message: 'Manajemen Pengguna hanya tampil untuk role yang memiliki kewenangan user/role management.',
+      },
+    ]
+
+    const hiddenNotes = notes.filter((item) => !canAccessPage(role, item.accessPath))
+    if (hiddenNotes.length === 0) {
+      return ['Menu utama yang relevan untuk role Anda sudah dibuka sesuai guard frontend saat ini.']
+    }
+
+    return hiddenNotes.map((item) => `${item.label}: ${item.message}`)
+  }, [currentUser?.role])
   const dateLabel = now
     ? now.toLocaleDateString('id-ID', {
       weekday: 'long',
@@ -252,8 +567,8 @@ export function ProjectAiAssistant() {
   }, [now])
 
   const roleSentence = roleLabel
-    ? `Misi Anda sebagai ${roleLabel} yang harus diselesaikan hari ini, ${dateLabel}.`
-    : `Misi Anda yang harus diselesaikan hari ini, ${dateLabel}.`
+    ? `Halo, ${userDisplayName}. Anda masuk sebagai ${roleLabel}${userPosition ? ` - ${userPosition}` : ''}. Panduan ini disesuaikan dengan role, halaman aktif, dan menu yang boleh terlihat.`
+    : `Halo, ${userDisplayName}. Panduan ini menunggu role akun terbaca agar menu dan arahan bisa disesuaikan.`
 
   const missionStats = [
     { label: 'Misi Aktif', value: '0', tone: 'text-blue-700 bg-blue-50 border-blue-100' },
@@ -294,7 +609,7 @@ export function ProjectAiAssistant() {
           onClick={() => setOpen(false)}
         >
           <div
-            className="mx-auto mt-auto flex max-h-[88dvh] w-full max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl shadow-slate-950/30 md:mb-5 md:mr-5 md:mt-0 md:max-h-[82dvh] md:rounded-3xl"
+            className="mx-auto mt-auto flex max-h-[88dvh] w-[calc(100vw-1rem)] max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl shadow-slate-950/30 md:mb-5 md:mr-5 md:mt-0 md:max-h-[82dvh] md:w-[560px] md:rounded-3xl lg:w-[620px] lg:max-w-2xl"
             role="dialog"
             aria-modal="true"
             aria-labelledby="halo-siaga-sda-title"
@@ -352,6 +667,95 @@ export function ProjectAiAssistant() {
                 <p className="mt-2 text-xs leading-relaxed text-slate-500">
                   Konteks halaman: {context}. Panel ini masih dalam mode panduan lokal, belum membaca misi resmi, dan belum melakukan perubahan data.
                 </p>
+              </section>
+
+              <section className="grid gap-3 lg:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <h3 className="text-sm font-black text-slate-900">Panduan Role Saya</h3>
+                    <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[11px] font-black text-cyan-800">
+                      {roleLabel || 'Role belum terbaca'}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-700">{roleGuide.focus}</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Bisa dilihat</p>
+                      <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                        {roleGuide.canView.map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Bisa dilakukan</p>
+                      <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                        {roleGuide.canAct.map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Batasan</p>
+                      <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                        {roleGuide.limits.map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h3 className="text-sm font-black text-slate-900">Panduan Halaman Aktif</h3>
+                    <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${pageAccessAllowed ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
+                      {pageAccessAllowed ? 'Akses tersedia' : 'Akses dibatasi'}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs font-black uppercase tracking-[0.18em] text-cyan-700">{pageGuide.title}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-slate-700">{pageGuide.function}</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-3 lg:grid-cols-1">
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Di halaman ini</p>
+                      <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                        {pageGuide.canDo.map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Langkah berikut</p>
+                      <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                        {pageGuide.nextSteps.map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Catatan akses</p>
+                      <ul className="mt-1 space-y-1 text-xs leading-relaxed text-slate-600">
+                        {pageGuide.limits.map((item) => (
+                          <li key={item}>- {item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <h3 className="text-sm font-black text-slate-900">Mengapa Menu Tidak Muncul?</h3>
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  Halo hanya menjelaskan hasil guard frontend yang sedang aktif. Jika menu tidak tampil, biasanya role, permission, atau assignment belum membuka modul tersebut.
+                </p>
+                <div className="mt-3 space-y-2">
+                  {menuAccessNotes.map((item) => (
+                    <p key={item} className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-semibold leading-relaxed text-slate-700">
+                      {item}
+                    </p>
+                  ))}
+                </div>
               </section>
 
               <section className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
