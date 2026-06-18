@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { AlertTriangle, Bell, Bot, CalendarDays, Clock, HelpCircle, MessageSquareText, Target, X } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { canAccessPage } from '@/lib/rbac'
+import type { Proyek } from '@/types'
 
 type HaloFaqItem = {
   question: string
@@ -30,6 +31,20 @@ type HaloPageGuide = {
   limits: string[]
 }
 
+type HaloWorkTimeStatus = 'Belum ada jadwal' | 'Aman' | 'Perlu Perhatian' | 'Mendesak' | 'Terlambat'
+
+type HaloWorkTimeView = {
+  hasSchedule: boolean
+  packageName?: string
+  startLabel?: string
+  targetLabel?: string
+  remainingLabel: string
+  status: HaloWorkTimeStatus
+  tone: string
+  description: string
+  sourceLabel: string
+}
+
 function getPageContext(pathname: string) {
   if (pathname.includes('/peta')) return 'Peta Monitoring'
   if (pathname.includes('/peil')) return 'Peil Banjir'
@@ -45,6 +60,126 @@ function getPageContext(pathname: string) {
   if (pathname.includes('/pengguna')) return 'Pengguna dan Role'
   if (pathname.includes('/pengaturan')) return 'Pengaturan'
   return 'Dashboard Utama'
+}
+
+function parseHaloDate(value?: string | Date | null) {
+  if (!value) return null
+  const parsed = value instanceof Date ? value : new Date(value)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function formatHaloDate(value: Date) {
+  return value.toLocaleDateString('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+}
+
+function getHaloWorkTimeStatus(remainingDays: number): HaloWorkTimeStatus {
+  if (remainingDays < 0) return 'Terlambat'
+  if (remainingDays <= 3) return 'Mendesak'
+  if (remainingDays <= 7) return 'Perlu Perhatian'
+  return 'Aman'
+}
+
+function getHaloWorkTimeTone(status: HaloWorkTimeStatus) {
+  if (status === 'Terlambat') return 'border-red-200 bg-red-50 text-red-800'
+  if (status === 'Mendesak') return 'border-orange-200 bg-orange-50 text-orange-800'
+  if (status === 'Perlu Perhatian') return 'border-amber-200 bg-amber-50 text-amber-800'
+  if (status === 'Aman') return 'border-emerald-200 bg-emerald-50 text-emerald-800'
+  return 'border-slate-200 bg-slate-50 text-slate-700'
+}
+
+function getHaloVisibleProjects(
+  projects: Proyek[],
+  currentUser?: { id: string; role?: string; projectIds?: string[] } | null,
+) {
+  if (!currentUser) return []
+
+  const broadRoles = new Set([
+    'super_admin',
+    'admin',
+    'admin_sistem',
+    'admin_bidang',
+    'admin_sda',
+    'kabid',
+    'kepala_bidang',
+    'pimpinan',
+    'auditor',
+  ])
+
+  if (broadRoles.has(String(currentUser.role || ''))) return projects
+
+  const assignedProjectIds = new Set(currentUser.projectIds || [])
+
+  return projects.filter((project) => (
+    assignedProjectIds.has(project.id) ||
+    project.assignedUsers?.includes(currentUser.id) ||
+    project.ppk === currentUser.id ||
+    project.pptk === currentUser.id
+  ))
+}
+
+function getHaloWorkTimeView(
+  projects: Proyek[],
+  currentUser: { id: string; role?: string; projectIds?: string[] } | null,
+  now: Date | null,
+): HaloWorkTimeView {
+  const visibleProjects = getHaloVisibleProjects(projects, currentUser)
+  const today = now ? new Date(now) : new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const scheduledProjects = visibleProjects
+    .map((project) => {
+      const targetDate = parseHaloDate(project.tanggalSelesai)
+      if (!targetDate) return null
+
+      const startDate = parseHaloDate(project.tanggalMulai)
+      const normalizedTargetDate = new Date(targetDate)
+      normalizedTargetDate.setHours(0, 0, 0, 0)
+      const remainingDays = Math.ceil((normalizedTargetDate.getTime() - today.getTime()) / 86400000)
+
+      return {
+        project,
+        startDate,
+        targetDate,
+        remainingDays,
+      }
+    })
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+
+  if (scheduledProjects.length === 0) {
+    return {
+      hasSchedule: false,
+      remainingLabel: 'Jadwal pekerjaan belum tersedia.',
+      status: 'Belum ada jadwal',
+      tone: getHaloWorkTimeTone('Belum ada jadwal'),
+      description: 'Data waktu akan mengikuti jadwal tugas atau kontrak jika sudah tersedia di sistem.',
+      sourceLabel: 'Belum ada tanggal target dari data existing.',
+    }
+  }
+
+  scheduledProjects.sort((a, b) => a.remainingDays - b.remainingDays)
+  const nearestProject = scheduledProjects[0]
+  const status = getHaloWorkTimeStatus(nearestProject.remainingDays)
+  const remainingLabel = nearestProject.remainingDays < 0
+    ? `Terlambat ${Math.abs(nearestProject.remainingDays)} hari`
+    : nearestProject.remainingDays === 0
+      ? 'Jatuh tempo hari ini'
+      : `${nearestProject.remainingDays} hari`
+
+  return {
+    hasSchedule: true,
+    packageName: nearestProject.project.nama,
+    startLabel: nearestProject.startDate ? formatHaloDate(nearestProject.startDate) : undefined,
+    targetLabel: formatHaloDate(nearestProject.targetDate),
+    remainingLabel,
+    status,
+    tone: getHaloWorkTimeTone(status),
+    description: 'Pantau sisa waktu pekerjaan berdasarkan jadwal yang tersedia.',
+    sourceLabel: 'Sumber: tanggal mulai dan tanggal selesai paket dari store/frontend existing.',
+  }
 }
 
 function getPageGuide(pathname: string): HaloPageGuide {
@@ -469,6 +604,7 @@ export function ProjectAiAssistant() {
   const pathname = usePathname()
   const currentUser = useAppStore((state) => state.currentUser)
   const dashboardDataSource = useAppStore((state) => state.dashboardDataSource)
+  const projects = useAppStore((state) => state.projects)
   const [open, setOpen] = useState(false)
   const [now, setNow] = useState<Date | null>(null)
   const [avatarAvailable, setAvatarAvailable] = useState(false)
@@ -589,6 +725,7 @@ export function ProjectAiAssistant() {
   }, [currentUser?.role])
 
   const dataSourceLabel = dashboardDataSource === 'database' ? 'Database' : 'Data Demo/Fallback'
+  const workTimeView = useMemo(() => getHaloWorkTimeView(projects, currentUser, now), [projects, currentUser, now])
 
   return (
     <>
@@ -667,6 +804,113 @@ export function ProjectAiAssistant() {
                 <p className="mt-2 text-xs leading-relaxed text-slate-500">
                   Konteks halaman: {context}. Panel ini masih dalam mode panduan lokal, belum membaca misi resmi, dan belum melakukan perubahan data.
                 </p>
+              </section>
+
+              <section className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                    <Clock className="h-4 w-4 text-cyan-700" aria-hidden="true" />
+                    Sisa waktu misi harian
+                  </div>
+                  <div className="mt-2 text-2xl font-black text-slate-900">{countdownLabel}</div>
+                  <p className="mt-1 text-xs text-slate-500">Menuju akhir hari kerja kalender lokal perangkat.</p>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:w-40">
+                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                    <CalendarDays className="h-4 w-4 text-blue-700" aria-hidden="true" />
+                    Hari Ini
+                  </div>
+                  <p className="mt-2 text-sm font-bold leading-relaxed text-slate-800">{dateLabel}</p>
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
+                      <Clock className="h-4 w-4 text-blue-700" aria-hidden="true" />
+                      Kendali Waktu Pekerjaan
+                    </div>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                      {workTimeView.description}
+                    </p>
+                  </div>
+                  <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${workTimeView.tone}`}>
+                    {workTimeView.status}
+                  </span>
+                </div>
+
+                {workTimeView.hasSchedule ? (
+                  <div className="mt-3 space-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Paket</p>
+                      <p className="mt-1 text-sm font-extrabold leading-relaxed text-slate-900">{workTimeView.packageName}</p>
+                    </div>
+                    <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
+                      <div className="rounded-xl bg-white px-3 py-2">
+                        <p className="font-black uppercase tracking-[0.14em] text-slate-400">Mulai</p>
+                        <p className="mt-1 font-bold text-slate-800">{workTimeView.startLabel || '-'}</p>
+                      </div>
+                      <div className="rounded-xl bg-white px-3 py-2">
+                        <p className="font-black uppercase tracking-[0.14em] text-slate-400">Target selesai</p>
+                        <p className="mt-1 font-bold text-slate-800">{workTimeView.targetLabel}</p>
+                      </div>
+                      <div className="rounded-xl bg-white px-3 py-2">
+                        <p className="font-black uppercase tracking-[0.14em] text-slate-400">Sisa waktu</p>
+                        <p className="mt-1 font-bold text-slate-800">{workTimeView.remainingLabel}</p>
+                      </div>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-slate-500">{workTimeView.sourceLabel}</p>
+                  </div>
+                ) : (
+                  <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-3">
+                    <p className="text-sm font-extrabold text-slate-800">Jadwal pekerjaan belum tersedia.</p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      Data waktu akan mengikuti jadwal tugas atau kontrak jika sudah tersedia di sistem.
+                    </p>
+                  </div>
+                )}
+              </section>
+
+              <section className="grid grid-cols-3 gap-2">
+                {missionStats.map((item) => (
+                  <div key={item.label} className={`rounded-2xl border p-3 text-center ${item.tone}`}>
+                    <div className="text-2xl font-black">{item.value}</div>
+                    <div className="mt-1 text-[11px] font-bold leading-tight">{item.label}</div>
+                  </div>
+                ))}
+              </section>
+
+              <section className="rounded-2xl border border-dashed border-cyan-200 bg-cyan-50/70 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-cyan-700 shadow-sm">
+                    <Target className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-slate-900">Belum Ada Misi Harian</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                      Akun Anda sudah aktif, tetapi saat ini belum ada misi harian yang terhubung dengan role dan assignment Anda. Misi baru akan muncul setelah admin atau pejabat berwenang memberikan penugasan.
+                    </p>
+                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
+                      Ini bukan error. Halo SIAGA-SDA masih berjalan dalam mode panduan lokal dan belum membaca data misi resmi.
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
+                    <AlertTriangle className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <h3 className="font-black text-amber-950">Deviasi Paket dan Draft Surat Teguran</h3>
+                    <p className="mt-1 text-sm leading-relaxed text-amber-900">
+                      Jika paket pekerjaan melewati batas deviasi, sistem dapat menyiapkan peringatan dan draft surat teguran untuk direview pejabat berwenang. Draft surat teguran bukan surat resmi sampai direview dan disahkan oleh pejabat berwenang.
+                    </p>
+                  </div>
+                </div>
               </section>
 
               <section className="grid gap-3 lg:grid-cols-2">
@@ -755,65 +999,6 @@ export function ProjectAiAssistant() {
                       {item}
                     </p>
                   ))}
-                </div>
-              </section>
-
-              <section className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                    <Clock className="h-4 w-4 text-cyan-700" aria-hidden="true" />
-                    Sisa Waktu
-                  </div>
-                  <div className="mt-2 text-2xl font-black text-slate-900">{countdownLabel}</div>
-                  <p className="mt-1 text-xs text-slate-500">Menuju akhir hari kerja kalender lokal perangkat.</p>
-                </div>
-
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:w-40">
-                  <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
-                    <CalendarDays className="h-4 w-4 text-blue-700" aria-hidden="true" />
-                    Hari Ini
-                  </div>
-                  <p className="mt-2 text-sm font-bold leading-relaxed text-slate-800">{dateLabel}</p>
-                </div>
-              </section>
-
-              <section className="grid grid-cols-3 gap-2">
-                {missionStats.map((item) => (
-                  <div key={item.label} className={`rounded-2xl border p-3 text-center ${item.tone}`}>
-                    <div className="text-2xl font-black">{item.value}</div>
-                    <div className="mt-1 text-[11px] font-bold leading-tight">{item.label}</div>
-                  </div>
-                ))}
-              </section>
-
-              <section className="rounded-2xl border border-dashed border-cyan-200 bg-cyan-50/70 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-cyan-700 shadow-sm">
-                    <Target className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-slate-900">Belum Ada Misi Harian</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-700">
-                      Akun Anda sudah aktif, tetapi saat ini belum ada misi harian yang terhubung dengan role dan assignment Anda. Misi baru akan muncul setelah admin atau pejabat berwenang memberikan penugasan.
-                    </p>
-                    <p className="mt-2 text-xs leading-relaxed text-slate-500">
-                      Ini bukan error. Halo SIAGA-SDA masih berjalan dalam mode panduan lokal dan belum membaca data misi resmi.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
-                    <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-amber-950">Deviasi Paket dan Draft Surat Teguran</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-amber-900">
-                      Jika paket pekerjaan melewati batas deviasi, sistem dapat menyiapkan peringatan dan draft surat teguran untuk direview pejabat berwenang. Draft surat teguran bukan surat resmi sampai direview dan disahkan oleh pejabat berwenang.
-                    </p>
-                  </div>
                 </div>
               </section>
 
