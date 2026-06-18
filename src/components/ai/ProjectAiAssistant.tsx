@@ -4,6 +4,15 @@ import { useEffect, useMemo, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { AlertTriangle, Bell, Bot, CalendarDays, Clock, HelpCircle, MessageSquareText, Target, X } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
+import { canAccessPage } from '@/lib/rbac'
+
+type HaloFaqItem = {
+  question: string
+  answer: string
+  alwaysVisible?: boolean
+  accessPath?: string
+  roles?: string[]
+}
 
 function getPageContext(pathname: string) {
   if (pathname.includes('/peta')) return 'Peta Monitoring'
@@ -84,6 +93,104 @@ function getHaloRoleSummary(role?: string) {
   return null
 }
 
+const HALO_FAQ_ITEMS: HaloFaqItem[] = [
+  {
+    question: 'Apa misi harian saya hari ini?',
+    answer: 'Belum ada misi resmi yang terhubung. Setelah assignment dan data tugas resmi aktif, daftar misi akan mengikuti role dan scope Anda.',
+    alwaysVisible: true,
+  },
+  {
+    question: 'Mengapa saya belum memiliki tugas?',
+    answer: 'Kemungkinan belum ada assignment aktif yang ditautkan ke akun Anda. Ini bukan error. Silakan hubungi admin atau pejabat berwenang jika penugasan lapangan memang sudah diterbitkan.',
+    alwaysVisible: true,
+  },
+  {
+    question: 'Apa fungsi Dashboard SIAGA-SDA?',
+    answer: 'Dashboard adalah command center ringkas untuk melihat prioritas, risiko, progres, dan misi sesuai role serta assignment aktif. Detail resmi tetap dibuka dari modul sumber data masing-masing.',
+    alwaysVisible: true,
+  },
+  {
+    question: 'Bagaimana cara membaca status tugas saya?',
+    answer: 'Gunakan ringkasan misi, status assignment, dan akses cepat sesuai role. Jika status masih kosong, berarti data tugas resmi belum terhubung ke akun atau belum disinkronkan.',
+    alwaysVisible: true,
+  },
+  {
+    question: 'Apa tugas Tim Perencana di SIAGA-SDA?',
+    answer: 'Tim Perencana fokus pada survey awal, data kondisi lapangan, rekomendasi teknis, dan bahan awal perencanaan seperti RAB, gambar, atau kebutuhan paket pekerjaan sesuai assignment.',
+    roles: ['tim_perencanaan'],
+  },
+  {
+    question: 'Bagaimana alur Survey Investigasi?',
+    answer: 'Survey Investigasi dimulai dari penugasan, pengumpulan data lapangan, foto/GPS, kondisi eksisting, rekomendasi teknis, lalu tindak lanjut ke arsip, paket pekerjaan, atau proses lain sesuai keputusan pejabat berwenang.',
+    accessPath: '/survey',
+  },
+  {
+    question: 'Bagaimana rekomendasi hasil survey menjadi Paket Pekerjaan?',
+    answer: 'Rekomendasi survey harus direview dahulu. Jika disetujui, data dapat ditindaklanjuti sebagai paket pekerjaan atau pekerjaan rutin dengan relasi sumber yang jelas dan tetap tercatat untuk audit.',
+    roles: ['tim_perencanaan', 'tim_survey', 'konsultan_perencana'],
+  },
+  {
+    question: 'Bagaimana menyiapkan data awal untuk RAB/gambar/perencanaan?',
+    answer: 'Siapkan kondisi eksisting, foto lapangan, koordinat, dimensi, rekomendasi teknis, dan catatan kebutuhan pekerjaan. Data ini menjadi bahan awal penyusunan RAB, gambar, dan dokumen perencanaan.',
+    roles: ['tim_perencanaan', 'tim_survey', 'konsultan_perencana'],
+  },
+  {
+    question: 'Jika ada paket deviasi dan perlu surat teguran, apa yang harus dilakukan?',
+    answer: 'Halo SIAGA-SDA hanya memberi arahan konseptual. Surat teguran tetap harus mengikuti workflow resmi, review pejabat berwenang, dan dokumen sumber yang valid.',
+    accessPath: '/surat',
+  },
+  {
+    question: 'Apakah area tanya jawab sudah aktif resmi?',
+    answer: 'Belum. Area Tanya Halo SIAGA-SDA masih dalam mode panduan lokal dan belum membaca sumber SOP resmi atau data misi resmi.',
+    alwaysVisible: true,
+  },
+  {
+    question: 'Apa fungsi Peil Banjir di SIAGA-SDA?',
+    answer: 'Peil Banjir digunakan untuk mengelola permohonan rekomendasi peil banjir dari pihak ketiga, mulai dari surat masuk, verifikasi administrasi, survey lokasi, pengambilan titik koordinat, review perhitungan hidrologi dan hidrolika, penyusunan draft rekomendasi, approval PPTK/PPK, hingga penerbitan surat rekomendasi yang ditandatangani Kadis. Dinas PU Bidang SDA tidak menerbitkan izin bangunan.',
+    accessPath: '/peil',
+  },
+  {
+    question: 'Bagaimana alur permohonan rekomendasi Peil Banjir?',
+    answer: 'Alur konseptualnya dimulai dari surat permohonan, verifikasi administrasi, survey lokasi, review teknis hidrologi/hidrolika, draft rekomendasi, review pejabat berwenang, penerbitan rekomendasi, lalu arsip.',
+    accessPath: '/peil',
+  },
+  {
+    question: 'Apa peran survey dan koordinat dalam Peil Banjir?',
+    answer: 'Survey dan koordinat menjadi bahan teknis untuk menilai lokasi permohonan, kondisi drainase/banjir sekitar, serta dasar penyusunan rekomendasi. Catatan ini tetap bersifat panduan lokal sampai data Peil resmi tersedia.',
+    accessPath: '/peil',
+  },
+  {
+    question: 'Bagaimana alur Surat Masuk & Keluar?',
+    answer: 'Surat diterima, dibaca, didisposisi, lalu ditindaklanjuti ke Survey, Paket, Peil, Approval, Arsip, Dashboard, dan Audit Log sesuai kategori serta kewenangan role.',
+    accessPath: '/surat',
+  },
+  {
+    question: 'Apa yang harus dicek sebelum surat ditindaklanjuti?',
+    answer: 'Cek kategori surat, asal surat, perihal, lampiran, urgensi, disposisi, target tindak lanjut, dan apakah perlu survey, paket, proses Peil, approval, atau arsip.',
+    accessPath: '/surat',
+  },
+  {
+    question: 'Apa yang harus saya cek di Approval Center?',
+    answer: 'Cek item pending, sumber data, status, catatan revisi, riwayat approval, dan apakah keputusan yang ditampilkan memang berada dalam kewenangan role serta assignment Anda.',
+    accessPath: '/approval',
+  },
+  {
+    question: 'Bagaimana membaca status pending approval?',
+    answer: 'Status pending berarti item masih menunggu pemeriksaan atau keputusan pejabat berwenang. Untuk role read-only, gunakan informasi ini sebagai pemantauan, bukan aksi persetujuan.',
+    accessPath: '/approval',
+  },
+  {
+    question: 'Bagaimana mengelola user dan role?',
+    answer: 'User dan role hanya boleh dikelola oleh role yang memiliki kewenangan Manajemen Pengguna. Perubahan role harus mengikuti mapping Prisma/database dan tidak boleh membuka role yang belum siap.',
+    accessPath: '/pengguna',
+  },
+  {
+    question: 'Bagaimana mengatur preferensi akun?',
+    answer: 'Pengaturan akun digunakan untuk melihat profil, role aktif, dan preferensi yang tersedia. Pengaturan sistem hanya boleh dilakukan oleh role yang memiliki kewenangan.',
+    accessPath: '/pengaturan',
+  },
+]
+
 export function ProjectAiAssistant() {
   const pathname = usePathname()
   const currentUser = useAppStore((state) => state.currentUser)
@@ -154,24 +261,17 @@ export function ProjectAiAssistant() {
     { label: 'Perlu Perhatian', value: '0', tone: 'text-amber-700 bg-amber-50 border-amber-100' },
   ]
 
-  const faqItems = [
-    {
-      question: 'Apa misi harian saya hari ini?',
-      answer: 'Belum ada misi resmi yang terhubung. Setelah assignment dan data tugas resmi aktif, daftar misi akan mengikuti role dan scope Anda.',
-    },
-    {
-      question: 'Jika ada paket deviasi dan perlu surat teguran, apa yang harus dilakukan?',
-      answer: 'Halo SIAGA-SDA akan menyiapkan arahan konseptual. Surat teguran tetap harus mengikuti workflow resmi, review pejabat berwenang, dan dokumen sumber yang valid.',
-    },
-    {
-      question: 'Apakah area tanya jawab sudah aktif resmi?',
-      answer: 'Belum. Area Tanya Halo SIAGA-SDA masih dalam mode panduan lokal dan belum membaca sumber SOP resmi atau data misi resmi.',
-    },
-    {
-      question: 'Apa fungsi Peil Banjir di SIAGA-SDA?',
-      answer: 'Peil Banjir digunakan untuk mengelola permohonan rekomendasi peil banjir dari pihak ketiga, mulai dari surat masuk, verifikasi administrasi, survey lokasi, pengambilan titik koordinat, review perhitungan hidrologi dan hidrolika, penyusunan draft rekomendasi, approval PPTK/PPK, hingga penerbitan surat rekomendasi yang ditandatangani Kadis. Dinas PU Bidang SDA tidak menerbitkan izin bangunan.',
-    },
-  ]
+  const faqItems = useMemo(() => {
+    const role = currentUser?.role
+
+    return HALO_FAQ_ITEMS.filter((item) => {
+      if (item.alwaysVisible) return true
+      if (!role) return false
+      if (item.roles?.includes(role)) return true
+      if (item.accessPath) return canAccessPage(role, item.accessPath)
+      return false
+    })
+  }, [currentUser?.role])
 
   const dataSourceLabel = dashboardDataSource === 'database' ? 'Database' : 'Data Demo/Fallback'
 
