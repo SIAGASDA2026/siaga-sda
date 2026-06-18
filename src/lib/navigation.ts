@@ -144,7 +144,7 @@ export const MAIN_NAVIGATION_ITEMS: readonly MainNavigationItem[] = [
   {
     id: 'flood-level',
     label: 'Peil Banjir',
-    description: 'Titik dan elevasi',
+    description: 'Rekomendasi peil',
     href: '/peil',
     routeKey: '/peil',
     iconKey: 'flood-level',

@@ -117,6 +117,15 @@ MANDOR_OPERASIONAL_SDA
 MANDOR_REHAB_DRAINASE
 ```
 
+Catatan PB-DOC.1 untuk Peil Banjir:
+
+```text
+admin_peil_banjir
+tim_teknis_peil_banjir
+```
+
+Kedua role tersebut adalah role khusus konseptual untuk modul Peil Banjir dan belum boleh dipaksakan ke RBAC runtime, Prisma, migration, database, seed, atau permission runtime tanpa tahap khusus.
+
 Role berikut **tidak digunakan lagi**:
 
 ```text
@@ -563,7 +572,7 @@ Undangan Rapat
 Aduan Warga
 Permohonan Drainase
 Permohonan Normalisasi
-Permohonan Peil
+Permohonan Rekomendasi Peil Banjir
 Permohonan Data
 Instruksi Pimpinan
 Surat Internal
@@ -583,6 +592,58 @@ Arsip
 ```
 
 Notulen & Tindak Lanjut Rapat adalah sub-fitur di detail surat undangan rapat. Jangan membuat tab utama Notulen.
+
+---
+
+## Peil Banjir
+
+Peil Banjir adalah modul layanan permohonan dan penerbitan rekomendasi teknis peil banjir dari pihak ketiga, rekanan, perusahaan, atau pemohon lain.
+
+Peil Banjir bukan sekadar monitoring tinggi muka air, banjir, rob, atau catatan genangan. Data banjir, rob, drainase, dan kondisi lapangan boleh dicatat sebagai bagian survey dan analisis teknis, bukan definisi utama menu.
+
+Dinas PU Bidang SDA menerbitkan rekomendasi teknis peil banjir, bukan izin bangunan.
+
+Alur final:
+
+```text
+Surat Masuk & Keluar
+→ Surat permohonan diterima dan diagendakan
+→ Kategori: Permohonan Rekomendasi Peil Banjir
+→ Aksi: Buat Proses Peil Banjir
+→ Peil Banjir sebagai permohonan/kasus aktif
+→ Verifikasi Administrasi
+→ Survey Lapangan
+→ Pengambilan Titik Koordinat
+→ Review/Koreksi Hidrologi dan Hidrolika
+→ Penyusunan Draft Rekomendasi
+→ Review/Approval PPTK
+→ Approval PPK
+→ Tanda tangan Kadis
+→ Surat Rekomendasi Terbit
+→ Arsip Peil Banjir dan Surat Keluar
+```
+
+Persyaratan Administrasi Peil Banjir harus fleksibel:
+
+- bisa ditambah;
+- bisa diedit;
+- bisa dihapus/nonaktif secara aman;
+- bisa diubah susunan/urutannya;
+- bisa ditandai wajib, opsional, kondisional, atau tidak berlaku;
+- bisa memiliki upload file per item;
+- bisa memiliki catatan verifikator;
+- perubahan master hanya berlaku untuk permohonan baru.
+
+Setiap permohonan wajib menyimpan snapshot checklist persyaratan yang berlaku saat permohonan dibuat agar permohonan lama tidak berubah saat Master Persyaratan diedit.
+
+Export PDF Persyaratan menggunakan daftar persyaratan aktif terbaru, mengikuti susunan terbaru, dan tidak memakai label tahun pada judul/template.
+
+Role khusus konseptual:
+
+- `admin_peil_banjir` / Admin Peil Banjir: administrasi layanan, persyaratan, dokumen, verifikasi, export PDF, dan arsip.
+- `tim_teknis_peil_banjir` / Tim Teknis Peil Banjir: survey, koordinat, review hidrologi/hidrolika, catatan teknis, dan bahan rekomendasi.
+
+Implementasi role runtime dilakukan pada tahap khusus, bukan otomatis pada tahap dokumen.
 
 ---
 

@@ -38,7 +38,7 @@ export const SURAT_CATEGORIES = [
   'Laporan banjir',
   'Drainase',
   'Normalisasi',
-  'Peil banjir',
+  'Permohonan Rekomendasi Peil Banjir',
   'Pekerjaan rutin',
   'Paket pekerjaan',
   'Administrasi umum',
@@ -51,7 +51,7 @@ export const SURAT_FOLLOW_UP_ROUTES: ReadonlyArray<{
 }> = [
   { label: 'Survey Investigasi', href: '/survey', description: 'Surat/usulan membutuhkan cek lapangan dan rekomendasi teknis.' },
   { label: 'Paket Pekerjaan', href: '/proyek', description: 'Surat menjadi kandidat paket fisik, rutin, atau konsultan.' },
-  { label: 'Peil Banjir', href: '/peil', description: 'Permohonan atau laporan terkait elevasi muka air.' },
+  { label: 'Peil Banjir', href: '/peil', description: 'Permohonan rekomendasi teknis peil banjir dari pihak ketiga/perusahaan.' },
   { label: 'Approval Center', href: '/approval', description: 'Tindak lanjut membutuhkan persetujuan formal.' },
   { label: 'Dashboard/Rekap', href: '/dashboard', description: 'Rekap status surat tampil di command center jika data resmi tersedia.' },
   { label: 'Audit Log', href: '/audit-log', description: 'Jejak disposisi dan tindak lanjut dicatat untuk audit.' },
@@ -71,8 +71,8 @@ export const SURAT_WORKFLOW_STEPS: ReadonlyArray<{
   { id: 'incoming', label: 'Surat Masuk', description: 'Surat/usulan diterima dan diklasifikasikan.', target: 'Surat Masuk & Keluar' },
   { id: 'read', label: 'Dibaca', description: 'Petugas berwenang membaca dan memeriksa kelengkapan.', target: 'Surat Masuk & Keluar' },
   { id: 'disposition', label: 'Disposisi Kabid', description: 'Kabid/unit terkait menetapkan arah tindak lanjut.', target: 'Surat Masuk & Keluar' },
-  { id: 'follow-up', label: 'Tindak Lanjut', description: 'Surat diarahkan ke survey, paket, peil, approval, atau arsip.', target: 'Modul Tujuan' },
-  { id: 'destination', label: 'Survey / Paket / Peil / Approval / Arsip', description: 'Data tetap dapat ditelusuri ke surat asal.', target: 'Tab Tujuan' },
+  { id: 'follow-up', label: 'Tindak Lanjut', description: 'Surat diarahkan ke survey, paket, proses rekomendasi peil banjir, approval, atau arsip.', target: 'Modul Tujuan' },
+  { id: 'destination', label: 'Survey / Paket / Peil / Approval / Arsip', description: 'Data tetap dapat ditelusuri ke surat asal, termasuk Surat Keluar jika rekomendasi peil terbit.', target: 'Tab Tujuan' },
   { id: 'recap', label: 'Dashboard / Audit Log', description: 'Status masuk rekap dan jejak audit bila data resmi tersedia.', target: 'Rekap & Audit' },
 ]
 
@@ -85,7 +85,7 @@ export const SURAT_FOLLOW_UP_ACTIONS: ReadonlyArray<{
 }> = [
   { id: 'to-survey', label: 'Lanjut ke Survey Investigasi', href: '/survey', status: 'Perlu Survey', description: 'Dipakai saat surat/usulan membutuhkan pemeriksaan lapangan.' },
   { id: 'to-project', label: 'Lanjut ke Paket Pekerjaan', href: '/proyek', status: 'Perlu Paket', description: 'Dipakai saat surat menjadi kandidat paket fisik, rutin, atau konsultan.' },
-  { id: 'to-peil', label: 'Lanjut ke Peil Banjir', href: '/peil', status: 'Diteruskan ke Peil Banjir', description: 'Dipakai untuk permohonan atau laporan terkait elevasi muka air.' },
+  { id: 'to-peil', label: 'Buat Proses Peil Banjir', href: '/peil', status: 'Diteruskan ke Peil Banjir', description: 'Dipakai untuk surat kategori Permohonan Rekomendasi Peil Banjir.' },
   { id: 'to-approval', label: 'Lanjut ke Approval Center', href: '/approval', status: 'Perlu Approval', description: 'Dipakai jika keputusan tindak lanjut membutuhkan persetujuan formal.' },
   { id: 'archive', label: 'Arsipkan', href: '/surat', status: 'Arsip', description: 'Dipakai jika surat selesai, ditolak, atau tidak perlu tindak lanjut lanjutan.' },
   { id: 'to-dashboard', label: 'Masuk Rekap Dashboard', href: '/dashboard', status: 'Ditindaklanjuti', description: 'Rekap tampil setelah data resmi tersedia dan terhubung.' },
@@ -103,9 +103,9 @@ export const SURAT_CONCEPT_DEMO_ITEMS = [
   {
     id: 'surat-peil-demo',
     title: 'Permohonan rekomendasi peil banjir-demo',
-    category: 'Peil banjir',
+    category: 'Permohonan Rekomendasi Peil Banjir',
     status: 'Diteruskan ke Peil Banjir',
-    nextStep: 'Lanjut ke Peil Banjir',
+    nextStep: 'Buat Proses Peil Banjir',
   },
 ] as const
 
@@ -222,7 +222,8 @@ export const WORKFLOW_ROLE_ACTIONS: ReadonlyArray<{
   { role: 'konsultan_pengawasan', frontendRole: 'konsultan_pengawasan', allowedConcept: 'Laporan pengawasan, progres, masalah, dan dokumen pengawasan.' },
   { role: 'pejabat_pengadaan', frontendRole: 'pejabat_pengadaan', allowedConcept: 'Paket pengadaan, dokumen tender/PL, dan status pengadaan.' },
   { role: 'admin_surat', frontendRole: null, allowedConcept: 'Perlu tahap role extension sebelum dipakai sebagai role aktif.' },
-  { role: 'admin_peil_banjir', frontendRole: null, allowedConcept: 'Perlu tahap role extension sebelum dipakai sebagai role aktif.' },
+  { role: 'admin_peil_banjir', frontendRole: null, allowedConcept: 'Role konseptual Peil Banjir untuk administrasi layanan, persyaratan, dokumen, dan arsip. Perlu tahap PB-RBAC.1 sebelum runtime.' },
+  { role: 'tim_teknis_peil_banjir', frontendRole: null, allowedConcept: 'Role konseptual Peil Banjir untuk survey, koordinat, review hidrologi/hidrolika, catatan teknis, dan bahan rekomendasi. Perlu tahap PB-RBAC.1 sebelum runtime.' },
   { role: 'mandor_pintu_air', frontendRole: null, allowedConcept: 'Perlu tahap role extension dan assignment asset/operasional.' },
   { role: 'petugas_pintu_air', frontendRole: null, allowedConcept: 'Petugas biasa belum wajib login; jangan dipaksakan.' },
   { role: 'mandor_rehabilitasi_drainase', frontendRole: null, allowedConcept: 'Perlu tahap role extension dan assignment operasional.' },

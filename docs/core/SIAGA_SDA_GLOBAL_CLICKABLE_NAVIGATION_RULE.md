@@ -330,6 +330,8 @@ Filter aktif:
 
 ## 6.8 Klik Rekap Peil Banjir
 
+Peil Banjir adalah rekap layanan permohonan rekomendasi teknis peil banjir. Rekap ini bukan sekadar monitoring tinggi muka air, banjir, atau rob.
+
 Contoh:
 
 ```text
@@ -564,6 +566,8 @@ Filter/detail:
 
 ## 7.4 Klik Marker Peil Banjir
 
+Marker Peil Banjir mewakili lokasi permohonan rekomendasi, lokasi survey, atau titik koordinat teknis yang terkait proses rekomendasi peil banjir. Jika konteksnya hanya pasang surut/tinggi muka air umum, gunakan layer Pasang Surut atau Operasional SDA, bukan definisi utama Peil Banjir.
+
 ```text
 Peta Monitoring → klik marker Peil Banjir
 ```
@@ -571,7 +575,7 @@ Peta Monitoring → klik marker Peil Banjir
 Tombol:
 
 ```text
-Buka Detail Peil
+Buka Detail Permohonan Peil
 ```
 
 Mengarahkan ke:
@@ -579,7 +583,7 @@ Mengarahkan ke:
 ```text
 Tab: Peil Banjir
 Filter/detail:
-- peil_id = peil yang diklik
+- peil_id = permohonan/lokasi peil yang diklik
 ```
 
 ---
@@ -776,7 +780,9 @@ Detail:
 
 # 13. ATURAN DI PEIL BANJIR
 
-Semua permohonan peil wajib clickable.
+Semua permohonan rekomendasi peil banjir wajib clickable.
+
+Peil Banjir dalam SIAGA-SDA mengelola permohonan rekomendasi teknis peil banjir dari Surat Masuk sampai rekomendasi terbit. Dinas PU Bidang SDA menerbitkan rekomendasi teknis peil banjir, bukan izin bangunan.
 
 Relasi wajib clickable:
 
@@ -786,6 +792,8 @@ Relasi wajib clickable:
 - surat rekomendasi;
 - peta lokasi;
 - dokumen.
+- persyaratan administrasi jika sudah tersedia;
+- catatan teknis jika sudah tersedia.
 
 Contoh:
 
@@ -799,6 +807,20 @@ Mengarahkan ke:
 Tab: Surat Masuk & Keluar
 Filter/detail:
 - surat_keluar_id = surat rekomendasi
+```
+
+Contoh lain:
+
+```text
+Peil Banjir â†’ klik Surat Masuk Asal
+```
+
+Mengarahkan ke:
+
+```text
+Tab: Surat Masuk & Keluar
+Filter/detail:
+- surat_id = surat permohonan asal
 ```
 
 ---

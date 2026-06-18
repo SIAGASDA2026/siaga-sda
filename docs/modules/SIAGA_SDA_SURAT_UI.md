@@ -21,6 +21,8 @@ Tetap satu tab Surat Masuk & Keluar, namun kategori dan workflow berbeda.
 - Input surat
 - Disposisi
 - Relasi survey/paket/peil
+- Kategori Permohonan Rekomendasi Peil Banjir
+- Aksi Buat Proses Peil Banjir
 - Undangan rapat
 - Tindak lanjut
 - Arsip
@@ -69,8 +71,21 @@ Notulen & Tindak Lanjut Rapat adalah sub-fitur di detail surat undangan rapat, b
 
 Surat dapat ditindaklanjuti ke:
 - Survey Investigasi
-- Peil Banjir
+- Peil Banjir sebagai proses permohonan rekomendasi teknis peil banjir
 - Paket Pekerjaan
 - Surat Keluar
 - Notulen & Tindak Lanjut Rapat
 - Arsip
+
+Untuk Peil Banjir, Surat Masuk & Keluar menjadi pintu awal administrasi resmi:
+
+```text
+Surat permohonan diterima
+-> Kategori: Permohonan Rekomendasi Peil Banjir
+-> Aksi: Buat Proses Peil Banjir
+-> Status: Diteruskan ke Peil Banjir
+-> Proses teknis di Peil Banjir
+-> Surat rekomendasi final diarsipkan sebagai Surat Keluar
+```
+
+Dinas PU Bidang SDA menerbitkan rekomendasi teknis peil banjir, bukan izin bangunan.

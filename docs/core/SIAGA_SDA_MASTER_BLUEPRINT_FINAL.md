@@ -188,6 +188,15 @@ MANDOR_OPERASIONAL_SDA
 MANDOR_REHAB_DRAINASE
 ```
 
+Catatan PB-DOC.1:
+
+```text
+admin_peil_banjir
+tim_teknis_peil_banjir
+```
+
+Keduanya adalah role khusus konseptual Peil Banjir dan belum boleh diaktifkan ke RBAC runtime, Prisma, migration, database, atau seed tanpa tahap khusus.
+
 ---
 
 # 7. ROLE YANG DIHAPUS / TIDAK DIGUNAKAN
@@ -306,19 +315,19 @@ Tugas:
 
 ## 8.6 ADMIN_PEIL
 
-ADMIN_PEIL mengelola administrasi Peil Banjir.
+ADMIN_PEIL adalah referensi lama untuk administrasi Peil Banjir. Konsep final PB-DOC.1 memecah tugas Peil Banjir menjadi `admin_peil_banjir` dan `tim_teknis_peil_banjir`, tetapi belum mengubah RBAC runtime.
 
 Tugas:
 
-- input permohonan peil;
-- verifikasi kelengkapan dokumen;
-- upload dokumen;
-- menghubungkan permohonan dengan surat masuk;
-- membuat draft rekomendasi;
-- mengarsipkan dokumen peil;
-- memantau status peil.
+- input permohonan dari Surat Masuk;
+- verifikasi Persyaratan Administrasi;
+- upload berkas gabungan dan dokumen per item persyaratan;
+- menghubungkan permohonan dengan Surat Masuk dan Surat Keluar;
+- mengelola snapshot checklist persyaratan;
+- menyiapkan arsip administrasi;
+- memantau status rekomendasi.
 
-Approval teknis tetap mengikuti PPTK/PPK sesuai workflow.
+Survey, koordinat, review hidrologi/hidrolika, dan bahan rekomendasi ditangani oleh Tim Teknis Peil Banjir secara konseptual. Approval teknis tetap mengikuti PPTK/PPK sesuai workflow.
 
 ## 8.7 PIMPINAN
 
@@ -799,7 +808,7 @@ Undangan Rapat
 Aduan Warga
 Permohonan Drainase
 Permohonan Normalisasi
-Permohonan Peil
+Permohonan Rekomendasi Peil Banjir
 Permohonan Data
 Instruksi Pimpinan
 Surat Internal
@@ -864,17 +873,30 @@ Audit Log
 
 # 18. PEIL BANJIR
 
+Peil Banjir adalah modul layanan permohonan dan penerbitan rekomendasi teknis peil banjir dari pihak ketiga, rekanan, perusahaan, atau pemohon lain.
+
+Peil Banjir bukan sekadar monitoring tinggi muka air, banjir, rob, atau catatan genangan. Data banjir/rob/drainase tetap dapat menjadi bagian survey dan analisis teknis.
+
+Dinas PU Bidang SDA menerbitkan rekomendasi teknis peil banjir, bukan izin bangunan.
+
 Alur Peil Banjir:
 
 ```text
-Permohonan
-→ Verifikasi dokumen
-→ Survey
-→ Pemeriksaan PPTK
+Surat Masuk & Keluar
+→ Surat permohonan diterima dan diagendakan
+→ Kategori: Permohonan Rekomendasi Peil Banjir
+→ Aksi: Buat Proses Peil Banjir
+→ Peil Banjir sebagai permohonan/kasus aktif
+→ Verifikasi Administrasi
+→ Survey Lapangan
+→ Pengambilan Titik Koordinat
+→ Review/Koreksi Hidrologi dan Hidrolika
+→ Penyusunan Draft Rekomendasi
+→ Review/Approval PPTK
 → Approval PPK
-→ Surat rekomendasi
-→ Surat Keluar
-→ Arsip
+→ Tanda tangan Kadis
+→ Surat Rekomendasi Terbit
+→ Arsip Peil Banjir dan Surat Keluar
 ```
 
 Peil Banjir terhubung ke:
@@ -889,6 +911,23 @@ Dashboard
 Laporan
 Audit Log
 ```
+
+Sub-menu Peil Banjir yang disarankan:
+
+```text
+Semua Permohonan
+Verifikasi Administrasi
+Survey Lapangan
+Analisis Teknis
+Draft Rekomendasi
+Approval
+Arsip & Rekap
+Master Persyaratan
+```
+
+Master Persyaratan Peil Banjir mengelola daftar persyaratan aktif untuk permohonan baru. Persyaratan harus bisa tambah/edit/hapus atau nonaktif/ubah susunan, upload file per item, catatan verifikator, dan snapshot checklist per permohonan.
+
+Export PDF Persyaratan mengambil daftar persyaratan aktif terbaru, mengikuti susunan terbaru, dan tidak menggunakan label tahun pada judul/template.
 
 ---
 

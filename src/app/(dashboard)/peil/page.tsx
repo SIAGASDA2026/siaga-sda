@@ -7,16 +7,21 @@ export default function PeilPage() {
   return (
     <ModuleLandingPage
       title="Peil Banjir"
-      subtitle="Monitoring titik peil, tinggi muka air, ambang banjir, status genangan, dan histori pengukuran."
+      subtitle="Layanan permohonan rekomendasi teknis peil banjir dari Surat Masuk sampai verifikasi administrasi, survey lokasi, review hidrologi/hidrolika, approval PPTK/PPK, tanda tangan Kadis, dan arsip Surat Keluar."
       icon={Landmark}
-      primaryHref="/peta"
-      primaryLabel="Buka Peta Monitoring"
+      primaryHref="/surat"
+      primaryLabel="Buka Surat Masuk"
       cards={[
-        { label: 'Titik Peil Aktif', value: '0', desc: 'Belum ada tabel titik peil.' },
-        { label: 'Status Siaga', value: '0', desc: 'Menunggu threshold peil.' },
-        { label: 'Update Hari Ini', value: '0', desc: 'Belum ada observasi peil.' },
+        { label: 'Permohonan Aktif', value: '0', desc: 'Belum ada data permohonan resmi.' },
+        { label: 'Verifikasi Administrasi', value: '0', desc: 'Menunggu checklist persyaratan aktif.' },
+        { label: 'Rekomendasi Terbit', value: '0', desc: 'Belum ada surat rekomendasi terbit.' },
       ]}
-      checklist={['Master titik peil dan koordinat', 'Input tinggi muka air lapangan', 'Threshold aman/waspada/siaga/kritis', 'Approval dan audit peil']}
+      checklist={[
+        'Surat Masuk kategori Permohonan Rekomendasi Peil Banjir',
+        'Persyaratan Administrasi dengan snapshot checklist per permohonan',
+        'Survey lokasi, titik koordinat, dan review hidrologi/hidrolika',
+        'Approval PPTK/PPK, tanda tangan Kadis, Surat Keluar, dan audit trail',
+      ]}
     />
   )
 }

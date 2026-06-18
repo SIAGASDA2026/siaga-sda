@@ -44,7 +44,7 @@ const DASHBOARD_TABS: { id: DashboardTab; label: string; desc: string; icon: Luc
   { id: 'paket', label: 'Paket', desc: 'Ruang kerja paket', icon: HardHat },
   { id: 'approval', label: 'Approval & Risiko', desc: 'Pending dan kritis', icon: ClipboardList },
   { id: 'surat', label: 'Surat', desc: 'Masuk dan keluar', icon: MessageSquare },
-  { id: 'peil', label: 'Peil Banjir', desc: 'Titik peil', icon: Landmark },
+  { id: 'peil', label: 'Peil Banjir', desc: 'Rekomendasi peil', icon: Landmark },
   { id: 'asset', label: 'Asset SDA', desc: 'Pintu air/pompa', icon: Building2 },
   { id: 'operasional', label: 'Operasional', desc: 'Mandor dan shift', icon: Users },
   { id: 'pasang-surut', label: 'Pasang Surut', desc: 'Rob dan muka air', icon: Waves },
@@ -288,7 +288,7 @@ export default function DashboardPage() {
       { role: 'Konsultan Perencana', task: 'Lengkapi dokumen perencanaan/survey', module: '/survey', priority: 'Sedang' },
       { role: 'Kontraktor', task: 'Update laporan harian dan dokumentasi', module: '/laporan', priority: 'Sedang' },
       { role: 'Mandor/Petugas', task: 'Update kondisi lapangan, pintu air, pompa, pasang surut', module: '/peta', priority: 'Tinggi' },
-      { role: 'Admin Surat/Peil/Asset', task: 'Lengkapi data modul masing-masing', module: '/pengumuman', priority: 'Sedang' },
+      { role: 'Admin Surat/Peil/Asset', task: 'Lengkapi data modul masing-masing', module: '/surat', priority: 'Sedang' },
     ]
     if (broadRoleView) {
       return actionDefinitions.map((item) => ({ ...item, name: currentUserName }))
@@ -732,7 +732,7 @@ export default function DashboardPage() {
     {
       id: 'support' as const,
       label: 'Modul Pendukung',
-      description: 'Surat, administrasi, peil, asset, dan utilitas.',
+      description: 'Surat, administrasi, rekomendasi peil, asset, dan utilitas.',
       value: 'Ringkasan modul pendukung',
       status: 'Campuran database/persiapan',
       href: canAccessPage(currentRole, '/administrasi')
@@ -749,7 +749,7 @@ export default function DashboardPage() {
 
   const commandSupportItems = [
     { id: 'letters' as const, label: 'Surat Masuk & Keluar', status: 'Buka rekap surat', source: 'Persiapan', href: '/surat?source_module=dashboard', accessPath: '/surat' },
-    { id: 'flood' as const, label: 'Peil Banjir', status: 'Modul persiapan', source: 'Persiapan', href: '/peil?source_module=dashboard', accessPath: '/peil' },
+    { id: 'flood' as const, label: 'Peil Banjir', status: 'Permohonan rekomendasi', source: 'Persiapan', href: '/peil?source_module=dashboard', accessPath: '/peil' },
     { id: 'assets' as const, label: 'Asset SDA', status: 'Modul persiapan', source: 'Persiapan', href: '/asset?source_module=dashboard', accessPath: '/asset' },
     { id: 'administration' as const, label: 'Administrasi', status: 'Kontrak dan dokumen', source: 'Modul', href: '/administrasi?source_module=dashboard', accessPath: '/administrasi' },
     { id: 'prayer' as const, label: 'Waktu & Salat', status: 'Utility dashboard', source: 'Utility', accessPath: '/dashboard' },
@@ -1401,7 +1401,7 @@ export default function DashboardPage() {
           <ModulePreparationTab
             icon={FileText}
             title="Surat Masuk & Keluar"
-            subtitle="Disposisi, undangan rapat, tindak lanjut surat, dan relasi ke survey/paket/peil."
+            subtitle="Disposisi, undangan rapat, tindak lanjut surat, dan relasi ke survey/paket/proses rekomendasi peil."
             route="/surat"
             routeLabel="Buka Surat Masuk & Keluar"
             cards={[
@@ -1409,7 +1409,7 @@ export default function DashboardPage() {
               { label: 'Disposisi Pending', value: '0', desc: 'Menunggu workflow surat' },
               { label: 'Tindak Lanjut', value: '0', desc: 'Belum tersambung paket/survey' },
             ]}
-            checklist={['Input surat masuk/keluar', 'Disposisi berbasis role', 'Relasi ke survey, paket, peil', 'Audit log surat dan approval']}
+            checklist={['Input surat masuk/keluar', 'Disposisi berbasis role', 'Relasi ke survey, paket, rekomendasi peil', 'Audit log surat dan approval']}
           />
         )}
 
@@ -1417,15 +1417,15 @@ export default function DashboardPage() {
           <ModulePreparationTab
             icon={Landmark}
             title="Peil Banjir"
-            subtitle="Ringkasan titik peil, elevasi banjir, status genangan, dan histori pengukuran."
+            subtitle="Ringkasan permohonan rekomendasi peil banjir, verifikasi administrasi, survey lokasi, analisis teknis, approval, dan surat rekomendasi."
             route="/peil"
             routeLabel="Buka Peil Banjir"
             cards={[
-              { label: 'Titik Peil Aktif', value: '0', desc: 'Belum ada tabel peil' },
-              { label: 'Status Siaga', value: '0', desc: 'Menunggu threshold peil' },
-              { label: 'Update Hari Ini', value: '0', desc: 'Belum ada observasi peil' },
+              { label: 'Permohonan Aktif', value: '0', desc: 'Belum ada data resmi' },
+              { label: 'Verifikasi Administrasi', value: '0', desc: 'Menunggu checklist aktif' },
+              { label: 'Rekomendasi Terbit', value: '0', desc: 'Belum ada surat rekomendasi' },
             ]}
-            checklist={['Master titik peil', 'Input tinggi muka air lapangan', 'Threshold aman/waspada/siaga/kritis', 'Approval dan audit peil']}
+            checklist={['Surat Masuk kategori Permohonan Rekomendasi Peil Banjir', 'Persyaratan Administrasi dan snapshot checklist', 'Survey, koordinat, review hidrologi/hidrolika', 'Approval PPTK/PPK, tanda tangan Kadis, dan Surat Keluar']}
           />
         )}
 

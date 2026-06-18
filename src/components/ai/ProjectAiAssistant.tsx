@@ -7,6 +7,7 @@ import { useAppStore } from '@/store/useAppStore'
 
 function getPageContext(pathname: string) {
   if (pathname.includes('/peta')) return 'Peta Monitoring'
+  if (pathname.includes('/peil')) return 'Peil Banjir'
   if (pathname.includes('/proyek')) return 'Manajemen Proyek'
   if (pathname.includes('/laporan')) return 'Laporan Harian'
   if (pathname.includes('/survey')) return 'Survey Lapangan'
@@ -48,8 +49,9 @@ const HALO_ROLE_LABELS: Record<string, string> = {
   kontraktor: 'Kontraktor',
   auditor: 'Auditor',
   admin_surat: 'Admin Surat',
-  admin_peil: 'Admin Peil',
+  admin_peil: 'Admin Peil Banjir',
   admin_peil_banjir: 'Admin Peil Banjir',
+  tim_teknis_peil_banjir: 'Tim Teknis Peil Banjir',
   admin_asset: 'Admin Asset',
   mandor_operasional_sda: 'Mandor Operasional SDA',
   mandor_pintu_air: 'Mandor Pintu Air',
@@ -151,6 +153,10 @@ export function ProjectAiAssistant() {
     {
       question: 'Apakah area tanya jawab sudah aktif resmi?',
       answer: 'Belum. Area Tanya Halo SIAGA-SDA masih dalam mode panduan lokal dan belum membaca sumber SOP resmi atau data misi resmi.',
+    },
+    {
+      question: 'Apa fungsi Peil Banjir di SIAGA-SDA?',
+      answer: 'Peil Banjir digunakan untuk mengelola permohonan rekomendasi peil banjir dari pihak ketiga, mulai dari surat masuk, verifikasi administrasi, survey lokasi, pengambilan titik koordinat, review perhitungan hidrologi dan hidrolika, penyusunan draft rekomendasi, approval PPTK/PPK, hingga penerbitan surat rekomendasi yang ditandatangani Kadis. Dinas PU Bidang SDA tidak menerbitkan izin bangunan.',
     },
   ]
 
