@@ -23,6 +23,7 @@ import { PhotoDocumentationViewer, type PhotoDocumentationItem } from '@/compone
 import { LaporanHarian, Koordinat, Photo } from '@/types'
 import { ArrowLeft, Camera, MapPin, CheckCircle, Plus, X, Eye, Search, Printer, FileSpreadsheet } from 'lucide-react'
 import { printLaporanHarian } from '@/lib/print'
+import { BRAND } from '@/lib/brand'
 import toast from 'react-hot-toast'
 
 const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2,7)}`
@@ -129,7 +130,7 @@ export default function LaporanPage() {
   })
 
   const exportDailyExcel = () => {
-    exportRowsToExcel('laporan-harian-simonpro', 'Laporan Harian SIMONPRO', filtered.map((l: any) => ({
+    exportRowsToExcel('laporan-harian-siaga-sda', `Laporan Harian ${BRAND.name}`, filtered.map((l: any) => ({
       Tanggal: formatDate(l.tanggal),
       'Kode Proyek': l.proyekKode,
       'Nama Proyek': l.proyekNama,
@@ -143,8 +144,8 @@ export default function LaporanPage() {
   }
 
   const exportGeneratedExcel = () => {
-    const title = reportMode === 'mingguan' ? 'Laporan Mingguan SIMONPRO' : 'Laporan Bulanan SIMONPRO'
-    exportRowsToExcel(`laporan-${reportMode}-simonpro`, title, filteredGeneratedReports.map(reportToExcelRow))
+    const title = reportMode === 'mingguan' ? `Laporan Mingguan ${BRAND.name}` : `Laporan Bulanan ${BRAND.name}`
+    exportRowsToExcel(`laporan-${reportMode}-siaga-sda`, title, filteredGeneratedReports.map(reportToExcelRow))
   }
 
   const getGPS = async () => {

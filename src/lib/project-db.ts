@@ -1,6 +1,7 @@
 import { ApprovalStatus, HealthStatus, KategoriFisik, PaketJenis, PaketStatus, Prioritas, Role, StatusMasalah } from '@prisma/client'
 import bcrypt from 'bcryptjs'
 import { prisma } from '@/lib/prisma'
+import { BRAND } from '@/lib/brand'
 import { mapDbPaket, mapDbRole, mapDbUser } from '@/lib/db-mappers'
 import { Proyek, User } from '@/types'
 
@@ -88,7 +89,7 @@ export async function getMappedPaket(id: string): Promise<Proyek | null> {
 
 export async function ensureDefaultSubKegiatan(input?: { tahun?: number; program?: string; subProgram?: string; namaPekerjaan?: string; paguAnggaran?: number }) {
   const tahun = Number(input?.tahun || new Date().getFullYear())
-  const programName = input?.program?.trim() || 'Program Monitoring Proyek SIMONPRO'
+  const programName = input?.program?.trim() || `Program Monitoring Proyek ${BRAND.name}`
   const subProgramName = input?.subProgram?.trim() || 'Kegiatan Monitoring Proyek'
   const pekerjaanName = input?.namaPekerjaan?.trim() || 'Sub Kegiatan Umum'
 
@@ -102,13 +103,13 @@ export async function ensureDefaultSubKegiatan(input?: { tahun?: number; program
     where: {
       tahunAnggaranId_kode: {
         tahunAnggaranId: tahunAnggaran.id,
-        kode: programName.slice(0, 32).toUpperCase().replace(/[^A-Z0-9]+/g, '_') || 'SIMONPRO',
+        kode: programName.slice(0, 32).toUpperCase().replace(/[^A-Z0-9]+/g, '_') || 'SIAGA_SDA',
       },
     },
     update: {},
     create: {
       tahunAnggaranId: tahunAnggaran.id,
-      kode: programName.slice(0, 32).toUpperCase().replace(/[^A-Z0-9]+/g, '_') || 'SIMONPRO',
+      kode: programName.slice(0, 32).toUpperCase().replace(/[^A-Z0-9]+/g, '_') || 'SIAGA_SDA',
       nama: programName,
     },
   })

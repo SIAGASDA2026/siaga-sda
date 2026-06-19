@@ -1,4 +1,5 @@
 import { formatCurrency, formatDate } from '@/lib/utils'
+import { BRAND } from '@/lib/brand'
 
 export const PROJECT_CATEGORIES = [
   { value: 'lelang', label: 'Paket Lelang' },
@@ -311,7 +312,7 @@ export const printGeneratedReport = (report: any) => {
       <body>
         <button onclick="window.print()">Cetak / Simpan PDF</button>
         <h1>LAPORAN ${String(report.jenis).toUpperCase()} PROYEK</h1>
-        <h2>SIMONPRO - Dinas PU Kota Dumai</h2>
+        <h2>${BRAND.name} - ${BRAND.agency} ${BRAND.unit} ${BRAND.city}</h2>
         <table class="meta">
           <tr><td>Nama Proyek</td><td>${report.proyekNama}</td></tr>
           <tr><td>Kode Proyek</td><td>${report.proyekKode}</td></tr>

@@ -1,5 +1,6 @@
 import { Proyek, LaporanHarian, Survey } from '@/types'
 import { formatCurrency, formatDate, formatDateTime } from './utils'
+import { BRAND } from './brand'
 
 // ─── Print Laporan Harian ──────────────────────────────────────────────
 export function printLaporanHarian(laporan: LaporanHarian & { proyekNama: string; proyekKode: string }) {
@@ -55,12 +56,12 @@ export function printLaporanHarian(laporan: LaporanHarian & { proyekNama: string
 </style>
 </head>
 <body>
-<div class="watermark">SIMONPRO</div>
+<div class="watermark">${BRAND.name}</div>
 
 <div class="header">
-  <div class="logo">SIMONPRO</div>
+  <div class="logo">${BRAND.name}</div>
   <h1>LAPORAN HARIAN PELAKSANAAN PEKERJAAN</h1>
-  <h2>Dinas Pekerjaan Umum Kota Dumai</h2>
+  <h2>${BRAND.agency} ${BRAND.unit} ${BRAND.city}</h2>
   <p>Dicetak: ${formatDateTime(new Date().toISOString())}</p>
 </div>
 
@@ -205,12 +206,12 @@ export function printRekapProyek(proyek: Proyek) {
 </style>
 </head>
 <body>
-<div class="watermark">SIMONPRO</div>
+<div class="watermark">${BRAND.name}</div>
 
 <div class="header">
-  <div class="logo">SIMONPRO</div>
+  <div class="logo">${BRAND.name}</div>
   <h1>REKAP MONITORING PROYEK</h1>
-  <p style="font-size:11px;color:#6b7280">Dinas Pekerjaan Umum Kota Dumai · Dicetak: ${formatDateTime(new Date().toISOString())}</p>
+  <p style="font-size:11px;color:#6b7280">${BRAND.agency} ${BRAND.unit} ${BRAND.city} · Dicetak: ${formatDateTime(new Date().toISOString())}</p>
 </div>
 
 <div class="section">
@@ -309,7 +310,7 @@ ${proyek.masalah.length > 0 ? `
 ` : ''}
 
 <div style="margin-top:30px;border-top:1px solid #e5e7eb;padding-top:12px;font-size:11px;color:#6b7280;text-align:center">
-  Dokumen ini dicetak dari sistem SIMONPRO · Dinas PU Kota Dumai · ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+  Dokumen ini dicetak dari sistem ${BRAND.name} · ${BRAND.agency} ${BRAND.unit} ${BRAND.city} · ${new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 </div>
 
 <script>window.print()</script>
@@ -355,9 +356,9 @@ export function printSurvey(survey: Survey & { proyekNama: string; proyekKode: s
 </head>
 <body>
 <div class="header">
-  <div class="logo">SIMONPRO</div>
+  <div class="logo">${BRAND.name}</div>
   <h1>LAPORAN SURVEY LAPANGAN PRA-KONSTRUKSI</h1>
-  <p style="font-size:11px;color:#6b7280">Dinas PU Kota Dumai · ${formatDateTime(new Date().toISOString())}</p>
+  <p style="font-size:11px;color:#6b7280">${BRAND.agency} ${BRAND.unit} ${BRAND.city} · ${formatDateTime(new Date().toISOString())}</p>
 </div>
 
 <div class="section">
@@ -417,7 +418,7 @@ ${survey.foto.length > 0 ? `
 ` : ''}
 
 <div style="margin-top:30px;border-top:1px solid #e5e7eb;padding-top:12px;font-size:11px;color:#6b7280;text-align:center">
-  Laporan Survey Lapangan · SIMONPRO · Dinas PU Kota Dumai
+  Laporan Survey Lapangan · ${BRAND.name} · ${BRAND.agency} ${BRAND.unit} ${BRAND.city}
 </div>
 <script>window.print()</script>
 </body>
