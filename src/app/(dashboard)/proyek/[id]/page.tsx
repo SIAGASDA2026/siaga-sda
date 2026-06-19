@@ -32,6 +32,7 @@ const TABS = [
 ]
 
 const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2,7)}`
+const isBlobUrl = (url: string) => url.startsWith('blob:')
 
 export default function ProyekDetailPage() {
   const { id } = useParams()
@@ -392,10 +393,12 @@ function SurveyTab({ proyek }: { proyek: any }) {
   }
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    Array.from(e.target.files || []).forEach(file => {
+    const files = Array.from(e.target.files || [])
+    files.forEach(file => {
       const url = URL.createObjectURL(file)
       setPhotos(prev => [...prev, url])
     })
+    if (files.length > 0) toast.success(`${files.length} foto ditambahkan sebagai preview lokal. Belum tersimpan permanen.`)
   }
 
   const openAdd = () => { setForm({ kondisiEksisting:'',dimensiP:0,dimensiL:0,dimensiT:0,material:'',permasalahan:'',rekomendasi:'' }); setGps(null); setPhotos([]); setEditTarget(null); setShowForm(true) }
@@ -409,7 +412,9 @@ function SurveyTab({ proyek }: { proyek: any }) {
   const handleSubmit = () => {
     if (!form.kondisiEksisting || !form.permasalahan) return toast.error('Kondisi eksisting dan permasalahan wajib diisi')
     if (!gps) return toast.error('GPS wajib diambil')
-    if (photos.length < 3 && !editTarget) return toast.error('Minimal 3 foto survey')
+    if (photos.length < 3 && !editTarget) return toast.error('Minimal 3 foto survey wajib dipilih sebagai preview lokal')
+    const hasLocalPreviewPhotos = photos.some(isBlobUrl)
+    const permanentPhotos = photos.filter((url) => !isBlobUrl(url))
 
     const data = {
       proyekId: proyek.id, tanggal: new Date().toISOString().split('T')[0],
@@ -418,12 +423,12 @@ function SurveyTab({ proyek }: { proyek: any }) {
       kondisiEksisting: form.kondisiEksisting,
       dimensi: { panjang: form.dimensiP, lebar: form.dimensiL, tinggi: form.dimensiT },
       material: form.material, permasalahan: form.permasalahan, rekomendasi: form.rekomendasi,
-      foto: photos.map((url, i) => ({ id: genId(), url, uploadedAt: new Date().toISOString(), uploadedBy: currentUser!.name, keterangan: `Foto survey ${i+1}`, koordinat: gps })),
+      foto: permanentPhotos.map((url, i) => ({ id: genId(), url, uploadedAt: new Date().toISOString(), uploadedBy: currentUser!.name, keterangan: `Foto survey ${i+1}`, koordinat: gps })),
       status: 'submitted' as const,
     }
 
-    if (editTarget) { updateSurvey(proyek.id, editTarget.id, data); toast.success('Survey diperbarui') }
-    else { addSurvey(proyek.id, data); toast.success('Survey berhasil disimpan') }
+    if (editTarget) { updateSurvey(proyek.id, editTarget.id, data); toast.success(hasLocalPreviewPhotos ? 'Survey diperbarui. Foto baru masih preview lokal dan belum tersimpan permanen.' : 'Survey diperbarui') }
+    else { addSurvey(proyek.id, data); toast.success(hasLocalPreviewPhotos ? 'Survey berhasil disimpan tanpa foto permanen. Foto masih preview lokal.' : 'Survey berhasil disimpan') }
     setShowForm(false)
   }
 
@@ -514,12 +519,22 @@ function SurveyTab({ proyek }: { proyek: any }) {
                 {photos.map((url, i) => (
                   <div key={i} className="relative aspect-square rounded-lg overflow-hidden bg-slate-100">
                     <img src={url} className="w-full h-full object-cover" alt="" />
+                    {isBlobUrl(url) && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-amber-900/80 py-0.5 text-center">
+                        <span className="text-[8px] font-bold text-white">Preview lokal</span>
+                      </div>
+                    )}
                     <button onClick={() => setPhotos(p => p.filter((_,idx) => idx !== i))}
                       className="absolute top-0.5 right-0.5 w-5 h-5 bg-red-500 rounded-full text-white flex items-center justify-center">
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+            {photos.some(isBlobUrl) && (
+              <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                Foto baru masih preview lokal dan belum tersimpan permanen. Data survey dapat disimpan, tetapi upload foto resmi memerlukan endpoint penyimpanan file.
               </div>
             )}
             <button onClick={() => fileRef.current?.click()} className="w-full flex items-center justify-center gap-2 p-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 hover:border-blue-300 hover:text-blue-600 text-sm">
@@ -745,25 +760,29 @@ function LaporanTab({ proyek }: { proyek: any }) {
   }
 
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    Array.from(e.target.files||[]).forEach(file => setPhotos(prev => [...prev, URL.createObjectURL(file)]))
+    const files = Array.from(e.target.files || [])
+    files.forEach(file => setPhotos(prev => [...prev, URL.createObjectURL(file)]))
+    if (files.length > 0) toast.success(`${files.length} foto ditambahkan sebagai preview lokal. Belum tersimpan permanen.`)
   }
 
   const handleSubmit = () => {
     if (!form.uraian.trim()) return toast.error('Uraian pekerjaan wajib diisi')
     if (!gps) return toast.error('GPS wajib diambil')
-    if (!editTarget && photos.length < 1) return toast.error('Minimal 1 foto wajib diupload')
+    if (!editTarget && photos.length < 1) return toast.error('Minimal 1 foto wajib dipilih sebagai preview lokal')
+    const hasLocalPreviewPhotos = photos.some(isBlobUrl)
+    const permanentPhotos = photos.filter((url) => !isBlobUrl(url))
 
     const data = {
       proyekId: proyek.id, tanggal: new Date().toISOString().split('T')[0],
       userId: currentUser!.id, userName: currentUser!.name,
       uraianPekerjaan: form.uraian, progressFisik: form.progress, progressKumulatif: form.progress,
       cuaca: form.cuaca, koordinat: gps!,
-      foto: photos.map((url, i) => ({ id: genId(), url, uploadedAt: new Date().toISOString(), uploadedBy: currentUser!.name, keterangan: `Foto ${i+1}`, koordinat: gps })),
+      foto: permanentPhotos.map((url, i) => ({ id: genId(), url, uploadedAt: new Date().toISOString(), uploadedBy: currentUser!.name, keterangan: `Foto ${i+1}`, koordinat: gps })),
       disetujui: false,
     }
 
-    if (editTarget) { updateLaporan(proyek.id, editTarget.id, data); toast.success('Laporan diperbarui') }
-    else { addLaporan(proyek.id, data); toast.success('Laporan berhasil disimpan') }
+    if (editTarget) { updateLaporan(proyek.id, editTarget.id, data); toast.success(hasLocalPreviewPhotos ? 'Laporan diperbarui. Foto baru masih preview lokal dan belum tersimpan permanen.' : 'Laporan diperbarui') }
+    else { addLaporan(proyek.id, data); toast.success(hasLocalPreviewPhotos ? 'Laporan berhasil disimpan tanpa foto permanen. Foto masih preview lokal.' : 'Laporan berhasil disimpan') }
     setShowForm(false)
   }
 
@@ -887,12 +906,22 @@ function LaporanTab({ proyek }: { proyek: any }) {
                 {photos.map((url, i) => (
                   <div key={i} className="relative w-20 h-16 rounded-lg overflow-hidden bg-slate-100">
                     <img src={url} className="w-full h-full object-cover" alt="" />
+                    {isBlobUrl(url) && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-amber-900/80 py-0.5 text-center">
+                        <span className="text-[8px] font-bold text-white">Preview lokal</span>
+                      </div>
+                    )}
                     <button onClick={() => setPhotos(p => p.filter((_,idx) => idx !== i))}
                       className="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 rounded-full text-white flex items-center justify-center">
                       <X className="w-2.5 h-2.5" />
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+            {photos.some(isBlobUrl) && (
+              <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                Foto baru masih preview lokal dan belum tersimpan permanen. Data laporan dapat disimpan, tetapi upload foto resmi memerlukan endpoint penyimpanan file.
               </div>
             )}
             <button onClick={() => fileRef.current?.click()} className="w-full p-3 border-2 border-dashed border-slate-200 rounded-xl text-slate-500 text-sm flex items-center justify-center gap-2 hover:border-blue-300 hover:text-blue-600">

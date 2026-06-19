@@ -27,6 +27,7 @@ import { BRAND } from '@/lib/brand'
 import toast from 'react-hot-toast'
 
 const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2,7)}`
+const isBlobUrl = (url: string) => url.startsWith('blob:')
 
 export default function LaporanPage() {
   const { projects, currentUser, addLaporan, updateLaporan, deleteLaporan, approveLaporan, dashboardDataSource } = useAppStore()
@@ -163,7 +164,7 @@ export default function LaporanPage() {
     const files = Array.from(e.target.files || [])
     if (photos.length + files.length > 10) return toast.error('Maksimal 10 foto')
     files.forEach(file => setPhotos(prev => [...prev, URL.createObjectURL(file)]))
-    toast.success(`${files.length} foto ditambahkan`)
+    toast.success(`${files.length} foto ditambahkan sebagai preview lokal. Belum tersimpan permanen.`)
   }
 
   const openAdd = () => {
@@ -180,24 +181,26 @@ export default function LaporanPage() {
   const handleSubmit = async () => {
     if (!selectedProyekId) return toast.error('Pilih proyek terlebih dahulu')
     if (!gps) return toast.error('GPS wajib diambil')
-    if (photos.length < 1) return toast.error('Minimal 1 foto wajib diupload')
+    if (photos.length < 1) return toast.error('Minimal 1 foto wajib dipilih sebagai preview lokal')
     if (!uraian.trim()) return toast.error('Uraian pekerjaan wajib diisi')
     setSubmitting(true)
+    const hasLocalPreviewPhotos = photos.some(isBlobUrl)
+    const permanentPhotos = photos.filter((url) => !isBlobUrl(url))
     const data = {
       proyekId: selectedProyekId, tanggal: new Date().toISOString().split('T')[0],
       userId: currentUser!.id, userName: currentUser!.name,
       uraianPekerjaan: uraian, progressFisik: progress, progressKumulatif: progress,
       cuaca: cuaca as any, koordinat: gps!,
-      foto: photos.map((url, i) => ({ id: genId(), url, uploadedAt: new Date().toISOString(), uploadedBy: currentUser!.name, keterangan: `Foto ${i+1}`, koordinat: gps })),
+      foto: permanentPhotos.map((url, i) => ({ id: genId(), url, uploadedAt: new Date().toISOString(), uploadedBy: currentUser!.name, keterangan: `Foto ${i+1}`, koordinat: gps })),
       disetujui: false,
     }
     try {
       if (editTarget) {
         await updateLaporan(editTarget.proyekId, editTarget.id, data)
-        toast.success('Laporan diperbarui ke database')
+        toast.success(hasLocalPreviewPhotos ? 'Laporan diperbarui. Foto baru masih preview lokal dan belum tersimpan permanen.' : 'Laporan diperbarui ke database')
       } else {
         await addLaporan(selectedProyekId, data)
-        toast.success('Laporan berhasil disimpan ke database')
+        toast.success(hasLocalPreviewPhotos ? 'Laporan berhasil disimpan tanpa foto permanen. Foto masih preview lokal.' : 'Laporan berhasil disimpan ke database')
       }
       setShowForm(false)
     } catch (error) {
@@ -494,12 +497,19 @@ export default function LaporanPage() {
                 {photos.map((url, i) => (
                   <div key={i} className="relative aspect-square rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
                     <img src={url} className="w-full h-full object-cover" alt="" />
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/60 py-0.5 text-center"><span className="text-white text-[8px]">📍GPS</span></div>
+                    <div className={`absolute bottom-0 left-0 right-0 z-10 py-0.5 text-center ${isBlobUrl(url) ? 'bg-amber-900/80' : 'bg-black/60'}`}>
+                      <span className="text-white text-[8px]">{isBlobUrl(url) ? 'Preview lokal' : 'GPS'}</span>
+                    </div>
                     <button onClick={() => setPhotos(p => p.filter((_,idx) => idx !== i))} className="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full text-white flex items-center justify-center">
                       <X className="w-3 h-3" />
                     </button>
                   </div>
                 ))}
+              </div>
+            )}
+            {photos.some(isBlobUrl) && (
+              <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-800">
+                Foto baru masih preview lokal dan belum tersimpan permanen. Data laporan dapat disimpan, tetapi upload foto resmi memerlukan endpoint penyimpanan file.
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">
