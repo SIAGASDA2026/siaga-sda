@@ -204,30 +204,32 @@ Keduanya adalah role khusus konseptual Peil Banjir dan belum boleh diaktifkan ke
 Role berikut **tidak digunakan lagi**:
 
 ```text
-ADMIN_SUB_KEGIATAN
+ADMIN_KEGIATAN
 ```
 
 Alasan:
 
 ```text
-Tugas Admin Sub Kegiatan sudah digantikan oleh ADMIN_SUB_KEGIATAN.
+Tugas Admin Kegiatan lama sudah digantikan oleh ADMIN_SUB_KEGIATAN.
 ```
 
 Codex dilarang:
 
-- membuat ulang role ADMIN_SUB_KEGIATAN;
-- menggunakan ADMIN_SUB_KEGIATAN pada permission baru;
-- menampilkan ADMIN_SUB_KEGIATAN di UI;
+- membuat ulang role ADMIN_KEGIATAN;
+- menggunakan ADMIN_KEGIATAN pada permission baru;
+- menampilkan ADMIN_KEGIATAN di UI;
 - membuat menu khusus Admin Sub Kegiatan;
-- membuat assignment baru berbasis ADMIN_SUB_KEGIATAN.
+- membuat assignment baru berbasis ADMIN_KEGIATAN.
 
-Jika di kode masih ditemukan referensi ADMIN_SUB_KEGIATAN, jangan langsung hapus sembarangan. Lakukan mapping bertahap ke:
+Jika di kode masih ditemukan referensi ADMIN_KEGIATAN, jangan langsung hapus sembarangan. Lakukan mapping bertahap ke:
 
 ```text
 ADMIN_SUB_KEGIATAN
 ```
 
 dan laporkan file yang terdampak.
+
+Catatan compatibility database: role konseptual `ADMIN_SUB_KEGIATAN` saat ini masih dipetakan ke enum Prisma `ADMINISTRASI_KONTRAK` sampai tahap schema/migration khusus disetujui eksplisit.
 
 ---
 
@@ -686,7 +688,7 @@ Ditindaklanjuti
 Dilarang menggunakan istilah:
 
 ```text
-Ditindaklanjuti
+Menjadi Paket
 ```
 
 Tindak lanjut survey:
@@ -857,7 +859,7 @@ Administrasi dikelola oleh:
 ADMIN_SUB_KEGIATAN
 ```
 
-bukan ADMIN_SUB_KEGIATAN.
+bukan ADMIN_KEGIATAN.
 
 Administrasi harus terhubung ke:
 
@@ -1267,7 +1269,7 @@ Codex wajib:
 - audit dan mapping sistem aktual sebelum coding;
 - tidak mengubah role tanpa instruksi;
 - tidak mengubah workflow tanpa instruksi;
-- tidak membuat role ADMIN_SUB_KEGIATAN;
+- tidak membuat role ADMIN_KEGIATAN;
 - tidak membuat ulang role yang sudah dihapus;
 - tidak menambah menu utama tanpa instruksi;
 - tidak membuat Master Data sebagai tab utama;
@@ -1291,7 +1293,7 @@ Urutan update aman:
 ```text
 1. Audit dokumentasi
 2. Sinkronisasi role final
-3. Hapus/mapping ADMIN_SUB_KEGIATAN ke ADMIN_SUB_KEGIATAN
+3. Hapus/mapping ADMIN_KEGIATAN ke ADMIN_SUB_KEGIATAN
 4. Update menu role-based
 5. Update Dashboard
 6. Update Login
@@ -1330,7 +1332,7 @@ Asset sebagai pusat infrastruktur SDA.
 Audit Log sebagai pusat jejak aktivitas.
 ```
 
-ADMIN_SUB_KEGIATAN tidak digunakan lagi.
+ADMIN_KEGIATAN tidak digunakan lagi.
 
 Semua tugas administrasi kegiatan/sub kegiatan dipusatkan ke:
 
