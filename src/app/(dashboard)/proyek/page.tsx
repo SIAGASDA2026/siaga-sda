@@ -8,7 +8,8 @@ import { useAppStore } from '@/store/useAppStore'
 import { Topbar } from '@/components/layout/Topbar'
 import { SubfeatureEntryPoints } from '@/components/navigation/SubfeatureEntryPoints'
 import { Modal, ConfirmDialog, FormField, Input, Select, EmptyState, ActionButtons } from '@/components/ui'
-import { formatCurrency, getHealthBadge, getStatusLabel, formatDate, canAccess, getRoleLabel } from '@/lib/utils'
+import { formatCurrency, getStatusLabel, formatDate, canAccess, getRoleLabel } from '@/lib/utils'
+import { getProjectComputedBadge, getProjectComputedHealth, getProjectComputedStatus } from '@/lib/project-status'
 import {
   PROJECT_CATEGORIES,
   PROJECT_PACKAGE_TYPES,
@@ -157,7 +158,7 @@ export default function ProyekPage() {
           .join(' ')
           .toLowerCase()
           .includes(q)
-      const matchHealth = filterHealth === 'all' || project.health === filterHealth
+      const matchHealth = filterHealth === 'all' || getProjectComputedHealth(project) === filterHealth
       const matchKec = filterKec === 'all' || project.kecamatan === filterKec
       const matchStatus =
         filterStatus === 'all' ||
@@ -197,8 +198,11 @@ export default function ProyekPage() {
     const fisik = filtered.filter((project) => getProjectPackageType(project) === 'fisik').length
     const konsultan = filtered.filter((project) => ['konsultan_perencanaan', 'konsultan_pengawasan'].includes(getProjectPackageType(project))).length
     const rutin = filtered.filter((project) => getProjectCategory(project) === 'rutin').length
-    const terlambat = filtered.filter((project) => project.health === 'kritis' || Number(project.deviasi || 0) < -10).length
-    const selesai = filtered.filter((project) => project.status === 'selesai').length
+    const terlambat = filtered.filter((project) => {
+      const status = getProjectComputedStatus(project)
+      return status.isLate || status.isAtRisk || status.health === 'kritis'
+    }).length
+    const selesai = filtered.filter((project) => getProjectComputedStatus(project).isCompleted).length
     const berjalan = filtered.filter((project) => project.status !== 'selesai').length
     const avgFisik = total ? Math.round(filtered.reduce((sum, project) => sum + Number(project.progressFisik || 0), 0) / total) : 0
     const nilaiKontrak = filtered.reduce((sum, project) => sum + Number(project.nilaiKontrak || project.anggaran || 0), 0)
@@ -604,7 +608,7 @@ function PackageTableRow({
   onEdit: (project: Proyek) => void
   onDelete: (project: Proyek) => void
 }) {
-  const badge = getHealthBadge(project.health)
+  const badge = getProjectComputedBadge(project)
   const deviasi = Number(project.deviasi || 0)
 
   return (
@@ -657,7 +661,7 @@ function MobilePackageCard({
   onEdit: (project: Proyek) => void
   onDelete: (project: Proyek) => void
 }) {
-  const badge = getHealthBadge(project.health)
+  const badge = getProjectComputedBadge(project)
   const deviasi = Number(project.deviasi || 0)
 
   return (
@@ -754,7 +758,8 @@ function ProjectDetailPanel({
     )
   }
 
-  const badge = getHealthBadge(project.health)
+  const computedStatus = getProjectComputedStatus(project)
+  const badge = getProjectComputedBadge(project)
   const packageType = getProjectPackageTypeLabel(getProjectPackageType(project))
   const category = getProjectCategoryLabel(getProjectCategory(project))
   const deviasi = Number(project.deviasi || 0)
@@ -784,6 +789,9 @@ function ProjectDetailPanel({
           <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-700">{packageType}</span>
           <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-black text-cyan-700">{category}</span>
         </div>
+        <p className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+          Status sinkron: <span className="font-black text-slate-900">{computedStatus.label}</span>. {computedStatus.reason}
+        </p>
 
         <div className="mt-5 space-y-3">
           <ProgressLine label="Progress Fisik" value={project.progressFisik} color="bg-blue-600" />

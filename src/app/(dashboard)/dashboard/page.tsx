@@ -19,7 +19,8 @@ import { canAccessPage, canViewAllProjects } from '@/lib/rbac'
 import { getScopedProjects } from '@/lib/dashboard-scope'
 import type { TaskCenterIdentity } from '@/lib/task-center-ui'
 import { filterProjectsByScope, getProjectBudgetYear, getProjectBudgetYears, getProjectCategoryLabel, getProjectPackageType, getProjectPackageTypeLabel, getProjectPrograms, getProjectSubKegiatan, getProjectWorkStage, getProjectWorkStageLabel } from '@/lib/reporting'
-import { formatCurrency, formatDateTime, getHealthBadge, getRoleLabel } from '@/lib/utils'
+import { formatCurrency, formatDateTime, getRoleLabel } from '@/lib/utils'
+import { getProjectComputedBadge, getProjectComputedHealth, getProjectComputedStatus } from '@/lib/project-status'
 
 type DashboardTab =
   | 'ringkasan'
@@ -131,13 +132,13 @@ export default function DashboardPage() {
   }
 
   const stats = useMemo(() => {
-    const onTrack = visibleProjects.filter((project) => project.health === 'on_track').length
-    const warning = visibleProjects.filter((project) => project.health === 'warning').length
-    const kritis = visibleProjects.filter((project) => project.health === 'kritis').length
+    const onTrack = visibleProjects.filter((project) => getProjectComputedHealth(project) === 'on_track').length
+    const warning = visibleProjects.filter((project) => getProjectComputedHealth(project) === 'warning').length
+    const kritis = visibleProjects.filter((project) => getProjectComputedHealth(project) === 'kritis').length
     const totalAnggaran = visibleProjects.reduce((sum, project) => sum + project.anggaran, 0)
     const avgFisik = visibleProjects.length ? visibleProjects.reduce((sum, project) => sum + project.progressFisik, 0) / visibleProjects.length : 0
     const avgKeuangan = visibleProjects.length ? visibleProjects.reduce((sum, project) => sum + project.progressKeuangan, 0) / visibleProjects.length : 0
-    const selesai = visibleProjects.filter((project) => project.status === 'selesai').length
+    const selesai = visibleProjects.filter((project) => getProjectComputedStatus(project).isCompleted).length
     const openMasalah = visibleProjects.reduce((sum, project) => sum + project.masalah.filter((item) => item.status === 'open').length, 0)
     const totalLaporan = visibleProjects.reduce((sum, project) => sum + project.laporanHarian.length, 0)
     const laporanMenunggu = visibleProjects.reduce((sum, project) => sum + project.laporanHarian.filter((item) => !item.disetujui).length, 0)
@@ -150,7 +151,7 @@ export default function DashboardPage() {
     name: project.kode.split('-').slice(0, 2).join('-'),
     fisik: project.progressFisik,
     keuangan: project.progressKeuangan,
-    health: project.health,
+    health: getProjectComputedHealth(project),
   })), [visibleProjects])
 
   const pieData = [
@@ -169,8 +170,31 @@ export default function DashboardPage() {
   }, [auditLogs, currentRole, currentUser, scopedProjects])
   const approvalPending = approvalSummary.pending
   const riskProjects = visibleProjects
-    .filter((project) => project.health === 'kritis' || project.health === 'warning' || project.masalah.some((item) => item.status === 'open'))
-    .sort((a, b) => (b.health === 'kritis' ? 2 : b.health === 'warning' ? 1 : 0) - (a.health === 'kritis' ? 2 : a.health === 'warning' ? 1 : 0))
+    .filter((project) => {
+      const status = getProjectComputedStatus(project)
+      return status.isLate || status.isAtRisk || status.health === 'kritis' || status.health === 'warning' || project.masalah.some((item) => item.status === 'open')
+    })
+    .sort((a, b) => {
+      const aStatus = getProjectComputedStatus(a)
+      const bStatus = getProjectComputedStatus(b)
+      const score = (status: ReturnType<typeof getProjectComputedStatus>) => status.warningLevel === 'critical' ? 2 : status.warningLevel === 'warning' ? 1 : 0
+      return score(bStatus) - score(aStatus)
+    })
+
+  const taskCenterSystemWarnings = useMemo(
+    () => riskProjects.slice(0, 4).map((project) => {
+      const status = getProjectComputedStatus(project)
+      const openIssues = project.masalah.filter((item) => item.status === 'open').length
+      return {
+        id: project.id,
+        title: project.nama,
+        detail: openIssues > 0 ? `${status.reason} Masalah open: ${openIssues}.` : status.reason,
+        href: `/proyek/${project.id}?from=dashboard`,
+        level: status.warningLevel === 'critical' ? 'critical' as const : 'warning' as const,
+      }
+    }),
+    [riskProjects],
+  )
 
   const activeYear = useMemo(() => {
     if (filterTahun !== 'all' && !Number.isNaN(Number(filterTahun))) {
@@ -188,12 +212,12 @@ export default function DashboardPage() {
 
   const previousYearStats = useMemo(() => {
     const total = previousYearProjects.length
-    const selesai = previousYearProjects.filter((project) => project.status === 'selesai').length
+    const selesai = previousYearProjects.filter((project) => getProjectComputedStatus(project).isCompleted).length
     const stuck = previousYearProjects.filter(
-      (project) =>
-        project.health === 'kritis' ||
-        project.health === 'warning' ||
-        project.masalah.some((item) => item.status === 'open'),
+      (project) => {
+        const status = getProjectComputedStatus(project)
+        return status.isLate || status.isAtRisk || status.health === 'kritis' || status.health === 'warning' || project.masalah.some((item) => item.status === 'open')
+      },
     ).length
     const avgFisik = total
       ? previousYearProjects.reduce((sum, project) => sum + (project.progressFisik || 0), 0) / total
@@ -328,7 +352,8 @@ export default function DashboardPage() {
       const openIssues = Array.isArray(project.masalah)
         ? project.masalah.filter((item) => item.status === 'open').length
         : 0
-      const stuck = project.health === 'kritis' || project.health === 'warning' || openIssues > 0
+      const computedStatus = getProjectComputedStatus(project)
+      const stuck = computedStatus.isLate || computedStatus.isAtRisk || computedStatus.health === 'kritis' || computedStatus.health === 'warning' || openIssues > 0
 
       if (!groups[subKegiatan]) {
         groups[subKegiatan] = {
@@ -1065,13 +1090,14 @@ export default function DashboardPage() {
                   completedTasks={[]}
                   appreciationEvents={[]}
                   dataSourceLabel="Belum Terhubung Data Resmi"
+                  systemWarnings={taskCenterSystemWarnings}
                 />
               )}
               focusPackage={riskProjects[0] ? {
                 kode: riskProjects[0].kode,
                 nama: riskProjects[0].nama,
                 lokasi: riskProjects[0].lokasi,
-                health: riskProjects[0].health || 'warning',
+                health: getProjectComputedHealth(riskProjects[0]),
                 jenis: getProjectPackageTypeLabel(getProjectPackageType(riskProjects[0])),
                 metode: getProjectCategoryLabel(riskProjects[0].kategoriPekerjaan),
                 progressFisik: riskProjects[0].progressFisik,
@@ -1590,14 +1616,15 @@ export default function DashboardPage() {
               ) : (
                 <div className="space-y-3">
                   {riskProjects.slice(0, 6).map((project) => {
-                    const badge = getHealthBadge(project.health)
+                    const badge = getProjectComputedBadge(project)
+                    const computedStatus = getProjectComputedStatus(project)
                     const openIssues = project.masalah.filter((item) => item.status === 'open').length
                     return (
                       <Link key={project.id} href={`/proyek/${project.id}?from=dashboard`} className="block rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <div className="min-w-0">
                             <div className="truncate text-sm font-bold text-slate-900">{project.kode} - {project.nama}</div>
-                            <div className="text-xs text-slate-500">Deviasi {project.deviasi}% - masalah open {openIssues}</div>
+                            <div className="text-xs text-slate-500">{computedStatus.label} - deviasi {project.deviasi}% - masalah open {openIssues}</div>
                           </div>
                           <span className={`w-fit rounded-full border px-2 py-0.5 text-[10px] font-bold ${badge.bg} ${badge.text} ${badge.border}`}>{badge.label}</span>
                         </div>
@@ -1772,13 +1799,14 @@ function WarningCenterTab({ stats, approvalPending, riskProjects }: { stats: any
         ) : (
           <div className="space-y-3">
             {riskProjects.slice(0, 6).map((project) => {
-              const badge = getHealthBadge(project.health)
+              const badge = getProjectComputedBadge(project)
+              const computedStatus = getProjectComputedStatus(project)
               return (
                 <Link key={project.id} href={`/proyek/${project.id}?from=dashboard`} className="block rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <div className="truncate text-sm font-bold text-slate-900">{project.kode} - {project.nama}</div>
-                      <div className="text-xs text-slate-500">Progress fisik {project.progressFisik}% - deviasi {project.deviasi}%</div>
+                      <div className="text-xs text-slate-500">{computedStatus.label} - progress fisik {project.progressFisik}% - deviasi {project.deviasi}%</div>
                     </div>
                     <span className={`w-fit rounded-full border px-2 py-0.5 text-[10px] font-bold ${badge.bg} ${badge.text} ${badge.border}`}>{badge.label}</span>
                   </div>
@@ -1919,7 +1947,7 @@ function ProjectTable({ projects }: { projects: ReturnType<typeof useAppStore.ge
           </thead>
           <tbody className="divide-y divide-slate-50">
             {projects.map((project) => {
-              const badge = getHealthBadge(project.health)
+              const badge = getProjectComputedBadge(project)
               return (
                 <tr key={project.id} className="transition-colors hover:bg-slate-50/50">
                   <td className="px-4 py-3">

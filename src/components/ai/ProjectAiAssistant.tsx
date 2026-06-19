@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { AlertTriangle, Bell, Bot, CalendarDays, Clock, HelpCircle, MessageSquareText, Target, X } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { canAccessPage } from '@/lib/rbac'
+import { getProjectComputedStatus } from '@/lib/project-status'
 import type { Proyek } from '@/types'
 
 type HaloFaqItem = {
@@ -132,6 +133,9 @@ function getHaloWorkTimeView(
 
   const scheduledProjects = visibleProjects
     .map((project) => {
+      const computedStatus = getProjectComputedStatus(project, today)
+      if (computedStatus.isCompleted) return null
+
       const targetDate = parseHaloDate(project.tanggalSelesai)
       if (!targetDate) return null
 
@@ -145,6 +149,7 @@ function getHaloWorkTimeView(
         startDate,
         targetDate,
         remainingDays,
+        computedStatus,
       }
     })
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
@@ -160,9 +165,17 @@ function getHaloWorkTimeView(
     }
   }
 
-  scheduledProjects.sort((a, b) => a.remainingDays - b.remainingDays)
+  scheduledProjects.sort((a, b) => {
+    const rank = (key: ReturnType<typeof getProjectComputedStatus>['key']) => key === 'late' ? 0 : key === 'at_risk' ? 1 : key === 'on_track' ? 2 : 3
+    const diff = rank(a.computedStatus.key) - rank(b.computedStatus.key)
+    return diff !== 0 ? diff : a.remainingDays - b.remainingDays
+  })
   const nearestProject = scheduledProjects[0]
-  const status = getHaloWorkTimeStatus(nearestProject.remainingDays)
+  const status: HaloWorkTimeStatus = nearestProject.computedStatus.key === 'late'
+    ? 'Terlambat'
+    : nearestProject.computedStatus.key === 'at_risk'
+      ? nearestProject.remainingDays <= 3 ? 'Mendesak' : 'Perlu Perhatian'
+      : getHaloWorkTimeStatus(nearestProject.remainingDays)
   const remainingLabel = nearestProject.remainingDays < 0
     ? `Terlambat ${Math.abs(nearestProject.remainingDays)} hari`
     : nearestProject.remainingDays === 0
@@ -177,8 +190,8 @@ function getHaloWorkTimeView(
     remainingLabel,
     status,
     tone: getHaloWorkTimeTone(status),
-    description: 'Pantau sisa waktu pekerjaan berdasarkan jadwal yang tersedia.',
-    sourceLabel: 'Sumber: tanggal mulai dan tanggal selesai paket dari store/frontend existing.',
+    description: nearestProject.computedStatus.reason,
+    sourceLabel: 'Sumber: status sinkron paket dari helper project-status, tanggal mulai, dan tanggal selesai paket existing.',
   }
 }
 

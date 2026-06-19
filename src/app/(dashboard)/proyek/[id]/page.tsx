@@ -6,7 +6,8 @@ import { Topbar } from '@/components/layout/Topbar'
 import { Modal, ConfirmDialog, FormField, Input, Textarea, Select, EmptyState, ActionButtons, StatusBadge } from '@/components/ui'
 import { printRekapProyek } from '@/lib/print'
 import { buildMonthlyReports, buildWeeklyReports, getProjectCategoryLabel, printGeneratedReport } from '@/lib/reporting'
-import { canAccess, formatCurrency, formatDate, formatDateTime, getCurrentGPS, getHealthBadge, getStatusLabel } from '@/lib/utils'
+import { canAccess, formatCurrency, formatDate, formatDateTime, getCurrentGPS, getStatusLabel } from '@/lib/utils'
+import { getProjectComputedBadge, getProjectComputedStatus } from '@/lib/project-status'
 import { ArrowLeft, Printer } from 'lucide-react'
 import { Survey, LaporanHarian, CatatanPengawasan, Masalah, RAB, RABItem, Koordinat, Photo } from '@/types'
 import {
@@ -56,7 +57,8 @@ export default function ProyekDetailPage() {
     </div>
   )
 
-  const badge = getHealthBadge(proyek.health)
+  const computedStatus = getProjectComputedStatus(proyek)
+  const badge = getProjectComputedBadge(proyek)
 
   return (
     <>
@@ -92,6 +94,9 @@ export default function ProyekDetailPage() {
                 <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-medium">{getStatusLabel(proyek.status)}</span>
               </div>
               <h1 className="text-lg font-bold text-slate-800">{proyek.nama}</h1>
+              <p className="mt-2 max-w-2xl rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+                Status sinkron: <span className="font-bold text-slate-900">{computedStatus.label}</span>. {computedStatus.reason}
+              </p>
               <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
                 <MapPin className="w-4 h-4" /> {proyek.lokasi}
               </div>

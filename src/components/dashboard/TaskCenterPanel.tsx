@@ -1,8 +1,17 @@
+import Link from 'next/link'
 import { CheckCircle2, ClipboardList, ShieldAlert } from 'lucide-react'
 import { EmptyAssignmentCard } from './EmptyAssignmentCard'
 import { TaskCard } from './TaskCard'
 import { AppreciationHistoryPanel } from './AppreciationHistoryPanel'
 import type { AppreciationEvent, TaskCenterIdentity, TaskCenterItem } from '@/lib/task-center-ui'
+
+export type TaskCenterSystemWarning = {
+  id: string
+  title: string
+  detail: string
+  href: string
+  level: 'warning' | 'critical' | 'info'
+}
 
 type TaskCenterPanelProps = {
   identity?: TaskCenterIdentity
@@ -10,6 +19,7 @@ type TaskCenterPanelProps = {
   completedTasks?: TaskCenterItem[]
   appreciationEvents?: AppreciationEvent[]
   dataSourceLabel?: string
+  systemWarnings?: TaskCenterSystemWarning[]
 }
 
 export function TaskCenterPanel({
@@ -18,10 +28,11 @@ export function TaskCenterPanel({
   completedTasks = [],
   appreciationEvents = [],
   dataSourceLabel = 'Belum Terhubung Data Resmi',
+  systemWarnings = [],
 }: TaskCenterPanelProps) {
   const activeTasks = tasks.filter((task) => task.status !== 'done')
-  const attentionTasks = activeTasks.filter((task) => task.priority === 'high' || task.priority === 'critical' || task.status === 'blocked')
   const visibleTasks = activeTasks.slice(0, 3)
+  const visibleSystemWarnings = systemWarnings.slice(0, 4)
 
   return (
     <section className="relative z-10 overflow-hidden rounded-[28px] border border-cyan-200/80 bg-gradient-to-br from-white via-sky-50/80 to-cyan-50/70 p-4 text-slate-900 shadow-[0_18px_50px_rgba(14,116,144,0.10)] sm:p-5">
@@ -46,7 +57,7 @@ export function TaskCenterPanel({
         <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
           <SummaryMetric icon={ClipboardList} label="Tugas Aktif" value={activeTasks.length} tone="cyan" />
           <SummaryMetric icon={CheckCircle2} label="Selesai" value={completedTasks.length} tone="green" />
-          <SummaryMetric icon={ShieldAlert} label="Perhatian" value={attentionTasks.length} tone="amber" />
+          <SummaryMetric icon={ShieldAlert} label="Peringatan Sistem" value={systemWarnings.length} tone="amber" />
         </div>
 
         <div className="mt-5 grid gap-4 xl:grid-cols-[1.45fr_0.8fr]">
@@ -65,6 +76,35 @@ export function TaskCenterPanel({
               <p className="mt-2 text-sm leading-6 text-slate-600">
                 Tugas baru akan muncul setelah admin atau pejabat berwenang menetapkan assignment. Panel ini tidak membuka data global saat assignment kosong.
               </p>
+            </section>
+
+            <section className="rounded-3xl border border-amber-100 bg-amber-50/70 p-4 shadow-sm">
+              <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">Peringatan Sistem</div>
+              <h3 className="mt-1 text-base font-black text-slate-950">Risiko terlihat dalam scope Anda</h3>
+              <p className="mt-2 text-xs leading-5 text-amber-900">
+                Daftar ini bukan Tugas Saya. Ini adalah paket berisiko yang terlihat sesuai role dan assignment scope.
+              </p>
+              {visibleSystemWarnings.length === 0 ? (
+                <p className="mt-3 rounded-2xl bg-white/80 px-3 py-2 text-sm font-semibold text-slate-600">
+                  Tidak ada peringatan sistem pada filter aktif.
+                </p>
+              ) : (
+                <div className="mt-3 space-y-2">
+                  {visibleSystemWarnings.map((warning) => (
+                    <Link key={warning.id} href={warning.href} className="block rounded-2xl border border-white bg-white/90 px-3 py-2 text-sm shadow-sm transition hover:border-amber-200 hover:bg-white">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="line-clamp-1 font-black text-slate-900">{warning.title}</div>
+                          <div className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">{warning.detail}</div>
+                        </div>
+                        <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black ${warning.level === 'critical' ? 'bg-red-50 text-red-700' : 'bg-amber-100 text-amber-800'}`}>
+                          {warning.level === 'critical' ? 'Kritis' : 'Risiko'}
+                        </span>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
