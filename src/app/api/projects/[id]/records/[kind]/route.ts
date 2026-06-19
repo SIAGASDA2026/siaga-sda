@@ -10,11 +10,74 @@ function jsonDate(value: unknown) {
   return value ? new Date(String(value)) : new Date()
 }
 
-async function saveFotos(entityType: string, entityId: string, uploadedBy: string, fotos?: { url: string; keterangan?: string; koordinat?: unknown }[], relation?: Record<string, string>) {
-  if (!fotos?.length) return
+type IncomingFoto = {
+  url?: unknown
+  keterangan?: string
+  koordinat?: unknown
+}
+
+function isTemporaryPhotoUrl(url: string) {
+  const normalized = url.trim().toLowerCase()
+  return normalized.startsWith('blob:') || normalized.startsWith('data:')
+}
+
+function isLocalBrowserPhotoUrl(url: string) {
+  const normalized = url.trim().toLowerCase()
+  if (
+    normalized.startsWith('file:') ||
+    normalized.startsWith('about:') ||
+    normalized.startsWith('javascript:') ||
+    normalized.startsWith('chrome:') ||
+    normalized.startsWith('edge:') ||
+    normalized.startsWith('devtools:')
+  ) {
+    return true
+  }
+
+  try {
+    const parsed = new URL(url)
+    return ['localhost', '127.0.0.1', '::1'].includes(parsed.hostname)
+  } catch {
+    return false
+  }
+}
+
+function isAllowedStoredPhotoUrl(url: string) {
+  const normalized = url.trim()
+  if (!normalized) return false
+  if (isTemporaryPhotoUrl(normalized) || isLocalBrowserPhotoUrl(normalized)) return false
+
+  if (normalized.startsWith('/') && !normalized.startsWith('//')) return true
+  if (/^https?:\/\//i.test(normalized)) return true
+
+  return /^[a-zA-Z0-9][a-zA-Z0-9/_\-.:]+$/.test(normalized)
+}
+
+function sanitizeFotoPayload(fotos?: IncomingFoto[]) {
+  if (!Array.isArray(fotos) || fotos.length === 0) {
+    return { validFotos: [] as (IncomingFoto & { url: string })[], ignoredCount: 0 }
+  }
+
+  const validFotos: (IncomingFoto & { url: string })[] = []
+
+  for (const foto of fotos) {
+    const url = typeof foto?.url === 'string' ? foto.url.trim() : ''
+    if (!isAllowedStoredPhotoUrl(url)) continue
+    validFotos.push({ ...foto, url })
+  }
+
+  return { validFotos, ignoredCount: fotos.length - validFotos.length }
+}
+
+async function saveFotos(entityType: string, entityId: string, uploadedBy: string, fotos?: IncomingFoto[], relation?: Record<string, string>) {
+  const { validFotos, ignoredCount } = sanitizeFotoPayload(fotos)
+  if (ignoredCount > 0) {
+    console.warn(`[DATA-SAFETY.2] Ignored ${ignoredCount} temporary or invalid photo URL(s) for ${entityType}:${entityId}`)
+  }
+  if (!validFotos.length) return { storedCount: 0, ignoredCount }
 
   await prisma.foto.createMany({
-    data: fotos.map((foto) => ({
+    data: validFotos.map((foto) => ({
       entityType,
       entityId,
       url: foto.url,
@@ -24,6 +87,8 @@ async function saveFotos(entityType: string, entityId: string, uploadedBy: strin
       ...relation,
     })),
   })
+
+  return { storedCount: validFotos.length, ignoredCount }
 }
 
 const CREATE_PERMISSION_BY_KIND: Record<string, Permission> = {
@@ -120,7 +185,7 @@ export async function POST(
         disetujuiOleh: body.disetujuiOleh || null,
       },
     })
-    await saveFotos('laporan_harian', laporan.id, session.user.name || session.user.id, body.foto, { laporanHarianId: laporan.id })
+    const fotoStats = await saveFotos('laporan_harian', laporan.id, session.user.name || session.user.id, body.foto, { laporanHarianId: laporan.id })
     const progressFisik = Number(body.progressFisik || 0)
     const progressKeuangan = Number(paket.progressKeuangan)
     await prisma.paket.update({
@@ -131,7 +196,7 @@ export async function POST(
         health: toHealthStatus(progressFisik, progressKeuangan),
       },
     })
-    await logAudit(session.user.id, 'UPLOAD_LAPORAN', `Upload laporan + ${(body.foto || []).length} foto`, { paketId: id, entityType: 'laporan_harian', entityId: laporan.id })
+    await logAudit(session.user.id, 'UPLOAD_LAPORAN', `Upload laporan + ${fotoStats.storedCount} foto`, { paketId: id, entityType: 'laporan_harian', entityId: laporan.id })
     return NextResponse.json(await getMappedPaket(id), { status: 201 })
   }
 
