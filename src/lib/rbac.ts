@@ -17,10 +17,17 @@ export type Permission =
   | 'view_documents'
   | 'view_approval'
   | 'view_settings'
+  | 'view_profile_settings'
+  | 'view_system_settings'
   | 'view_audit_log'
   | 'manage_users'
   | 'manage_admin_users'
   | 'manage_asset_sda'
+  | 'manage_master_data'
+  | 'manage_roles'
+  | 'manage_permissions'
+  | 'manage_assignments'
+  | 'manage_system_settings'
   | 'manage_projects'
   | 'create_survey'
   | 'upload_rab'
@@ -93,11 +100,18 @@ export const PERMISSION_ROLES: Record<Permission, Role[]> = {
   view_documents: ALL_ROLES,
   view_approval: [...READ_ALL_CORE, 'pptk', 'direksi_teknis', 'tim_pengawasan', 'konsultan_pengawasan', 'pphp', 'admin_sub_kegiatan'],
   view_settings: ALL_ROLES,
+  view_profile_settings: ALL_ROLES,
+  view_system_settings: ['super_admin'],
   view_audit_log: ['super_admin', 'admin', 'ppk', 'pimpinan', 'kabid', 'auditor'],
 
   manage_users: ['super_admin', 'admin'],
   manage_admin_users: ['super_admin'],
   manage_asset_sda: ['super_admin', 'admin'],
+  manage_master_data: ['super_admin', 'admin'],
+  manage_roles: ['super_admin'],
+  manage_permissions: ['super_admin'],
+  manage_assignments: ['super_admin', 'admin'],
+  manage_system_settings: ['super_admin'],
   manage_projects: ['super_admin', 'admin', 'ppk', 'pejabat_pengadaan', 'admin_sub_kegiatan'],
   create_survey: ['super_admin', 'admin', 'pptk', 'tim_perencanaan', 'tim_survey', 'konsultan_perencana'],
   upload_rab: ['super_admin', 'admin', 'tim_perencanaan', 'tim_survey', 'konsultan_perencana', 'pejabat_pengadaan'],
@@ -135,12 +149,19 @@ export const PERMISSION_DEFINITIONS: PermissionDefinition[] = [
   { key: 'view_chat', label: 'Lihat Chat', category: 'Komunikasi', action: 'view', desc: 'Membuka komunikasi internal proyek.' },
   { key: 'view_announcements', label: 'Lihat Pengumuman', category: 'Komunikasi', action: 'view', desc: 'Membaca pengumuman resmi sistem.' },
   { key: 'view_surat', label: 'Lihat Surat Masuk & Keluar', category: 'Komunikasi', action: 'view', desc: 'Membaca peta workflow Surat Masuk & Keluar sesuai kewenangan.' },
-  { key: 'view_settings', label: 'Lihat Pengaturan', category: 'Administrasi', action: 'view', desc: 'Membuka preferensi akun dan sistem.' },
+  { key: 'view_settings', label: 'Lihat Pengaturan', category: 'Administrasi', action: 'view', desc: 'Membuka preferensi akun dan pengaturan personal.' },
+  { key: 'view_profile_settings', label: 'Lihat Pengaturan Profil', category: 'Administrasi', action: 'view', desc: 'Membaca pengaturan profil, notifikasi, tampilan, dan keamanan akun sendiri.' },
+  { key: 'view_system_settings', label: 'Lihat Pengaturan Sistem', category: 'Administrasi', action: 'view', desc: 'Membaca pengaturan sistem secara terbatas tanpa aksi tulis.' },
   { key: 'view_audit_log', label: 'Lihat Audit Log', category: 'Administrasi', action: 'view', desc: 'Membaca rekam jejak aktivitas penting.' },
   { key: 'view_keuangan', label: 'Lihat Keuangan', category: 'Keuangan', action: 'view', desc: 'Membaca ringkasan nilai kontrak, pagu, dan realisasi.' },
   { key: 'manage_users', label: 'Kelola Pengguna', category: 'Administrasi', action: 'manage', desc: 'Membuat, mengubah, menonaktifkan user sesuai batas role.' },
   { key: 'manage_admin_users', label: 'Kelola Admin', category: 'Administrasi', action: 'manage', desc: 'Membuat dan mengubah akun admin. Hanya Super Admin.' },
   { key: 'manage_asset_sda', label: 'Kelola Asset SDA', category: 'Monitoring', action: 'manage', desc: 'Mengelola data Asset SDA ketika modul resmi sudah tersedia.' },
+  { key: 'manage_master_data', label: 'Kelola Master Data', category: 'Administrasi', action: 'manage', desc: 'Mengelola master data sistem setelah UI dan scope resmi tersedia.' },
+  { key: 'manage_roles', label: 'Kelola Role', category: 'Administrasi', action: 'manage', desc: 'Mengelola definisi role sistem. Hanya Super Admin.' },
+  { key: 'manage_permissions', label: 'Kelola Permission', category: 'Administrasi', action: 'manage', desc: 'Mengelola permission granular sistem. Hanya Super Admin.' },
+  { key: 'manage_assignments', label: 'Kelola Assignment', category: 'Administrasi', action: 'manage', desc: 'Mengelola penugasan user ke paket, kegiatan, atau modul sesuai kewenangan.' },
+  { key: 'manage_system_settings', label: 'Kelola Pengaturan Sistem', category: 'Administrasi', action: 'manage', desc: 'Mengubah pengaturan sistem inti. Hanya Super Admin.' },
   { key: 'manage_projects', label: 'Kelola Proyek', category: 'Monitoring', action: 'manage', desc: 'Membuat, mengubah, dan mengarsipkan data proyek/paket.' },
   { key: 'create_survey', label: 'Input Survey', category: 'Lapangan', action: 'create', desc: 'Menginput survey lapangan dengan data teknis, foto, dan GPS.' },
   { key: 'upload_rab', label: 'Upload RAB', category: 'Teknis & Kontrak', action: 'upload', desc: 'Mengunggah dan memperbarui data RAB.' },
