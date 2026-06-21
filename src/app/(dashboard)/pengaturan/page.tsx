@@ -57,12 +57,12 @@ export default function PengaturanPage() {
   return (
     <>
       <Topbar title="Pengaturan" subtitle="Kelola preferensi dan akun Anda" />
-      <div className="p-5">
+      <div className="siaga-page-canvas p-4 sm:p-5">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
           {/* Sidebar tabs */}
-          <div className="bg-white rounded-xl border border-slate-100 p-3 h-fit">
+          <div className="siaga-panel-canvas h-fit p-3">
             {/* User preview */}
-            <div className="flex items-center gap-3 p-3 mb-3 bg-slate-50 rounded-xl">
+            <div className="siaga-card-compact siaga-card-info mb-3 flex items-center gap-3 p-3">
               <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                 {getInitials(currentUser?.name || 'U')}
               </div>
@@ -90,7 +90,7 @@ export default function PengaturanPage() {
           <div className="md:col-span-3">
             {/* PROFIL */}
             {activeTab === 'profil' && (
-              <div className="bg-white rounded-xl border border-slate-100 p-6">
+              <div className="siaga-form-canvas siaga-card-info p-6">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-base font-bold text-slate-800">Profil Saya</h2>
@@ -141,7 +141,7 @@ export default function PengaturanPage() {
 
             {/* NOTIFIKASI */}
             {activeTab === 'notifikasi' && (
-              <div className="bg-white rounded-xl border border-slate-100 p-6">
+              <div className="siaga-form-canvas siaga-card-warning p-6">
                 <h2 className="text-base font-bold text-slate-800 mb-1">Pengaturan Notifikasi</h2>
                 <p className="text-xs text-slate-400 mb-6">Pilih notifikasi yang ingin Anda terima</p>
 
@@ -153,8 +153,8 @@ export default function PengaturanPage() {
                     { key: 'chatMention', label: 'Mention di Chat', desc: 'Notifikasi saat disebutkan dalam chat proyek' },
                     { key: 'rabDisetujui', label: 'RAB Disetujui', desc: 'Notifikasi saat RAB mendapat persetujuan' },
                     { key: 'emailNotif', label: 'Notifikasi Email', desc: 'Terima ringkasan harian via email' },
-                  ].map(item => (
-                    <div key={item.key} className="flex items-start justify-between p-4 rounded-xl bg-slate-50 border border-slate-100">
+                  ].map((item, index) => (
+                    <div key={item.key} className={`siaga-card-compact flex items-start justify-between p-4 ${index % 2 === 0 ? 'siaga-card-warning' : 'siaga-card-info'}`}>
                       <div className="flex-1">
                         <div className="text-sm font-semibold text-slate-700">{item.label}</div>
                         <div className="text-xs text-slate-400 mt-0.5">{item.desc}</div>
@@ -176,13 +176,13 @@ export default function PengaturanPage() {
 
             {/* TAMPILAN */}
             {activeTab === 'tampilan' && (
-              <div className="bg-white rounded-xl border border-slate-100 p-6">
+              <div className="siaga-form-canvas siaga-card-recommendation p-6">
                 <h2 className="text-base font-bold text-slate-800 mb-1">Pengaturan Tampilan</h2>
                 <p className="text-xs text-slate-400 mb-6">Sesuaikan tampilan sesuai preferensi Anda</p>
 
                 <div className="space-y-5">
                   {/* Sidebar */}
-                  <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="siaga-card-compact siaga-card-recommendation flex items-center justify-between p-4">
                     <div>
                       <div className="text-sm font-semibold text-slate-700">Sidebar Kompak</div>
                       <div className="text-xs text-slate-400 mt-0.5">Tampilkan sidebar dalam mode ikon saja</div>
@@ -194,7 +194,7 @@ export default function PengaturanPage() {
                   </div>
 
                   {/* Density */}
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="siaga-card-compact siaga-card-info p-4">
                     <div className="text-sm font-semibold text-slate-700 mb-3">Kepadatan Tampilan</div>
                     <div className="grid grid-cols-3 gap-2">
                       {['Kompak', 'Normal', 'Lega'].map((d, i) => (
@@ -207,7 +207,7 @@ export default function PengaturanPage() {
                   </div>
 
                   {/* Bahasa */}
-                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                  <div className="siaga-card-compact siaga-card-success p-4">
                     <div className="text-sm font-semibold text-slate-700 mb-2">Bahasa</div>
                     <select className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none">
                       <option value="id">🇮🇩 Bahasa Indonesia</option>
@@ -220,7 +220,7 @@ export default function PengaturanPage() {
 
             {/* KEAMANAN */}
             {activeTab === 'keamanan' && (
-              <div className="bg-white rounded-xl border border-slate-100 p-6">
+              <div className="siaga-form-canvas siaga-card-critical p-6">
                 <h2 className="text-base font-bold text-slate-800 mb-1">Keamanan Akun</h2>
                 <p className="text-xs text-slate-400 mb-6">Kelola password dan keamanan akun</p>
 
@@ -277,15 +277,15 @@ export default function PengaturanPage() {
                   <div className="mt-4 pt-4 border-t border-slate-100">
                     <div className="text-sm font-semibold text-slate-700 mb-3">Info Keamanan</div>
                     <div className="space-y-2 text-xs text-slate-500">
-                      <div className="flex justify-between p-2.5 bg-slate-50 rounded-lg">
+                      <div className="siaga-card-compact siaga-card-info flex justify-between p-2.5">
                         <span>Role Akses</span>
                         <span className="font-semibold text-slate-700">{getRoleLabel(currentUser?.role || 'pptk')}</span>
                       </div>
-                      <div className="flex justify-between p-2.5 bg-slate-50 rounded-lg">
+                      <div className="siaga-card-compact siaga-card-neutral flex justify-between p-2.5">
                         <span>ID Pengguna</span>
                         <span className="font-mono">{currentUser?.id}</span>
                       </div>
-                      <div className="flex justify-between p-2.5 bg-green-50 rounded-lg">
+                      <div className="siaga-card-compact siaga-card-success flex justify-between p-2.5">
                         <span>Status Akun</span>
                         <span className="font-semibold text-green-700">✓ Aktif</span>
                       </div>

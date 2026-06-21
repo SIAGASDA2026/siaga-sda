@@ -11,6 +11,14 @@ type SubfeatureEntryPointsProps = {
   title?: string
 }
 
+const subfeatureTone = [
+  'siaga-card-info',
+  'siaga-card-recommendation',
+  'siaga-card-success',
+  'siaga-card-warning',
+  'siaga-card-neutral',
+] as const
+
 export function SubfeatureEntryPoints({
   parentId,
   title = 'Sub-fitur Terkait',
@@ -22,17 +30,17 @@ export function SubfeatureEntryPoints({
   if (visibleItems.length === 0) return null
 
   return (
-    <section className="siaga-section-canvas-muted p-4">
+    <section className="siaga-panel-canvas p-4">
       <div className="mb-3">
         <div className="text-sm font-extrabold text-slate-900">{title}</div>
         <p className="mt-1 text-xs text-slate-500">Entry point mengikuti permission dan penugasan yang berlaku.</p>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
-        {visibleItems.map((item) => (
+        {visibleItems.map((item, index) => (
           <Link
             key={item.id}
             href={item.href}
-            className="siaga-card-interactive group flex min-w-0 items-center justify-between gap-3 px-3 py-3"
+            className={`siaga-card-interactive group flex min-w-0 items-center justify-between gap-3 px-3 py-3 ${subfeatureTone[index % subfeatureTone.length]}`}
           >
             <span className="min-w-0">
               <span className="block text-sm font-bold text-slate-800">{item.label}</span>

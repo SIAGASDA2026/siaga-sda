@@ -48,7 +48,7 @@ export function ProjectScopeFilters({
   const labelClass = 'mb-1.5 block text-[11px] font-semibold uppercase tracking-wide text-slate-500'
 
   return (
-    <div className={`bg-white rounded-xl border border-slate-100 p-3 md:p-4 ${className}`}>
+    <div className={`siaga-filter-canvas p-3 md:p-4 ${className}`}>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <div className={fieldClass}>
           <label className={labelClass}>Metode pengadaan</label>

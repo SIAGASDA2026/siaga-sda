@@ -71,6 +71,38 @@ const DASHBOARD_TAB_ACCESS_PATH: Partial<Record<DashboardTab, string>> = {
   ai: '/audit-log',
 }
 
+const dashboardToneCard = {
+  slate: 'siaga-card-neutral',
+  blue: 'siaga-card-info',
+  green: 'siaga-card-success',
+  amber: 'siaga-card-warning',
+  red: 'siaga-card-critical',
+  violet: 'siaga-card-recommendation',
+} as const
+
+function getDashboardToneCard(tone: keyof typeof dashboardToneCard | string = 'slate') {
+  return dashboardToneCard[tone as keyof typeof dashboardToneCard] || dashboardToneCard.slate
+}
+
+function getDashboardStatusTone(status?: string) {
+  const text = (status || '').toLowerCase()
+  if (text.includes('kritis') || text.includes('evaluasi') || text.includes('terlambat')) return 'siaga-card-critical'
+  if (text.includes('warning') || text.includes('waspada') || text.includes('percepatan') || text.includes('pending')) return 'siaga-card-warning'
+  if (text.includes('aman') || text.includes('selesai') || text.includes('approved') || text.includes('on track')) return 'siaga-card-success'
+  if (text.includes('rekomendasi') || text.includes('tindak') || text.includes('laporan')) return 'siaga-card-recommendation'
+  return 'siaga-card-info'
+}
+
+function getDashboardModuleCardTone(label: string, index: number) {
+  const text = label.toLowerCase()
+  if (text.includes('kritis') || text.includes('respon') || text.includes('deviasi')) return 'siaga-card-critical'
+  if (text.includes('pending') || text.includes('perlu') || text.includes('belum') || text.includes('disposisi') || text.includes('verifikasi')) return 'siaga-card-warning'
+  if (text.includes('selesai') || text.includes('terbit') || text.includes('aman')) return 'siaga-card-success'
+  if (text.includes('tindak') || text.includes('rekomendasi') || text.includes('laporan')) return 'siaga-card-recommendation'
+  if (text.includes('total') || text.includes('aktif') || text.includes('permohonan') || text.includes('shift')) return 'siaga-card-info'
+  return ['siaga-card-info', 'siaga-card-warning', 'siaga-card-recommendation', 'siaga-card-success'][index % 4]
+}
+
 export default function DashboardPage() {
   const projects = useAppStore((state) => state.projects)
   const currentUser = useAppStore((state) => state.currentUser)
@@ -813,7 +845,7 @@ export default function DashboardPage() {
           )}
         </div>
 
-        <section className={`relative z-10 rounded-[24px] border border-slate-200/70 bg-white/90 p-2 shadow-sm ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
+        <section className={`siaga-panel-canvas relative z-10 p-2 ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between gap-3 px-1.5 pb-2 pt-1">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-cyan-700">Navigasi Dashboard</div>
@@ -828,7 +860,7 @@ export default function DashboardPage() {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className={`inline-flex min-w-[82px] items-center gap-1.5 rounded-2xl border px-2 py-1.5 text-xs transition duration-200 ${activeTab === tab.id ? 'border-cyan-400 bg-cyan-50 text-slate-950 shadow-sm' : 'border-slate-200 bg-white text-slate-600 hover:border-cyan-200 hover:bg-slate-50'}`}
+                  className={`siaga-card-interactive inline-flex min-w-[82px] items-center gap-1.5 px-2 py-1.5 text-xs ${activeTab === tab.id ? 'siaga-card-info text-slate-950' : 'siaga-card-neutral text-slate-600'}`}
                   aria-pressed={activeTab === tab.id}
                 >
                   <span className={`inline-flex h-6 w-6 items-center justify-center rounded-xl ${activeTab === tab.id ? 'bg-cyan-100 text-cyan-800' : 'bg-slate-100 text-slate-600'}`}>
@@ -841,7 +873,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className={`relative z-10 rounded-[24px] border border-slate-200/70 bg-white/75 p-2 shadow-sm ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
+        <section className={`siaga-section-canvas-muted relative z-10 p-2 ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
           <div className="flex items-center justify-between gap-3 px-1.5 pb-2 pt-1">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.22em] text-cyan-700">Indikator Utama</div>
@@ -884,7 +916,7 @@ export default function DashboardPage() {
                 <Link
                   key={card.label}
                   href={card.href}
-                  className={`group relative z-10 flex min-h-[96px] items-center justify-between gap-3 rounded-[22px] border p-3.5 text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${card.tone === 'blue' ? 'border-sky-200/80 bg-sky-50/90' : card.tone === 'red' ? 'border-rose-200/80 bg-rose-50/85' : card.tone === 'amber' ? 'border-amber-200/80 bg-amber-50/85' : 'border-violet-200/80 bg-violet-50/85'}`}
+                  className={`siaga-card-interactive group relative z-10 flex min-h-[96px] items-center justify-between gap-3 p-3.5 text-slate-900 ${getDashboardToneCard(card.tone)}`}
                 >
                   <div className="min-w-0">
                     <div className="line-clamp-2 text-[11px] font-bold leading-snug text-slate-700 sm:text-xs">{card.label}</div>
@@ -899,7 +931,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className={`relative z-10 rounded-[24px] border border-sky-200/70 bg-gradient-to-br from-white via-sky-50/80 to-cyan-50/70 p-3 shadow-sm ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
+        <section className={`siaga-filter-canvas siaga-card-info relative z-10 p-3 ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
           <div className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
             <div>
               <div className="text-xs uppercase tracking-[0.24em] text-slate-500">Filter Ringkas</div>
@@ -947,7 +979,7 @@ export default function DashboardPage() {
         </section>
 
         {activeTab !== 'ringkasan' && showAdvancedFilters && (
-          <div className="relative z-10 rounded-3xl border border-slate-200/70 bg-white p-4 shadow-sm sm:p-5">
+          <div className="siaga-filter-canvas siaga-card-info relative z-10 p-4 sm:p-5">
             <ProjectScopeFilters
               category={filterKategori}
               packageType={filterJenisProyek}
@@ -969,7 +1001,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <section className={`relative z-10 overflow-hidden rounded-[24px] border border-cyan-200/70 bg-gradient-to-br from-cyan-50/95 via-white to-teal-50/90 p-4 text-slate-900 shadow-[0_18px_50px_rgba(14,116,144,0.10)] backdrop-blur-sm ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
+        <section className={`siaga-section-canvas siaga-card-recommendation relative z-10 overflow-hidden p-4 text-slate-900 ${activeTab === 'ringkasan' ? 'hidden' : ''}`}>
           <div className="pointer-events-none absolute -right-12 -top-16 h-36 w-36 rounded-full bg-cyan-200/35 blur-3xl" />
           <div className="pointer-events-none absolute -left-10 bottom-0 h-24 w-24 rounded-full bg-emerald-200/30 blur-3xl" />
           <div className="relative flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
@@ -983,7 +1015,7 @@ export default function DashboardPage() {
                 <Link
                   key={action.label}
                   href={action.href}
-                  className="group relative min-w-0 rounded-2xl border border-cyan-100 bg-white/90 p-3 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-cyan-300 hover:shadow-[0_12px_32px_rgba(14,116,144,0.14)] active:translate-y-0 active:scale-[0.99]"
+                  className={`siaga-card-interactive group relative min-w-0 p-3 ${action.label.toLowerCase().includes('approval') ? 'siaga-card-warning' : action.label.toLowerCase().includes('progress') ? 'siaga-card-success' : 'siaga-card-recommendation'}`}
                 >
                   <div className="flex items-start gap-2">
                     <span className={`inline-flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl ${action.color}`}>
@@ -1089,7 +1121,7 @@ export default function DashboardPage() {
               <button
                 type="button"
                 onClick={() => setShowDetailedSummary((current) => !current)}
-                className="inline-flex h-8 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[11px] font-bold text-slate-600 shadow-sm transition hover:border-cyan-300 hover:bg-cyan-50 hover:text-cyan-800"
+                className="siaga-card-interactive siaga-card-info inline-flex h-8 items-center justify-center gap-2 px-3 text-[11px] font-bold text-slate-700"
               >
                 {showDetailedSummary ? 'Sembunyikan Rekap Tambahan' : 'Buka Rekap Tambahan'}
               </button>
@@ -1098,7 +1130,7 @@ export default function DashboardPage() {
             {showDetailedSummary && (
             <div className="space-y-3 xl:hidden">
             <div className="grid gap-3 xl:grid-cols-[1.08fr_0.92fr]">
-              <section className="siaga-glass-card flex h-full flex-col border border-cyan-200/70 bg-gradient-to-br from-cyan-50/90 via-white to-sky-50/90 p-3.5">
+              <section className="siaga-card siaga-card-info flex h-full flex-col p-3.5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">COMMAND BRIEF SIAGA-SDA</div>
@@ -1110,7 +1142,7 @@ export default function DashboardPage() {
                   {commandBriefItems.map((item) => {
                     const toneClass = item.tone === 'blue' ? 'bg-blue-50 text-blue-700' : item.tone === 'emerald' ? 'bg-emerald-50 text-emerald-700' : item.tone === 'slate' ? 'bg-slate-100 text-slate-700' : item.tone === 'red' ? 'bg-rose-50 text-rose-700' : item.tone === 'amber' ? 'bg-amber-50 text-amber-700' : 'bg-violet-50 text-violet-700'
                     return (
-                       <div key={item.label} className={`rounded-2xl border p-2.5 shadow-sm ${item.tone === 'blue' ? 'border-blue-100 bg-blue-50/80' : item.tone === 'emerald' ? 'border-emerald-100 bg-emerald-50/80' : item.tone === 'slate' ? 'border-slate-200 bg-slate-50/90' : item.tone === 'red' ? 'border-rose-100 bg-rose-50/80' : item.tone === 'amber' ? 'border-amber-100 bg-amber-50/80' : 'border-violet-100 bg-violet-50/80'}`}>
+                       <div key={item.label} className={`siaga-card-compact p-2.5 ${getDashboardToneCard(item.tone)}`}>
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <div className="line-clamp-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-500">{item.label}</div>
@@ -1124,19 +1156,19 @@ export default function DashboardPage() {
                     )
                   })}
                 </div>
-                <div className="mt-3 rounded-2xl border border-cyan-100 bg-white/85 p-2.5">
+                <div className="siaga-card-compact siaga-card-recommendation mt-3 p-2.5">
                   <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Kesimpulan Singkat</div>
                   <p className="mt-1 text-sm leading-5 text-slate-700">{mainCauses[0] || 'Kondisi umum stabil. Tetap awasi approval dan progress harian.'}</p>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   <Link href="/proyek" className="inline-flex h-8 items-center justify-center rounded-xl bg-slate-950 px-3 text-xs font-semibold text-white shadow-sm transition hover:bg-slate-800">Paket</Link>
-                  <Link href="/approval" className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Approval</Link>
-                  <Link href="/peta" className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Peta</Link>
-                  <Link href="/audit-log" className="inline-flex h-8 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-950 transition hover:border-cyan-300 hover:bg-cyan-50">Audit</Link>
+                  <Link href="/approval" className="siaga-card-interactive siaga-card-warning inline-flex h-8 items-center justify-center px-3 text-xs font-semibold text-slate-950">Approval</Link>
+                  <Link href="/peta" className="siaga-card-interactive siaga-card-info inline-flex h-8 items-center justify-center px-3 text-xs font-semibold text-slate-950">Peta</Link>
+                  <Link href="/audit-log" className="siaga-card-interactive siaga-card-neutral inline-flex h-8 items-center justify-center px-3 text-xs font-semibold text-slate-950">Audit</Link>
                 </div>
               </section>
 
-              <section className="siaga-glass-card flex h-full flex-col border border-amber-200/70 bg-gradient-to-br from-amber-50/90 via-white to-rose-50/80 p-3.5">
+              <section className="siaga-card siaga-card-warning flex h-full flex-col p-3.5">
                 <div className="flex items-center justify-between gap-2">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-slate-700">Alert & Risiko Lintas Modul</div>
@@ -1146,7 +1178,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="mt-3 space-y-1.5">
                   {alertItems.map((item) => (
-                    <Link key={item.label} href={item.href} className="flex items-center justify-between gap-3 rounded-2xl border border-amber-100 bg-white/90 p-2.5 text-sm transition hover:border-amber-200 hover:bg-amber-50/60">
+                    <Link key={item.label} href={item.href} className={`siaga-card-interactive flex items-center justify-between gap-3 p-2.5 text-sm ${getDashboardStatusTone(`${item.label} ${item.badge}`)}`}>
                       <div className="flex items-center gap-2">
                         <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><item.icon className="h-4 w-4" /></span>
                         <div>
@@ -1162,34 +1194,34 @@ export default function DashboardPage() {
 
             </div>
 
-            <section className="siaga-glass-card overflow-hidden border border-sky-200/70 bg-gradient-to-br from-sky-50/90 via-white to-emerald-50/80 p-3.5 sm:p-4">
+            <section className="siaga-card siaga-card-info overflow-hidden p-3.5 sm:p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div className="text-xs uppercase tracking-[0.24em] text-sky-700">Paket & Anggaran Tahun Aktif</div>
                   <h3 className="mt-1 text-lg font-extrabold leading-tight text-slate-950">Paket dan serapan</h3>
                   <p className="mt-1 text-xs font-medium leading-5 text-slate-600">Rekap sub kegiatan tahun aktif dalam format tabel ringkas untuk monitoring pagu, serapan, progres, dan status.</p>
                 </div>
-                <Link href="/proyek" className="inline-flex h-9 w-fit items-center justify-center rounded-2xl border border-sky-200 bg-white px-3 text-xs font-bold text-sky-700 shadow-sm transition hover:border-sky-300 hover:bg-sky-50">Lihat Semua</Link>
+                <Link href="/proyek" className="siaga-card-interactive siaga-card-info inline-flex h-9 w-fit items-center justify-center px-3 text-xs font-bold text-sky-700">Lihat Semua</Link>
               </div>
 
               <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-                <div className="rounded-2xl border border-sky-100 bg-white/90 p-3 shadow-sm">
+                <div className="siaga-card-compact siaga-card-info p-3">
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-sky-700">Total Paket</div>
                   <div className="mt-1 text-2xl font-black leading-none text-slate-950">{stats.total}</div>
                 </div>
-                <div className="rounded-2xl border border-rose-100 bg-rose-50/80 p-3 shadow-sm">
+                <div className="siaga-card-compact siaga-card-critical p-3">
                   <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-rose-700">Stuck / Kritis</div>
                   <div className="mt-1 text-2xl font-black leading-none text-slate-950">{stats.kritis + stats.warning}</div>
                 </div>
                 {packageTypeSummary.slice(0, 2).map((item, index) => (
-                  <div key={item.label} className={`rounded-2xl border p-3 shadow-sm ${index === 0 ? 'border-emerald-100 bg-emerald-50/80' : 'border-violet-100 bg-violet-50/80'}`}>
+                  <div key={item.label} className={`siaga-card-compact p-3 ${index === 0 ? 'siaga-card-success' : 'siaga-card-recommendation'}`}>
                     <div className="line-clamp-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-600">{item.label}</div>
                     <div className="mt-1 text-2xl font-black leading-none text-slate-950">{item.count}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-4 overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-sm">
+              <div className="siaga-table-canvas mt-4 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[920px] border-collapse text-left text-sm">
                     <thead className="bg-sky-50 text-[11px] font-black uppercase tracking-[0.12em] text-slate-600">
@@ -1254,7 +1286,7 @@ export default function DashboardPage() {
             </section>
 
             <div className="grid gap-3 xl:grid-cols-2">
-              <section className="siaga-glass-card flex h-full flex-col border border-teal-200/70 bg-gradient-to-br from-teal-50/90 via-white to-blue-50/80 p-3.5">
+              <section className="siaga-card siaga-card-info flex h-full flex-col p-3.5">
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">STATUS SDA & PASANG SURUT HARI INI</div>
@@ -1266,7 +1298,7 @@ export default function DashboardPage() {
                 </div>
 
                 <div className="mt-3 grid gap-3 md:grid-cols-2">
-                  <div className="rounded-2xl border border-teal-100 bg-white/90 p-3 shadow-sm">
+                  <div className="siaga-card-compact siaga-card-info p-3">
                     <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Status SDA</div>
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       <div>
@@ -1277,25 +1309,25 @@ export default function DashboardPage() {
                         <div className="text-[11px] text-slate-500">Tren</div>
                         <div className="mt-0.5 text-sm font-bold text-slate-900">{tideOverview.trend}</div>
                       </div>
-                      <div className="col-span-2 rounded-xl border border-teal-100 bg-teal-50/60 p-2">
+                      <div className="siaga-card-compact siaga-card-success col-span-2 p-2">
                         <div className="text-[11px] text-slate-500">Menuju puncak</div>
                         <div className="mt-0.5 text-sm font-bold text-slate-900">{tideOverview.peakTime}</div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="rounded-2xl border border-blue-100 bg-blue-50/70 p-3 shadow-sm">
+                  <div className="siaga-card-compact siaga-card-info p-3">
                     <div className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Pasang Surut</div>
                     <div className="mt-2 grid gap-2">
-                      <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-white/90 p-2 text-sm">
+                      <div className="siaga-card-compact siaga-card-info flex items-center justify-between gap-3 p-2 text-sm">
                         <span className="text-slate-600">Maksimum hari ini</span>
                         <span className="font-bold text-slate-900">{tideScheduleRows.find((row) => row.condition === 'Pasang Maksimum')?.height || tideOverview.currentLevel}</span>
                       </div>
-                      <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-white/90 p-2 text-sm">
+                      <div className="siaga-card-compact siaga-card-info flex items-center justify-between gap-3 p-2 text-sm">
                         <span className="text-slate-600">Tertinggi 1 minggu</span>
                         <span className="font-bold text-slate-900">{tideOverview.weeklyHighest.height}</span>
                       </div>
-                      <div className="flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-white/90 p-2 text-sm">
+                      <div className="siaga-card-compact siaga-card-info flex items-center justify-between gap-3 p-2 text-sm">
                         <span className="text-slate-600">Tertinggi 1 bulan</span>
                         <span className="font-bold text-slate-900">{tideOverview.monthlyHighest.height}</span>
                       </div>
@@ -1303,12 +1335,12 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="mt-3 rounded-2xl border border-blue-200 bg-blue-50/80 p-2.5 text-xs leading-5 text-slate-700">
+                <div className="siaga-card-compact siaga-card-recommendation mt-3 p-2.5 text-xs leading-5 text-slate-700">
                   <span className="font-semibold text-blue-900">Kesiapsiagaan:</span> {tideOverview.note}
                 </div>
               </section>
 
-              <section className="siaga-glass-card flex h-full flex-col border border-indigo-200/70 bg-gradient-to-br from-indigo-50/85 via-white to-cyan-50/80 p-3.5">
+              <section className="siaga-card siaga-card-recommendation flex h-full flex-col p-3.5">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Peta Monitoring Ringkas</div>
@@ -1325,15 +1357,15 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <div className="mt-3 grid gap-2 text-sm font-semibold text-slate-700 sm:grid-cols-3 xl:grid-cols-1">
-                  <div className="flex items-center gap-2 rounded-xl border border-rose-100 bg-white/80 p-2"><span className="h-2 w-2 rounded-full bg-rose-500"></span>7 Titik Kritis</div>
-                  <div className="flex items-center gap-2 rounded-xl border border-amber-100 bg-white/80 p-2"><span className="h-2 w-2 rounded-full bg-amber-500"></span>14 Titik Waspada</div>
-                  <div className="flex items-center gap-2 rounded-xl border border-sky-100 bg-white/80 p-2"><span className="h-2 w-2 rounded-full bg-sky-500"></span>22 Titik Aman</div>
+                  <div className="siaga-card-compact siaga-card-critical flex items-center gap-2 p-2"><span className="h-2 w-2 rounded-full bg-rose-500"></span>7 Titik Kritis</div>
+                  <div className="siaga-card-compact siaga-card-warning flex items-center gap-2 p-2"><span className="h-2 w-2 rounded-full bg-amber-500"></span>14 Titik Waspada</div>
+                  <div className="siaga-card-compact siaga-card-success flex items-center gap-2 p-2"><span className="h-2 w-2 rounded-full bg-sky-500"></span>22 Titik Aman</div>
                 </div>
               </section>
             </div>
 
             <div className="grid gap-3 md:grid-cols-2">
-              <section className="siaga-glass-card border border-slate-200/70 bg-gradient-to-br from-slate-50/90 via-white to-cyan-50/80 p-4">
+              <section className="siaga-card siaga-card-recommendation p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Tugas Per Role / User</div>
@@ -1342,7 +1374,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="mt-3 space-y-2">
                   {roleActions.slice(0, 5).map((action) => (
-                    <div key={`${action.role}-${action.task}`} className="rounded-3xl border border-violet-100 bg-white/90 p-3 shadow-sm">
+                    <div key={`${action.role}-${action.task}`} className="siaga-card-compact siaga-card-recommendation p-3">
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-slate-800">{action.name?.split(' ').map((part) => part[0]).slice(0, 2).join('').toUpperCase()}</div>
@@ -1359,7 +1391,7 @@ export default function DashboardPage() {
                 </div>
               </section>
 
-              <section className="siaga-glass-card border border-violet-200/70 bg-gradient-to-br from-violet-50/85 via-white to-slate-50/90 p-4">
+              <section className="siaga-card siaga-card-neutral p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <div className="text-xs uppercase tracking-[0.24em] text-cyan-700">Aktivitas Terbaru</div>
@@ -1372,7 +1404,7 @@ export default function DashboardPage() {
                     const userName = item.userName || item.userId || 'Nama user belum tersedia'
                     const initials = userName.split(' ').filter(Boolean).map((word) => word[0]).join('').slice(0, 2).toUpperCase()
                     return (
-                      <div key={item.id} className="rounded-3xl border border-slate-200 bg-white/90 p-3 shadow-sm">
+                      <div key={item.id} className="siaga-card-compact siaga-card-info p-3">
                         <div className="flex items-start gap-2">
                           <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-xs font-bold text-slate-800">{initials}</div>
                           <div className="min-w-0">
@@ -1483,7 +1515,7 @@ export default function DashboardPage() {
         {activeTab === 'waktu' && (
           <div className="relative z-10 space-y-5 text-slate-900">
             <PrayerTimeWidget />
-            <div className="rounded-2xl border border-blue-100 bg-blue-50 p-4 text-sm text-slate-700">
+            <div className="siaga-card siaga-card-info rounded-2xl p-4 text-sm text-slate-700">
               <div className="font-extrabold text-[#0D2C54]">Catatan operasional</div>
               <p className="mt-1">
                 Pengingat salat memakai notifikasi browser. Pada HP, izinkan notifikasi dari browser agar alarm muncul.
@@ -1497,7 +1529,7 @@ export default function DashboardPage() {
           {activeTab === 'monitoring' && (
           <div className="space-y-5">
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-5">
-              <div className="siaga-card p-5 lg:col-span-3">
+              <div className="siaga-card siaga-card-info p-5 lg:col-span-3">
                 <div className="mb-4 flex items-center justify-between">
                   <div>
                     <div className="text-sm font-semibold text-slate-800">Progress Fisik vs Keuangan</div>
@@ -1520,7 +1552,7 @@ export default function DashboardPage() {
                 </ResponsiveContainer>
               </div>
 
-              <div className="siaga-card p-5 lg:col-span-2">
+              <div className="siaga-card siaga-card-success p-5 lg:col-span-2">
                 <div className="mb-1 text-sm font-semibold text-slate-800">Status Paket</div>
                 <div className="mb-3 text-xs text-slate-600">Distribusi health</div>
                 {pieData.length > 0 ? (
@@ -1562,7 +1594,7 @@ export default function DashboardPage() {
 
         {activeTab === 'approval' && (
           <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-5">
-            <div className="siaga-card p-5 lg:col-span-2">
+            <div className="siaga-card siaga-card-warning p-5 lg:col-span-2">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <div className="text-sm font-extrabold text-slate-900">Ringkasan Approval</div>
@@ -1572,22 +1604,22 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-3 gap-3">
                 {[
-                  { label: 'Pending', value: approvalSummary.pending },
-                  { label: 'Revisi', value: approvalSummary.revision },
-                  { label: 'Selesai', value: approvalSummary.approved },
+                  { label: 'Pending', value: approvalSummary.pending, tone: 'siaga-card-warning' },
+                  { label: 'Revisi', value: approvalSummary.revision, tone: 'siaga-card-critical' },
+                  { label: 'Selesai', value: approvalSummary.approved, tone: 'siaga-card-success' },
                 ].map((item) => (
-                  <div key={item.label} className="rounded-xl bg-slate-50 p-3 text-center">
+                  <div key={item.label} className={`siaga-card-compact p-3 text-center ${item.tone}`}>
                     <div className="text-2xl font-black text-[#0D2C54]">{item.value}</div>
                     <div className="text-xs text-slate-500">{item.label}</div>
                   </div>
                 ))}
               </div>
-              <div className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+              <div className="siaga-card-compact siaga-card-warning mt-4 p-3 text-sm text-amber-900">
                 Approval pending harus ditutup agar data progress bisa dipakai sebagai dasar rekap dan audit.
               </div>
             </div>
 
-            <div className="siaga-card p-5 lg:col-span-3">
+            <div className="siaga-card siaga-card-critical p-5 lg:col-span-3">
               <div className="mb-4 text-sm font-extrabold text-slate-900">Paket Risiko Prioritas</div>
               {riskProjects.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-600">Tidak ada paket risiko pada filter aktif.</div>
@@ -1598,7 +1630,7 @@ export default function DashboardPage() {
                     const computedStatus = getProjectComputedStatus(project)
                     const openIssues = project.masalah.filter((item) => item.status === 'open').length
                     return (
-                      <Link key={project.id} href={`/proyek/${project.id}?from=dashboard`} className="block rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
+                      <Link key={project.id} href={`/proyek/${project.id}?from=dashboard`} className={`siaga-card-interactive block p-3 ${getDashboardStatusTone(computedStatus.label)}`}>
                         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                           <div className="min-w-0">
                             <div className="truncate text-sm font-bold text-slate-900">{project.kode} - {project.nama}</div>
@@ -1616,7 +1648,7 @@ export default function DashboardPage() {
         )}
 
         {activeTab === 'aktivitas' && (
-          <div className="siaga-card relative z-10 p-5 text-slate-900">
+          <div className="siaga-card siaga-card-info relative z-10 p-5 text-slate-900">
             <div className="mb-4 flex items-center justify-between">
               <div className="text-sm font-extrabold text-slate-900">Aktivitas Terbaru</div>
               <div className="flex items-center gap-1.5">
@@ -1632,7 +1664,7 @@ export default function DashboardPage() {
             ) : (
               <div className="space-y-3">
                 {recentActivity.map((log) => (
-                  <div key={log.id} className="flex items-start gap-3 rounded-xl border border-slate-200 bg-white/95 p-3">
+                  <div key={log.id} className="siaga-card-compact siaga-card-info flex items-start gap-3 p-3">
                     <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-blue-100">
                       <ClipboardList className="h-4 w-4 text-blue-700" />
                     </div>
@@ -1653,18 +1685,18 @@ export default function DashboardPage() {
 
         {activeTab === 'ai' && (
           <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-3">
-            <div className="siaga-card p-5 lg:col-span-2">
+            <div className="siaga-card siaga-card-recommendation p-5 lg:col-span-2">
               <div className="mb-3 flex items-center gap-2 text-sm font-extrabold text-slate-900">
                 <Bot className="h-4 w-4 text-blue-700" />
                 Insight Lokal Dashboard
               </div>
               <div className="space-y-3">
                 {aiFindings.map((item, index) => (
-                  <div key={index} className="rounded-xl border border-blue-100 bg-blue-50 p-3 text-sm leading-relaxed text-blue-950">{item}</div>
+                  <div key={index} className={`siaga-card-compact p-3 text-sm leading-relaxed text-blue-950 ${index % 2 === 0 ? 'siaga-card-info' : 'siaga-card-warning'}`}>{item}</div>
                 ))}
               </div>
             </div>
-            <div className="siaga-card p-5">
+            <div className="siaga-card siaga-card-info p-5">
               <div className="mb-1 text-sm font-extrabold text-slate-900">Saran Tindakan</div>
               <div className="mb-3 text-xs font-medium text-slate-500">Rule-based lokal, bukan rekomendasi resmi.</div>
               <div className="space-y-2 text-sm text-slate-700">
@@ -1689,7 +1721,7 @@ function SurveyInvestigationTab({ projects }: { projects: ReturnType<typeof useA
 
   return (
     <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-5">
-      <div className="siaga-card p-5 lg:col-span-2">
+      <div className="siaga-card siaga-card-info p-5 lg:col-span-2">
         <ModuleHeader icon={MapPin} title="Survey Investigasi" subtitle="Ringkasan laporan awal lapangan dan tindak lanjut." />
         <div className="mt-4 grid grid-cols-2 gap-3">
           <MiniMetric label="Total Survey" value={totalSurvey} href="/survey" />
@@ -1701,14 +1733,14 @@ function SurveyInvestigationTab({ projects }: { projects: ReturnType<typeof useA
           Buka Survey Investigasi <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-      <div className="siaga-card p-5 lg:col-span-3">
+      <div className="siaga-card siaga-card-recommendation p-5 lg:col-span-3">
         <div className="mb-3 text-sm font-extrabold text-slate-900">Survey Terbaru</div>
         {latest.length === 0 ? (
           <EmptyModuleState text="Belum ada survey pada filter aktif." />
         ) : (
           <div className="space-y-3">
             {latest.map((survey) => (
-              <Link key={survey.id} href={`/proyek/${survey.projectId}?from=dashboard`} className="block rounded-xl border border-slate-100 p-3 transition hover:bg-slate-50">
+              <Link key={survey.id} href={`/proyek/${survey.projectId}?from=dashboard`} className={`siaga-card-interactive block p-3 ${survey.status === 'approved' ? 'siaga-card-success' : survey.status === 'rejected' ? 'siaga-card-critical' : 'siaga-card-warning'}`}>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <div className="truncate text-sm font-bold text-slate-900">{survey.projectCode} - {survey.projectName}</div>
@@ -1749,14 +1781,14 @@ function WarningCenterTab({ stats, approvalPending, riskProjects }: { stats: any
 
   return (
     <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-5">
-      <div className="siaga-card p-5 lg:col-span-2">
+      <div className="siaga-card siaga-card-warning p-5 lg:col-span-2">
         <ModuleHeader icon={LifeBuoy} title="Warning Center" subtitle="Pusat ringkasan peringatan proyek dan SDA." />
         <div className="mt-4 space-y-3">
             {warningItems.map((item) => {
             const Icon = item.icon
             const ring = item.tone === 'red' ? 'focus:ring-red-200' : item.tone === 'amber' ? 'focus:ring-amber-200' : 'focus:ring-blue-200'
             return (
-              <Link key={item.label} href={item.href} className={`flex items-center gap-3 rounded-xl border border-slate-100 p-3 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-offset-1 ${ring}`}>
+              <Link key={item.label} href={item.href} className={`siaga-card-interactive flex items-center gap-3 p-3 focus:outline-none focus:ring-2 focus:ring-offset-1 ${ring} ${getDashboardToneCard(item.tone)}`}>
                 <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${item.tone === 'red' ? 'bg-red-50 text-red-700' : item.tone === 'amber' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700'}`}>
                   <Icon className="h-5 w-5" />
                 </div>
@@ -1770,7 +1802,7 @@ function WarningCenterTab({ stats, approvalPending, riskProjects }: { stats: any
           })}
         </div>
       </div>
-      <div className="siaga-card p-5 lg:col-span-3">
+      <div className="siaga-card siaga-card-critical p-5 lg:col-span-3">
         <div className="mb-3 text-sm font-extrabold text-slate-900">Prioritas Tindakan</div>
         {riskProjects.length === 0 ? (
           <EmptyModuleState text="Tidak ada paket warning/kritis pada filter aktif." />
@@ -1780,7 +1812,7 @@ function WarningCenterTab({ stats, approvalPending, riskProjects }: { stats: any
               const badge = getProjectComputedBadge(project)
               const computedStatus = getProjectComputedStatus(project)
               return (
-                <Link key={project.id} href={`/proyek/${project.id}?from=dashboard`} className="block rounded-xl border border-slate-100 p-3 hover:bg-slate-50">
+                <Link key={project.id} href={`/proyek/${project.id}?from=dashboard`} className={`siaga-card-interactive block p-3 ${getDashboardStatusTone(computedStatus.label)}`}>
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <div className="truncate text-sm font-bold text-slate-900">{project.kode} - {project.nama}</div>
@@ -1817,29 +1849,29 @@ function ModulePreparationTab({
 }) {
   return (
     <div className="relative z-10 grid grid-cols-1 gap-5 text-slate-900 lg:grid-cols-5">
-      <div className="siaga-card p-5 lg:col-span-3">
+      <div className="siaga-card siaga-card-recommendation p-5 lg:col-span-3">
         <ModuleHeader icon={Icon} title={title} subtitle={subtitle} />
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
-          {cards.map((card) => (
-            <Link key={card.label} href={route} className="block rounded-xl bg-slate-50 p-4 transition hover:bg-blue-50">
+          {cards.map((card, index) => (
+            <Link key={card.label} href={route} className={`siaga-card-interactive block p-4 ${getDashboardModuleCardTone(card.label, index)}`}>
               <div className="text-2xl font-black text-[#0D2C54]">{card.value}</div>
               <div className="mt-1 text-xs font-bold text-slate-700">{card.label}</div>
               <div className="mt-0.5 text-[11px] font-medium text-slate-600">{card.desc}</div>
             </Link>
           ))}
         </div>
-        <div className="mt-4 rounded-xl border border-amber-100 bg-amber-50 p-3 text-sm text-amber-900">
+        <div className="siaga-card-compact siaga-card-warning mt-4 p-3 text-sm text-amber-900">
           Tab ini sudah disiapkan di dashboard sebagai UI tahap awal. Data resmi belum ditampilkan karena belum ada migration/database modul ini.
         </div>
         <Link href={route} className="mt-4 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#3730A3] to-[#06B6D4] px-4 text-sm font-extrabold text-white hover:from-[#2b2f6b] hover:to-[#05a3c0] focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-cyan-200">
           {routeLabel} <ArrowRight className="h-4 w-4" />
         </Link>
       </div>
-      <div className="siaga-card p-5 lg:col-span-2">
+      <div className="siaga-card siaga-card-warning p-5 lg:col-span-2">
         <div className="mb-3 text-sm font-extrabold text-slate-900">Kebutuhan Tahap Database</div>
         <div className="space-y-2">
-          {checklist.map((item) => (
-            <div key={item} className="flex gap-2 rounded-xl border border-slate-100 p-3 text-sm text-slate-700">
+          {checklist.map((item, index) => (
+            <div key={item} className={`siaga-card-compact flex gap-2 p-3 text-sm text-slate-700 ${index % 3 === 0 ? 'siaga-card-success' : index % 3 === 1 ? 'siaga-card-recommendation' : 'siaga-card-info'}`}>
               <CheckCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#43A047]" />
               <span>{item}</span>
             </div>
@@ -1853,7 +1885,7 @@ function ModulePreparationTab({
 function ModuleHeader({ icon: Icon, title, subtitle }: { icon: any; title: string; subtitle: string }) {
   return (
     <div className="flex items-start gap-3">
-      <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#1976D2]">
+      <div className="siaga-card-info flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl text-[#1976D2]">
         <Icon className="h-5 w-5" />
       </div>
       <div className="min-w-0">
@@ -1866,11 +1898,11 @@ function ModuleHeader({ icon: Icon, title, subtitle }: { icon: any; title: strin
 
 function MiniMetric({ label, value, tone = 'slate', href }: { label: string; value: number | string; tone?: 'slate' | 'blue' | 'green' | 'amber' | 'red'; href?: string }) {
   const toneClass = {
-    slate: 'bg-slate-50 text-slate-900',
-    blue: 'bg-blue-50 text-blue-800',
-    green: 'bg-green-50 text-green-800',
-    amber: 'bg-amber-50 text-amber-800',
-    red: 'bg-red-50 text-red-800',
+    slate: 'siaga-card-neutral text-slate-900',
+    blue: 'siaga-card-info text-blue-800',
+    green: 'siaga-card-success text-green-800',
+    amber: 'siaga-card-warning text-amber-800',
+    red: 'siaga-card-critical text-red-800',
   }[tone]
   const content = (
     <>
@@ -1881,14 +1913,14 @@ function MiniMetric({ label, value, tone = 'slate', href }: { label: string; val
 
   if (href) {
     return (
-      <Link href={href} className={`block rounded-xl p-3 transition hover:-translate-y-0.5 hover:shadow-sm ${toneClass}`}>
+      <Link href={href} className={`siaga-card-interactive block p-3 ${toneClass}`}>
         {content}
       </Link>
     )
   }
 
   return (
-    <div className={`rounded-xl p-3 ${toneClass}`}>
+    <div className={`siaga-card-compact p-3 ${toneClass}`}>
       {content}
     </div>
   )
@@ -1896,7 +1928,7 @@ function MiniMetric({ label, value, tone = 'slate', href }: { label: string; val
 
 function EmptyModuleState({ text }: { text: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center">
+    <div className="siaga-empty-canvas p-6 text-center">
       <Waves className="mx-auto mb-2 h-8 w-8 text-slate-500" />
       <div className="text-sm font-medium text-slate-600">{text}</div>
     </div>
@@ -1905,7 +1937,7 @@ function EmptyModuleState({ text }: { text: string }) {
 
 function ProjectTable({ projects }: { projects: ReturnType<typeof useAppStore.getState>['projects'] }) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm">
+    <div className="siaga-table-canvas overflow-hidden">
       <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
         <div className="text-sm font-semibold text-slate-800">Daftar Paket Pekerjaan</div>
         <Link href="/proyek" className="flex items-center gap-1 text-xs text-blue-600 hover:underline">

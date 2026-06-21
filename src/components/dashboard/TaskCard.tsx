@@ -13,12 +13,19 @@ const priorityClass = {
   critical: 'border-rose-200 bg-rose-50 text-rose-800',
 } as const
 
+const taskCardTone = {
+  low: 'siaga-card-neutral',
+  normal: 'siaga-card-info',
+  high: 'siaga-card-warning',
+  critical: 'siaga-card-critical',
+} as const
+
 export function TaskCard({ task }: TaskCardProps) {
   const canOpenDetail = Boolean(task.detailHref)
   const canAct = Boolean(task.canAct && task.actionHref)
 
   return (
-    <article className="siaga-card-interactive p-4">
+    <article className={`siaga-card-interactive p-4 ${taskCardTone[task.priority]}`}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -38,7 +45,7 @@ export function TaskCard({ task }: TaskCardProps) {
         </div>
 
         {task.dueLabel && (
-          <div className="siaga-card-compact inline-flex w-fit items-center gap-2 px-3 py-2 text-xs font-bold text-slate-700">
+          <div className="siaga-card-compact siaga-card-info inline-flex w-fit items-center gap-2 px-3 py-2 text-xs font-bold text-slate-700">
             <Clock3 className="h-4 w-4 text-cyan-700" aria-hidden="true" />
             {task.dueLabel}
           </div>
@@ -65,7 +72,7 @@ export function TaskCard({ task }: TaskCardProps) {
 
       <div className="mt-4 flex flex-wrap gap-2">
         {canOpenDetail ? (
-          <Link href={task.detailHref!} className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-slate-800 transition hover:border-cyan-300 hover:bg-cyan-50">
+          <Link href={task.detailHref!} className="siaga-card-interactive siaga-card-recommendation inline-flex h-9 items-center justify-center gap-2 px-3 text-xs font-bold text-slate-800">
             Lihat Detail <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
           </Link>
         ) : (

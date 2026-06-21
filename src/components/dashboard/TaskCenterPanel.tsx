@@ -70,7 +70,7 @@ export function TaskCenterPanel({
           </div>
 
           <div className="space-y-4">
-            <section className="siaga-card px-4 py-3">
+            <section className="siaga-card siaga-card-info px-4 py-3">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700">Langkah Berikutnya</div>
               <h3 className="mt-1 text-base font-black text-slate-950">Belum ada misi pribadi hari ini.</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
@@ -96,7 +96,7 @@ export function TaskCenterPanel({
               ) : (
                 <div className="mt-3 space-y-2">
                   {visibleSystemWarnings.map((warning) => (
-                    <Link key={warning.id} href={warning.href} className="siaga-card-interactive block px-3 py-2 text-sm">
+                    <Link key={warning.id} href={warning.href} className={`siaga-card-interactive block px-3 py-2 text-sm ${warning.level === 'critical' ? 'siaga-card-critical' : warning.level === 'warning' ? 'siaga-card-warning' : 'siaga-card-info'}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="line-clamp-1 font-black text-slate-900">{warning.title}</div>
@@ -112,7 +112,7 @@ export function TaskCenterPanel({
               )}
             </section>
 
-            <section className="siaga-card px-4 py-3">
+            <section className="siaga-card siaga-card-success px-4 py-3">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Tugas Selesai</div>
               {completedTasks.length === 0 ? (
                 <p className="mt-2 text-sm leading-6 text-slate-600">Belum ada tugas selesai yang terhubung ke workflow resmi.</p>
@@ -137,10 +137,10 @@ export function TaskCenterPanel({
 
 function SummaryMetric({ icon: Icon, label, value, tone }: { icon: typeof ClipboardList; label: string; value: number; tone: 'cyan' | 'green' | 'amber' }) {
   const toneClass = tone === 'green'
-    ? 'border-emerald-100 bg-emerald-50 text-emerald-800'
+    ? 'siaga-card-success text-emerald-800'
     : tone === 'amber'
-    ? 'border-amber-100 bg-amber-50 text-amber-800'
-    : 'border-cyan-100 bg-cyan-50 text-cyan-800'
+    ? 'siaga-card-warning text-amber-800'
+    : 'siaga-card-info text-cyan-800'
 
   return (
     <div className={`siaga-card-compact p-2.5 ${toneClass}`}>

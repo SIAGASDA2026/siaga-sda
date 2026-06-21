@@ -44,6 +44,16 @@ const PAGE_SIZE = 20
 
 Object.assign(ACTION_META, WORKFLOW_AUDIT_ACTION_META)
 
+function getAuditCardTone(action: string) {
+  const normalized = action.toUpperCase()
+  if (normalized.includes('DELETE') || normalized.includes('REJECT') || normalized.includes('ERROR') || normalized.includes('FAILED')) return 'siaga-card-critical'
+  if (normalized.includes('REVISION') || normalized.includes('UPDATE') || normalized.includes('EDIT') || normalized.includes('RAB')) return 'siaga-card-warning'
+  if (normalized.includes('APPROVE') || normalized.includes('APPROVAL_APPROVE') || normalized.includes('CREATE') || normalized.includes('UPLOAD') || normalized.includes('COMPLETE')) return 'siaga-card-success'
+  if (normalized.includes('COMMENT') || normalized.includes('CATATAN') || normalized.includes('CHAT')) return 'siaga-card-recommendation'
+  if (normalized.includes('LOGIN') || normalized.includes('LOGOUT')) return 'siaga-card-info'
+  return 'siaga-card-neutral'
+}
+
 export default function AuditLogPage() {
   const { auditLogs, currentUser } = useAppStore()
 
@@ -53,8 +63,8 @@ export default function AuditLogPage() {
     return (
       <>
         <Topbar title="Audit Log" subtitle="Jejak aktivitas sistem" />
-        <div className="p-5">
-          <div className="bg-white rounded-xl border border-slate-100 p-12 text-center">
+        <div className="siaga-page-canvas p-4 sm:p-5">
+          <div className="siaga-empty-canvas p-12 text-center">
             <Shield className="w-12 h-12 text-slate-300 mx-auto mb-3" />
             <div className="text-base font-semibold text-slate-600 mb-1">Akses Terbatas</div>
             <div className="text-sm text-slate-400">
@@ -94,15 +104,15 @@ function AuditLogContent({ auditLogs, currentUser }: { auditLogs: any[]; current
   return (
     <>
       <Topbar title="Audit Log" subtitle={`${auditLogs.length} aktivitas tercatat`} />
-      <div className="p-5">
+      <div className="siaga-page-canvas p-4 sm:p-5">
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 mb-5">
           {[
-            { label: 'Total Aktivitas', val: auditLogs.length, color: 'text-slate-800' },
-            { label: 'Hari Ini', val: auditLogs.filter((l) => new Date(l.timestamp).toDateString() === new Date().toDateString()).length, color: 'text-blue-700' },
-            { label: 'Login/Logout', val: auditLogs.filter((l) => ['LOGIN', 'LOGOUT'].includes(l.action)).length, color: 'text-green-700' },
+            { label: 'Total Aktivitas', val: auditLogs.length, color: 'text-slate-800', card: 'siaga-card-info' },
+            { label: 'Hari Ini', val: auditLogs.filter((l) => new Date(l.timestamp).toDateString() === new Date().toDateString()).length, color: 'text-blue-700', card: 'siaga-card-warning' },
+            { label: 'Login/Logout', val: auditLogs.filter((l) => ['LOGIN', 'LOGOUT'].includes(l.action)).length, color: 'text-green-700', card: 'siaga-card-success' },
           ].map((s) => (
-            <div key={s.label} className="bg-white rounded-xl border border-slate-100 p-4">
+            <div key={s.label} className={`siaga-card-compact p-4 ${s.card}`}>
               <div className={`text-2xl font-bold ${s.color}`}>{s.val}</div>
               <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
             </div>
@@ -110,7 +120,7 @@ function AuditLogContent({ auditLogs, currentUser }: { auditLogs: any[]; current
         </div>
 
         {/* Toolbar */}
-        <div className="bg-white rounded-xl border border-slate-100 p-4 mb-5 flex flex-wrap items-center gap-3">
+        <div className="siaga-filter-canvas mb-5 flex flex-wrap items-center gap-3 p-4">
           <div className="relative flex-1 min-w-[180px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -145,7 +155,7 @@ function AuditLogContent({ auditLogs, currentUser }: { auditLogs: any[]; current
             {paginated.map((log) => {
               const meta = ACTION_META[log.action] || { label: log.action, color: 'bg-slate-100 text-slate-600', icon: '📋' }
               return (
-                <div key={log.id} className="bg-white rounded-xl border border-slate-100 p-4 flex items-start gap-3">
+                <div key={log.id} className={`siaga-card-compact flex items-start gap-3 p-4 ${getAuditCardTone(log.action)}`}>
                   <div className="text-xl flex-shrink-0 mt-0.5">{meta.icon}</div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">

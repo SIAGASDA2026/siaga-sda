@@ -209,7 +209,7 @@ export default function SurveyPage() {
   return (
     <>
       <Topbar title="Survey Lapangan" subtitle="Data survey pra-konstruksi semua proyek" />
-      <div className="p-5">
+      <div className="siaga-page-canvas p-4 sm:p-5">
         <ProjectScopeFilters
           category={filterKategori}
           packageType={filterJenisProyek}
@@ -232,7 +232,7 @@ export default function SurveyPage() {
         />
 
         {activeQueryLabels.length > 0 && (
-          <div className="mb-5 flex flex-wrap items-center gap-2 rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+          <div className="siaga-filter-canvas mb-5 flex flex-wrap items-center gap-2 p-3">
             {activeQueryLabels.map((label) => (
               <span key={label} className="rounded-full border border-blue-200 bg-white px-2.5 py-1 text-[11px] font-bold text-blue-700">{label}</span>
             ))}
@@ -245,11 +245,11 @@ export default function SurveyPage() {
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-5">
           {[
-            { label: 'Total Survey', val: allSurvey.length, bg: 'bg-white', color: 'text-slate-800' },
-            { label: 'Menunggu Tindak Lanjut', val: allSurvey.filter(s => s.status==='submitted').length, bg: 'bg-green-50', color: 'text-green-700' },
-            { label: 'Proyek Belum Survey', val: visibleProjects.filter(p => p.surveys.length===0).length, bg: 'bg-amber-50', color: 'text-amber-700' },
+            { label: 'Total Survey', val: allSurvey.length, card: 'siaga-card-info', color: 'text-slate-800' },
+            { label: 'Menunggu Tindak Lanjut', val: allSurvey.filter(s => s.status==='submitted').length, card: 'siaga-card-success', color: 'text-green-700' },
+            { label: 'Proyek Belum Survey', val: visibleProjects.filter(p => p.surveys.length===0).length, card: 'siaga-card-warning', color: 'text-amber-700' },
           ].map(s => (
-            <div key={s.label} className={`${s.bg} rounded-xl border border-slate-100 p-4`}>
+            <div key={s.label} className={`siaga-card-compact ${s.card} p-4`}>
               <div className={`text-2xl font-bold ${s.color}`}>{s.val}</div>
               <div className="text-xs text-slate-500 mt-0.5">{s.label}</div>
             </div>
@@ -257,7 +257,7 @@ export default function SurveyPage() {
         </div>
 
         {/* Toolbar */}
-        <div className="bg-white rounded-xl border border-slate-100 p-4 mb-5 flex flex-wrap items-center gap-3">
+        <div className="siaga-filter-canvas mb-5 flex flex-wrap items-center gap-3 p-4">
           <div className="relative flex-1 min-w-[180px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Cari proyek atau kondisi..."
@@ -284,7 +284,7 @@ export default function SurveyPage() {
 
         {/* Proyek yang belum survey */}
         {visibleProjects.filter(p => p.surveys.length === 0).length > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-5">
+          <div className="siaga-panel-canvas siaga-card-warning mb-5 p-4">
             <div className="text-sm font-semibold text-amber-800 mb-2">Proyek Belum Survey ({visibleProjects.filter(p => p.surveys.length === 0).length})</div>
             <div className="flex flex-wrap gap-2">
               {visibleProjects.filter(p => p.surveys.length === 0).map(p => (
@@ -302,7 +302,7 @@ export default function SurveyPage() {
         ) : (
           <div className="space-y-3">
             {filtered.map((s: any) => (
-              <div key={s.id} className="bg-white rounded-xl border border-slate-100 p-4 hover:shadow-sm transition-shadow">
+              <div key={s.id} className="siaga-card-interactive p-4">
                 <div className="flex items-start justify-between gap-3 mb-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-1">
@@ -327,19 +327,19 @@ export default function SurveyPage() {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2 text-xs">
-                  <div className="bg-slate-50 rounded-lg p-2">
+                  <div className="siaga-card-compact p-2">
                     <div className="text-slate-400 mb-0.5">Dimensi</div>
                     <div className="font-semibold">{s.dimensi.panjang}×{s.dimensi.lebar}×{s.dimensi.tinggi}m</div>
                   </div>
-                  <div className="bg-slate-50 rounded-lg p-2">
+                  <div className="siaga-card-compact p-2">
                     <div className="text-slate-400 mb-0.5">Material</div>
                     <div className="font-medium truncate">{s.material || '-'}</div>
                   </div>
-                  <div className="bg-slate-50 rounded-lg p-2">
+                  <div className="siaga-card-compact p-2">
                     <div className="text-slate-400 mb-0.5">Foto</div>
                     <div className="font-semibold">{s.foto.length} foto</div>
                   </div>
-                  <div className="bg-slate-50 rounded-lg p-2">
+                  <div className="siaga-card-compact p-2">
                     <div className="text-slate-400 mb-0.5">GPS</div>
                     <div className="font-mono text-[10px]">{s.koordinat.lat.toFixed(4)}, {s.koordinat.lng.toFixed(4)}</div>
                   </div>
@@ -478,11 +478,11 @@ export default function SurveyPage() {
                 { l:'Dimensi', v: `${viewTarget.dimensi.panjang}m × ${viewTarget.dimensi.lebar}m × ${viewTarget.dimensi.tinggi}m` },
               ].map(r => <div key={r.l}><div className="text-xs text-slate-500 mb-0.5">{r.l}</div><div className="font-semibold">{r.v as any}</div></div>)}
             </div>
-            <div><div className="text-xs text-slate-500 mb-1">Kondisi Eksisting</div><div className="bg-slate-50 rounded-xl p-3">{viewTarget.kondisiEksisting}</div></div>
-            <div><div className="text-xs text-slate-500 mb-1">Permasalahan</div><div className="bg-red-50 rounded-xl p-3 text-red-800">{viewTarget.permasalahan}</div></div>
+            <div><div className="text-xs text-slate-500 mb-1">Kondisi Eksisting</div><div className="siaga-card-compact siaga-card-neutral p-3">{viewTarget.kondisiEksisting}</div></div>
+            <div><div className="text-xs text-slate-500 mb-1">Permasalahan</div><div className="siaga-card-compact siaga-card-critical p-3 text-red-800">{viewTarget.permasalahan}</div></div>
             {viewTarget.material && <div><div className="text-xs text-slate-500 mb-1">Material</div><div>{viewTarget.material}</div></div>}
-            {viewTarget.rekomendasi && <div><div className="text-xs text-slate-500 mb-1">Rekomendasi</div><div className="bg-blue-50 rounded-xl p-3 text-blue-800">{viewTarget.rekomendasi}</div></div>}
-            <div className="rounded-xl border border-blue-100 bg-blue-50/70 p-3">
+            {viewTarget.rekomendasi && <div><div className="text-xs text-slate-500 mb-1">Rekomendasi</div><div className="siaga-card-compact siaga-card-info p-3 text-blue-800">{viewTarget.rekomendasi}</div></div>}
+            <div className="siaga-card-recommendation p-3">
               <div className="text-xs font-black uppercase tracking-wide text-blue-600">Peta tindak lanjut konseptual</div>
               <div className="mt-2 flex flex-wrap gap-2">
                 {SURVEY_FOLLOW_UP_FLOW.map((item) => (

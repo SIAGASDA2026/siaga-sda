@@ -168,7 +168,7 @@ export function PrayerTimeWidget({ compact = false }: { compact?: boolean }) {
   }
 
   return (
-    <section className={`overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm ${compact ? 'p-4' : 'p-5'}`}>
+    <section className={`siaga-card siaga-card-info overflow-hidden ${compact ? 'p-4' : 'p-5'}`}>
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#1976D2]">
@@ -204,7 +204,7 @@ export function PrayerTimeWidget({ compact = false }: { compact?: boolean }) {
           return (
             <div
               key={prayer.key}
-              className={`rounded-xl border px-3 py-3 ${isNext ? 'border-[#1976D2] bg-blue-50' : isPast ? 'border-green-100 bg-green-50' : 'border-slate-100 bg-slate-50'}`}
+              className={`siaga-card-compact px-3 py-3 ${isNext ? 'siaga-card-info' : isPast ? 'siaga-card-success' : 'siaga-card-neutral'}`}
             >
               <div className={`text-xs font-bold ${isNext ? 'text-[#0D2C54]' : 'text-slate-500'}`}>{prayer.label}</div>
               <div className="mt-1 text-lg font-extrabold tabular-nums text-slate-900">{prayer.time}</div>
@@ -225,7 +225,7 @@ export function PrayerTimeWidget({ compact = false }: { compact?: boolean }) {
           <button
             type="button"
             onClick={loadPrayerTimes}
-            className="inline-flex h-9 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 text-xs font-bold text-slate-600 hover:bg-slate-50"
+            className="siaga-card-interactive siaga-card-neutral inline-flex h-9 items-center justify-center gap-2 px-3 text-xs font-bold text-slate-600"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
             Update
@@ -234,7 +234,7 @@ export function PrayerTimeWidget({ compact = false }: { compact?: boolean }) {
             type="button"
             onClick={requestNotification}
             disabled={notificationEnabled}
-            className={`inline-flex h-9 items-center justify-center gap-2 rounded-xl px-3 text-xs font-bold ${notificationEnabled ? 'bg-green-50 text-green-700' : 'bg-[#1976D2] text-white hover:bg-[#0D2C54]'}`}
+            className={`inline-flex h-9 items-center justify-center gap-2 rounded-xl px-3 text-xs font-bold ${notificationEnabled ? 'siaga-card-success text-green-700' : 'bg-[#1976D2] text-white hover:bg-[#0D2C54]'}`}
           >
             {notificationEnabled ? <BellRing className="h-3.5 w-3.5" /> : <Bell className="h-3.5 w-3.5" />}
             {notificationEnabled ? 'Pengingat Aktif' : 'Aktifkan Pengingat'}

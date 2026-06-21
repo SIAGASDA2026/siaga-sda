@@ -8,7 +8,7 @@ type AppreciationHistoryPanelProps = {
 
 export function AppreciationHistoryPanel({ events }: AppreciationHistoryPanelProps) {
   return (
-    <section className="siaga-card p-4">
+    <section className="siaga-card siaga-card-success p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700">Riwayat Apresiasi</div>
@@ -24,7 +24,7 @@ export function AppreciationHistoryPanel({ events }: AppreciationHistoryPanelPro
       ) : (
         <div className="mt-4 space-y-3">
           {events.slice(0, 5).map((event) => (
-            <article key={event.id} className="siaga-card-compact siaga-card-neutral p-3">
+            <article key={event.id} className="siaga-card-compact siaga-card-success p-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div className="text-sm font-black text-slate-950">{event.title}</div>

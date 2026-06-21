@@ -292,9 +292,9 @@ export default function ProyekPage() {
   return (
     <>
       <Topbar title="Paket Pekerjaan" subtitle="Kelola dan pantau seluruh paket pekerjaan Bidang Sumber Daya Air" />
-      <div className="min-h-[calc(100vh-56px)] bg-[#f4f8fc] p-3 pb-24 sm:p-5">
+      <div className="siaga-page-canvas min-h-[calc(100vh-56px)] p-3 pb-24 sm:p-5">
         <div className="mx-auto max-w-[1680px] space-y-4">
-          <section className="rounded-[26px] border border-white bg-white/95 p-4 shadow-sm md:p-5">
+          <section className="siaga-section-canvas p-4 md:p-5">
             <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <div className="inline-flex items-center gap-2 rounded-full bg-cyan-50 px-3 py-1 text-xs font-black text-cyan-700">
@@ -307,7 +307,7 @@ export default function ProyekPage() {
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                <div className="siaga-card-compact px-4 py-3">
                   <div className="text-[11px] font-bold uppercase text-slate-400">Nilai kontrak aktif</div>
                   <div className="text-lg font-black text-slate-900">{formatCurrency(paketStats.nilaiKontrak)}</div>
                 </div>
@@ -334,7 +334,7 @@ export default function ProyekPage() {
 
           <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px] 2xl:grid-cols-[minmax(0,1fr)_360px]">
             <main className="min-w-0 space-y-4">
-              <section className="rounded-[24px] border border-white bg-white p-4 shadow-sm md:p-5">
+              <section className="siaga-filter-canvas p-4 md:p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <div className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Filter Paket Pekerjaan</div>
@@ -433,7 +433,7 @@ export default function ProyekPage() {
 
               {filtered.length > 0 ? (
                 <>
-                  <section className="hidden overflow-hidden rounded-[24px] border border-white bg-white shadow-sm xl:block">
+                  <section className="siaga-table-canvas hidden xl:block">
                     <table className="w-full text-xs">
                       <thead className="bg-slate-50/90">
                         <tr>
@@ -557,9 +557,17 @@ function PackageStatCard({
     amber: 'bg-amber-50 text-amber-700',
     sky: 'bg-sky-50 text-sky-700',
   }[tone]
+  const cardToneClass = {
+    blue: 'siaga-card-info',
+    cyan: 'siaga-card-recommendation',
+    green: 'siaga-card-success',
+    red: 'siaga-card-critical',
+    amber: 'siaga-card-warning',
+    sky: 'siaga-card-success',
+  }[tone]
 
   return (
-    <div className="rounded-2xl border border-slate-100 bg-white p-4 shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
+    <div className={`siaga-card-compact p-4 ${cardToneClass}`}>
       <div className="flex items-center gap-3">
         <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${toneClass}`}>
           <Icon className="h-6 w-6" />
@@ -665,7 +673,7 @@ function MobilePackageCard({
   const deviasi = Number(project.deviasi || 0)
 
   return (
-    <article onClick={onSelect} className={`rounded-[24px] border bg-white p-4 shadow-sm transition ${active ? 'border-blue-500 ring-2 ring-blue-100' : 'border-white'}`}>
+    <article onClick={onSelect} className={`siaga-card-interactive p-4 ${project.health === 'kritis' ? 'siaga-card-critical' : project.health === 'warning' ? 'siaga-card-warning' : project.status === 'selesai' ? 'siaga-card-success' : 'siaga-card-info'} ${active ? 'ring-2 ring-blue-100' : ''}`}>
       <div className="flex items-start gap-3">
         <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-50 text-blue-700">
           <Waves className="h-7 w-7" />
@@ -705,7 +713,7 @@ function MobilePackageCard({
       </div>
 
       {active && (
-        <div className="mt-4 rounded-2xl border border-slate-100 bg-slate-50 p-3">
+        <div className="siaga-card-neutral mt-4 p-3">
           <div className="grid gap-2 text-xs">
             <CompactInfo icon={UserRound} label="PPK" value={project.ppk || '-'} />
             <CompactInfo icon={UserRound} label="PPTK" value={project.pptk || '-'} />
@@ -714,7 +722,7 @@ function MobilePackageCard({
             <CompactInfo icon={CalendarDays} label="Jadwal" value={`${formatDate(project.tanggalMulai)} - ${formatDate(project.tanggalSelesai)}`} />
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
-            <Link href={`/proyek/${project.id}?from=paket`} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white text-sm font-black text-blue-700">
+            <Link href={`/proyek/${project.id}?from=paket`} className="siaga-card-interactive siaga-card-info inline-flex h-11 items-center justify-center gap-2 text-sm font-black text-blue-700">
               <FileText className="h-4 w-4" />
               Buka Detail
             </Link>
@@ -722,7 +730,7 @@ function MobilePackageCard({
               <BarChart3 className="h-4 w-4" />
               Monitoring
             </Link>
-            <Link href={`/peta?proyek=${project.id}&from=paket`} className="col-span-2 inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 text-sm font-black text-cyan-700">
+            <Link href={`/peta?proyek=${project.id}&from=paket`} className="siaga-card-interactive siaga-card-recommendation col-span-2 inline-flex h-11 items-center justify-center gap-2 text-sm font-black text-cyan-700">
               <MapPin className="h-4 w-4" />
               Lihat di Peta Monitoring
             </Link>
@@ -752,7 +760,7 @@ function ProjectDetailPanel({
 }) {
   if (!project) {
     return (
-      <aside className="rounded-[24px] border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-400 xl:sticky xl:top-20 xl:h-fit">
+      <aside className="siaga-empty-canvas p-6 text-center text-sm text-slate-500 xl:sticky xl:top-20 xl:h-fit">
         Pilih paket untuk melihat detail.
       </aside>
     )
@@ -773,7 +781,7 @@ function ProjectDetailPanel({
 
   return (
     <aside className="space-y-4 xl:sticky xl:top-20 xl:h-fit">
-      <div className="rounded-[26px] border border-white bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
+      <div className={`siaga-card p-5 ${deviasi < -10 ? 'siaga-card-critical' : deviasi < 0 ? 'siaga-card-warning' : project.status === 'selesai' ? 'siaga-card-success' : 'siaga-card-info'}`}>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-sm font-black text-blue-700">{project.kode}</div>
@@ -789,14 +797,14 @@ function ProjectDetailPanel({
           <span className="rounded-full bg-blue-50 px-2.5 py-1 text-[11px] font-black text-blue-700">{packageType}</span>
           <span className="rounded-full bg-cyan-50 px-2.5 py-1 text-[11px] font-black text-cyan-700">{category}</span>
         </div>
-        <p className="mt-3 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-600">
+        <p className="siaga-card-compact siaga-card-neutral mt-3 px-3 py-2 text-xs leading-5 text-slate-600">
           Status sinkron: <span className="font-black text-slate-900">{computedStatus.label}</span>. {computedStatus.reason}
         </p>
 
         <div className="mt-5 space-y-3">
           <ProgressLine label="Progress Fisik" value={project.progressFisik} color="bg-blue-600" />
           <ProgressLine label="Progress Keuangan" value={project.progressKeuangan} color="bg-emerald-500" />
-          <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+          <div className={`siaga-card-compact p-3 ${deviasi < -10 ? 'siaga-card-critical' : deviasi < 0 ? 'siaga-card-warning' : 'siaga-card-success'}`}>
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-500">Deviasi / Rencana</span>
               <span className={`flex items-center gap-1 text-sm font-black ${deviasi < -10 ? 'text-red-600' : deviasi < 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
@@ -818,11 +826,11 @@ function ProjectDetailPanel({
           <InfoRow label="Selesai Pekerjaan" value={project.tanggalSelesai ? formatDate(project.tanggalSelesai) : '-'} />
         </div>
 
-        <div className="mt-5 rounded-2xl border border-slate-100 p-3">
+        <div className="siaga-card-recommendation mt-5 p-3">
           <div className="mb-3 text-xs font-black text-slate-900">Checklist Dokumen & Administrasi</div>
           <div className="space-y-2">
             {docs.map((doc) => (
-              <div key={doc.label} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2">
+              <div key={doc.label} className={`siaga-card-compact flex items-center justify-between gap-3 px-3 py-2 ${doc.tone === 'green' ? 'siaga-card-success' : doc.tone === 'amber' ? 'siaga-card-warning' : 'siaga-card-neutral'}`}>
                 <div className="flex min-w-0 items-center gap-2">
                   <ClipboardCheck className="h-4 w-4 shrink-0 text-blue-600" />
                   <span className="truncate text-xs font-bold text-slate-700">{doc.label}</span>
@@ -836,11 +844,11 @@ function ProjectDetailPanel({
         </div>
 
         <div className="mt-5 grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-1">
-          <Link href={`/proyek/${project.id}?from=paket`} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-200 bg-white px-4 text-sm font-black text-blue-700 hover:bg-blue-50">
+          <Link href={`/proyek/${project.id}?from=paket`} className="siaga-card-interactive siaga-card-info inline-flex h-11 items-center justify-center gap-2 px-4 text-sm font-black text-blue-700">
             <FileText className="h-4 w-4" />
             Buka Detail
           </Link>
-          <Link href={`/dokumen?proyek=${project.id}&from=paket`} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-black text-slate-700 hover:bg-slate-50">
+          <Link href={`/dokumen?proyek=${project.id}&from=paket`} className="siaga-card-interactive siaga-card-neutral inline-flex h-11 items-center justify-center gap-2 px-4 text-sm font-black text-slate-700">
             <ClipboardList className="h-4 w-4" />
             Lihat Dokumen
           </Link>
@@ -848,7 +856,7 @@ function ProjectDetailPanel({
             <BarChart3 className="h-4 w-4" />
             Monitoring
           </Link>
-          <Link href={`/peta?proyek=${project.id}&from=paket`} className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-cyan-200 bg-cyan-50 px-4 text-sm font-black text-cyan-700 hover:bg-cyan-100">
+          <Link href={`/peta?proyek=${project.id}&from=paket`} className="siaga-card-interactive siaga-card-recommendation inline-flex h-11 items-center justify-center gap-2 px-4 text-sm font-black text-cyan-700">
             <MapPin className="h-4 w-4" />
             Lihat di Peta
           </Link>

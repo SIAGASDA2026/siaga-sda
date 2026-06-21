@@ -124,7 +124,7 @@ export function TideDashboardPanel({ compact = false }: { compact?: boolean }) {
 
   if (compact) {
     return (
-      <section className="rounded-2xl border border-cyan-100 bg-gradient-to-br from-cyan-50 to-white p-4 shadow-sm">
+      <section className="siaga-card-recommendation p-4">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#00ACC1]">
@@ -141,14 +141,14 @@ export function TideDashboardPanel({ compact = false }: { compact?: boolean }) {
             <div className="mt-1 text-xs text-slate-500">{TIDE_STATION.name} - update {currentPoint.observedAt}</div>
           </div>
           <div className="grid grid-cols-2 gap-2 sm:min-w-[320px]">
-            <div className="rounded-xl bg-white p-3">
+            <div className="siaga-card-compact siaga-card-info p-3">
               <div className="text-[10px] font-bold uppercase text-slate-400">Tren</div>
               <div className="mt-1 flex items-center gap-1 text-sm font-extrabold text-[#0D2C54]">
                 {currentPoint.trendStatus === 'AIR_NAIK' ? <ArrowUp className="h-4 w-4 text-red-600" /> : <ArrowDown className="h-4 w-4 text-green-600" />}
                 {currentPoint.trendStatus.replace('_', ' ')}
               </div>
             </div>
-            <div className="rounded-xl bg-white p-3">
+            <div className="siaga-card-compact siaga-card-success p-3">
               <div className="text-[10px] font-bold uppercase text-slate-400">Menuju Puncak</div>
               <div className="mt-1 text-sm font-extrabold tabular-nums text-[#0D2C54]">{countdown}</div>
             </div>
@@ -160,7 +160,7 @@ export function TideDashboardPanel({ compact = false }: { compact?: boolean }) {
 
   return (
     <section className="space-y-4">
-      <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
+      <div className="siaga-card-info p-5">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#00ACC1]">
@@ -209,7 +209,7 @@ export function TideDashboardPanel({ compact = false }: { compact?: boolean }) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 xl:grid-cols-5">
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm xl:col-span-3">
+        <div className="siaga-card-recommendation p-5 xl:col-span-3">
           <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="text-sm font-extrabold text-slate-900">Grafik Pasang Surut 12 Jam</div>
@@ -242,7 +242,7 @@ export function TideDashboardPanel({ compact = false }: { compact?: boolean }) {
           </ResponsiveContainer>
         </div>
 
-        <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm xl:col-span-2">
+        <div className="siaga-card-neutral p-5 xl:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <div className="text-sm font-extrabold text-slate-900">Tabel Observasi & Prediksi</div>
@@ -251,7 +251,7 @@ export function TideDashboardPanel({ compact = false }: { compact?: boolean }) {
             <RefreshCw className="h-4 w-4 text-slate-300" />
           </div>
 
-          <div className="hidden overflow-hidden rounded-xl border border-slate-100 md:block">
+          <div className="siaga-table-canvas hidden md:block">
             <table className="w-full text-xs">
               <thead className="bg-slate-50">
                 <tr>
@@ -271,7 +271,7 @@ export function TideDashboardPanel({ compact = false }: { compact?: boolean }) {
             {data.slice(2, 11).map((point) => {
               const pointStyle = statusStyle[point.warningStatus]
               return (
-                <div key={point.id} className="rounded-xl border border-slate-100 p-3">
+                <div key={point.id} className="siaga-card-compact p-3">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className="text-sm font-extrabold text-slate-900">{point.time} WIB</div>
@@ -294,13 +294,13 @@ export function TideDashboardPanel({ compact = false }: { compact?: boolean }) {
 
 function MetricCard({ label, value, desc, tone = 'slate' }: { label: string; value: string; desc: string; tone?: 'slate' | 'blue' | 'green' | 'red' }) {
   const toneClass = {
-    slate: 'text-slate-900 bg-slate-50',
-    blue: 'text-blue-800 bg-blue-50',
-    green: 'text-green-800 bg-green-50',
-    red: 'text-red-800 bg-red-50',
+    slate: 'siaga-card-neutral text-slate-900',
+    blue: 'siaga-card-info text-blue-800',
+    green: 'siaga-card-success text-green-800',
+    red: 'siaga-card-critical text-red-800',
   }[tone]
   return (
-    <div className={`rounded-xl p-3 ${toneClass}`}>
+    <div className={`p-3 ${toneClass}`}>
       <div className="text-[10px] font-bold uppercase tracking-wide opacity-70">{label}</div>
       <div className="mt-1 text-xl font-black tabular-nums">{value}</div>
       <div className="mt-0.5 text-xs opacity-70">{desc}</div>

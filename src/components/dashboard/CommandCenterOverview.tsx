@@ -119,13 +119,13 @@ type CommandCenterOverviewProps = {
 }
 
 const toneStyles: Record<Tone, { card: string; icon: string; dot: string }> = {
-  blue: { card: 'border-blue-100 bg-blue-50/70', icon: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500' },
-  cyan: { card: 'border-cyan-100 bg-cyan-50/70', icon: 'bg-cyan-100 text-cyan-700', dot: 'bg-cyan-500' },
-  green: { card: 'border-emerald-100 bg-emerald-50/70', icon: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
-  amber: { card: 'border-amber-100 bg-amber-50/70', icon: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
-  red: { card: 'border-rose-100 bg-rose-50/70', icon: 'bg-rose-100 text-rose-700', dot: 'bg-rose-500' },
-  violet: { card: 'border-violet-100 bg-violet-50/70', icon: 'bg-violet-100 text-violet-700', dot: 'bg-violet-500' },
-  slate: { card: 'border-slate-200 bg-slate-50/80', icon: 'bg-slate-200 text-slate-700', dot: 'bg-slate-500' },
+  blue: { card: 'siaga-card-info', icon: 'bg-blue-100 text-blue-700', dot: 'bg-blue-500' },
+  cyan: { card: 'siaga-card-recommendation', icon: 'bg-cyan-100 text-cyan-700', dot: 'bg-cyan-500' },
+  green: { card: 'siaga-card-success', icon: 'bg-emerald-100 text-emerald-700', dot: 'bg-emerald-500' },
+  amber: { card: 'siaga-card-warning', icon: 'bg-amber-100 text-amber-700', dot: 'bg-amber-500' },
+  red: { card: 'siaga-card-critical', icon: 'bg-rose-100 text-rose-700', dot: 'bg-rose-500' },
+  violet: { card: 'siaga-card-recommendation', icon: 'bg-violet-100 text-violet-700', dot: 'bg-violet-500' },
+  slate: { card: 'siaga-card-neutral', icon: 'bg-slate-200 text-slate-700', dot: 'bg-slate-500' },
 }
 
 const kpiIcons = {
@@ -358,7 +358,7 @@ export function CommandCenterOverview({
       {afterKpiContent}
 
       <section className="grid gap-2.5 xl:grid-cols-[1.08fr_0.92fr_0.92fr]">
-        <div className="siaga-card px-3 py-3">
+        <div className="siaga-card siaga-card-warning px-3 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-cyan-700">Command Brief</div>
@@ -368,7 +368,7 @@ export function CommandCenterOverview({
           </div>
           <div className="mt-2 space-y-1.5">
             {priorities.slice(0, 3).map((item) => (
-              <button type="button" key={item.id} onClick={() => selectInspector(`priority-${item.id}`)} className="siaga-card-interactive flex w-full items-center gap-2 px-2.5 py-2 text-left">
+              <button type="button" key={item.id} onClick={() => selectInspector(`priority-${item.id}`)} className={`siaga-card-interactive flex w-full items-center gap-2 px-2.5 py-2 text-left ${toneStyles[item.tone].card}`}>
                 <span className={`h-2 w-2 shrink-0 rounded-full ${toneStyles[item.tone].dot}`} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[11px] font-extrabold text-slate-900">{item.label}</div>
@@ -380,7 +380,7 @@ export function CommandCenterOverview({
           </div>
         </div>
 
-        <div className="siaga-card px-3 py-3">
+        <div className="siaga-card siaga-card-info px-3 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sky-700">Progress</div>
@@ -396,7 +396,7 @@ export function CommandCenterOverview({
           </div>
           <div className="mt-3 grid grid-cols-3 gap-1.5">
             {packageTypes.slice(0, 3).map((item) => (
-              <Link key={item.label} href={`/proyek?jenis_paket=${encodeURIComponent(item.label.toLowerCase())}&source_module=dashboard`} className="siaga-card-interactive px-2 py-1.5 text-center">
+              <Link key={item.label} href={`/proyek?jenis_paket=${encodeURIComponent(item.label.toLowerCase())}&source_module=dashboard`} className="siaga-card-interactive siaga-card-recommendation px-2 py-1.5 text-center">
                 <div className="text-sm font-black text-slate-950">{item.count}</div>
                 <div className="truncate text-[9px] font-bold uppercase text-slate-500">{item.label}</div>
               </Link>
@@ -437,7 +437,7 @@ export function CommandCenterOverview({
       </section>
 
       <section className="grid gap-2.5 lg:grid-cols-[1.08fr_0.92fr]">
-        <div className="siaga-card px-3 py-3">
+        <div className="siaga-card siaga-card-recommendation px-3 py-3">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-cyan-700">Akses & Aktivitas</div>
@@ -447,7 +447,7 @@ export function CommandCenterOverview({
           </div>
           <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
             {quickActions.slice(0, 4).map((action) => (
-              <Link key={action.label} href={action.href} className="siaga-card-interactive relative min-w-[130px] rounded-full px-3 py-2">
+              <Link key={action.label} href={action.href} className="siaga-card-interactive siaga-card-info relative min-w-[130px] rounded-full px-3 py-2">
                 <div className="truncate text-[10px] font-extrabold text-slate-800">{action.label}</div>
                 {typeof action.badge === 'number' && action.badge > 0 && (
                   <span className="absolute -right-1 -top-1 rounded-full bg-slate-900 px-1.5 py-0.5 text-[8px] font-black text-white">{action.badge > 99 ? '99+' : action.badge}</span>
@@ -470,7 +470,7 @@ export function CommandCenterOverview({
           </div>
         </div>
 
-        <div className="siaga-card px-3 py-3">
+        <div className="siaga-card siaga-card-neutral px-3 py-3">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sky-700">Modul Pendukung</div>
@@ -491,7 +491,7 @@ export function CommandCenterOverview({
                 </>
               )
               return (
-                <button type="button" key={item.id} onClick={() => selectInspector(`support-${item.id}`)} className="flex w-full items-center gap-2 py-1.5 text-left transition hover:text-cyan-800">{row}</button>
+                <button type="button" key={item.id} onClick={() => selectInspector(`support-${item.id}`)} className="siaga-card-interactive siaga-card-recommendation flex w-full items-center gap-2 px-2 py-1.5 text-left transition hover:text-cyan-800">{row}</button>
               )
             })}
           </div>

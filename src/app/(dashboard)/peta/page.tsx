@@ -295,7 +295,7 @@ export default function PetaPage() {
   return (
     <>
       <Topbar title="Peta Monitoring" subtitle="Pantau layer paket, survey, asset, pasang surut, dan warning SDA" />
-      <div className="min-h-[calc(100vh-64px)] bg-[#eef5fb]">
+      <div className="siaga-page-canvas min-h-[calc(100vh-64px)]">
 
         {/* Header Banner */}
         <section className="relative overflow-hidden bg-[#061d3b] px-4 py-4 text-white md:px-6 md:py-5">
@@ -352,7 +352,7 @@ export default function PetaPage() {
           </div>
 
           {/* Tab layer scroll horizontal (mobile) */}
-          <div className="mb-3 rounded-3xl border border-slate-100 bg-white p-3 shadow-sm">
+          <div className="siaga-panel-canvas mb-3 p-3">
             <div className="mb-3 flex items-center justify-between gap-2">
               <div>
                 <div className="text-sm font-black text-slate-900">Layer Peta Aktif</div>
@@ -389,7 +389,7 @@ export default function PetaPage() {
             <div className="min-w-0 space-y-3">
 
               {/* Filter bar di atas peta */}
-              <div className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
+              <div className="siaga-filter-canvas p-4">
             <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <div className="text-sm font-black text-slate-900">Filter dan Layer</div>
@@ -441,7 +441,7 @@ export default function PetaPage() {
           </div>
 
               {/* Peta */}
-              <div className="overflow-hidden rounded-2xl border border-white bg-white shadow-sm">
+              <div className="siaga-table-canvas">
                 {/* Kontrol atas peta */}
                 <div className="flex items-center justify-between border-b border-slate-100 px-3 py-2">
                   <div className="flex items-center gap-2 text-sm font-black text-slate-700">
@@ -509,7 +509,7 @@ export default function PetaPage() {
             {/* Kolom Kanan: Detail Panel */}
             <aside className="space-y-3">
               {/* Detail proyek */}
-              <div className="rounded-2xl border border-white bg-white p-4 shadow-sm">
+              <div className="siaga-panel-canvas p-4">
                 {featuredProject && featuredBadge ? (
                   <DetailPanel
                     selected={featuredProject}
@@ -576,7 +576,7 @@ function MapStatCard({
     cyan: 'bg-cyan-50 text-cyan-700',
   }[tone]
   return (
-    <Link href={href} className="min-w-0 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <Link href={href} className="siaga-card-interactive min-w-0 p-3">
       <div className="flex items-center gap-2 md:gap-3">
         <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${toneClass}`}>
           <Icon className="h-5 w-5" />
@@ -601,26 +601,26 @@ function MapToolButton({ icon: Icon, label, onClick }: { icon: ElementType; labe
 
 function TideSummaryCard({ tideStatus, compact = false }: { tideStatus: string; compact?: boolean }) {
   return (
-    <section className="rounded-2xl border border-white bg-white p-4 shadow-sm">
+    <section className="siaga-card-recommendation p-4">
       <div className="mb-3 flex items-center gap-2">
         <Waves className="h-5 w-5 text-blue-600" />
         <div className="text-sm font-black text-slate-900">Pasang Surut</div>
         <span className="text-[11px] text-slate-400">(Pantai Dumai)</span>
       </div>
       <div className="grid grid-cols-3 gap-2">
-        <div className="rounded-xl border border-blue-100 bg-blue-50 p-3">
+        <div className="siaga-card-compact siaga-card-info p-3">
           <TrendingUp className="mb-1 h-4 w-4 text-blue-700" />
           <div className="text-[10px] font-bold text-slate-600">Tertinggi</div>
           <div className="text-xl font-black text-blue-700">2.15 m</div>
           <div className="text-[10px] text-slate-500">08:45 WIB</div>
         </div>
-        <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-3">
+        <div className="siaga-card-compact siaga-card-success p-3">
           <TrendingDown className="mb-1 h-4 w-4 text-emerald-700" />
           <div className="text-[10px] font-bold text-slate-600">Terendah</div>
           <div className="text-xl font-black text-emerald-700">0.35 m</div>
           <div className="text-[10px] text-slate-500">15:12 WIB</div>
         </div>
-        <div className={`rounded-xl border p-3 ${tideStatus === 'Normal' ? 'border-emerald-100 bg-emerald-50' : tideStatus === 'Waspada' ? 'border-amber-100 bg-amber-50' : 'border-red-100 bg-red-50'}`}>
+        <div className={`siaga-card-compact p-3 ${tideStatus === 'Normal' ? 'siaga-card-success' : tideStatus === 'Waspada' ? 'siaga-card-warning' : 'siaga-card-critical'}`}>
           <AlertTriangle className={`mb-1 h-4 w-4 ${tideStatus === 'Normal' ? 'text-emerald-700' : tideStatus === 'Waspada' ? 'text-amber-700' : 'text-red-700'}`} />
           <div className="text-[10px] font-bold text-slate-600">Status</div>
           <div className={`text-base font-black ${tideStatus === 'Normal' ? 'text-emerald-700' : tideStatus === 'Waspada' ? 'text-amber-700' : 'text-red-700'}`}>{tideStatus}</div>
@@ -633,11 +633,11 @@ function TideSummaryCard({ tideStatus, compact = false }: { tideStatus: string; 
 function ActivitySummary({ projects, stats }: { projects: Proyek[]; stats: { warning: number; kritis: number } }) {
   const latest = projects.slice(0, 4)
   return (
-    <section className="rounded-2xl border border-white bg-white p-4 shadow-sm">
+    <section className="siaga-card-info p-4">
       <div className="mb-3 text-sm font-black text-slate-900">Aktivitas Terbaru</div>
       <div className="space-y-1.5">
         {latest.map((project, index) => (
-          <Link key={project.id} href={`/proyek/${project.id}?from=peta`} className="flex items-center gap-3 rounded-xl p-2 hover:bg-slate-50">
+          <Link key={project.id} href={`/proyek/${project.id}?from=peta`} className="siaga-card-interactive siaga-card-neutral flex items-center gap-3 p-2">
             <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl text-xs font-black text-white ${project.health === 'kritis' ? 'bg-red-500' : project.health === 'warning' ? 'bg-amber-500' : 'bg-blue-600'}`}>
               {index + 1}
             </span>
@@ -648,10 +648,10 @@ function ActivitySummary({ projects, stats }: { projects: Proyek[]; stats: { war
           </Link>
         ))}
         {latest.length === 0 && (
-          <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400">Belum ada aktivitas.</div>
+          <div className="siaga-empty-canvas p-4 text-center text-sm text-slate-500">Belum ada aktivitas.</div>
         )}
       </div>
-      <div className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-xs font-bold text-amber-800">
+      <div className="siaga-card-compact siaga-card-warning mt-3 px-3 py-2 text-xs font-bold text-amber-800">
         Warning aktif: {stats.warning + stats.kritis} lokasi
       </div>
     </section>
@@ -660,7 +660,7 @@ function ActivitySummary({ projects, stats }: { projects: Proyek[]; stats: { war
 
 function WarningMiniCard({ stats }: { stats: { warning: number; kritis: number; survey: number } }) {
   return (
-    <section className="rounded-2xl border border-white bg-white p-4 shadow-sm">
+    <section className="siaga-card-warning p-4">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2 text-sm font-black text-slate-900">
           <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -673,7 +673,7 @@ function WarningMiniCard({ stats }: { stats: { warning: number; kritis: number; 
         <div><div className="text-2xl font-black text-amber-600">{stats.warning}</div><div className="text-[11px] text-slate-500">Warning</div></div>
         <div><div className="text-2xl font-black text-blue-600">{stats.survey}</div><div className="text-[11px] text-slate-500">Survey</div></div>
       </div>
-      <Link href="/masalah" className="mt-3 flex h-10 items-center justify-center gap-2 rounded-xl border border-blue-100 text-sm font-black text-blue-700 hover:bg-blue-50">
+      <Link href="/masalah" className="siaga-card-interactive siaga-card-info mt-3 flex h-10 items-center justify-center gap-2 text-sm font-black text-blue-700">
         Lihat Semua Warning
         <ExternalLink className="h-4 w-4" />
       </Link>
@@ -728,7 +728,7 @@ function DetailPanel({
       <div className="space-y-3">
         <ProgressLine label="Progress Fisik" value={selected.progressFisik} color="bg-blue-600" />
         <ProgressLine label="Progress Keuangan" value={selected.progressKeuangan} color="bg-emerald-500" />
-        <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+        <div className="siaga-card-compact siaga-card-warning p-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500">Deviasi / Rencana</span>
             <span className={`flex items-center gap-1 text-sm font-black ${selected.deviasi < -10 ? 'text-red-600' : selected.deviasi < 0 ? 'text-amber-600' : 'text-emerald-600'}`}>
@@ -761,11 +761,11 @@ function DetailPanel({
           Buka Detail
           <ExternalLink className="h-4 w-4" />
         </Link>
-        <Link href={`/chat?proyek=${selected.id}`} className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-black text-slate-700">
+        <Link href={`/chat?proyek=${selected.id}`} className="siaga-card-interactive siaga-card-neutral flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-black text-slate-700">
           <MessageSquare className="h-4 w-4" />
           Chat
         </Link>
-        <Link href={`/laporan?proyek=${selected.id}`} className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-black text-slate-700">
+        <Link href={`/laporan?proyek=${selected.id}`} className="siaga-card-interactive siaga-card-neutral flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-black text-slate-700">
           <Camera className="h-4 w-4" />
           Laporan Foto
         </Link>

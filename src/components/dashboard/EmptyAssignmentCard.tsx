@@ -23,7 +23,7 @@ export function EmptyAssignmentCard({ identity }: EmptyAssignmentCardProps) {
           <p className="mt-2 text-sm leading-6 text-slate-700">{copy.message}</p>
 
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
-            <div className="siaga-card-compact p-3">
+            <div className="siaga-card-compact siaga-card-info p-3">
               <div className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Identitas akun</div>
               <div className="mt-1 break-words text-sm font-bold leading-5 text-slate-900">{copy.identityLabel}</div>
             </div>

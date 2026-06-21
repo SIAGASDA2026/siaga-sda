@@ -41,6 +41,14 @@ const toneByName = {
   slate: 'border-slate-200 bg-slate-50 text-slate-700',
 } as const
 
+const cardToneByName = {
+  navy: 'siaga-card-info',
+  cyan: 'siaga-card-recommendation',
+  amber: 'siaga-card-warning',
+  rose: 'siaga-card-critical',
+  slate: 'siaga-card-neutral',
+} as const
+
 export function CommandCenterNavigation({ items, onSelect }: CommandCenterNavigationProps) {
   return (
     <section className="siaga-section-canvas-muted p-1.5">
@@ -59,7 +67,7 @@ export function CommandCenterNavigation({ items, onSelect }: CommandCenterNaviga
               key={item.id}
               type="button"
               onClick={() => onSelect(item)}
-              className="siaga-card-interactive group flex min-h-[56px] min-w-0 items-center gap-2 px-2 py-1.5 text-left"
+              className={`siaga-card-interactive group flex min-h-[56px] min-w-0 items-center gap-2 px-2 py-1.5 text-left ${cardToneByName[item.tone]}`}
             >
               <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${toneByName[item.tone]}`}>
                 <Icon className="h-3.5 w-3.5" />
