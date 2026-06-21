@@ -22,7 +22,7 @@ export function SubfeatureEntryPoints({
   if (visibleItems.length === 0) return null
 
   return (
-    <section className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm">
+    <section className="siaga-section-canvas-muted p-4">
       <div className="mb-3">
         <div className="text-sm font-extrabold text-slate-900">{title}</div>
         <p className="mt-1 text-xs text-slate-500">Entry point mengikuti permission dan penugasan yang berlaku.</p>
@@ -32,7 +32,7 @@ export function SubfeatureEntryPoints({
           <Link
             key={item.id}
             href={item.href}
-            className="group flex min-w-0 items-center justify-between gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-3 transition hover:border-blue-200 hover:bg-blue-50"
+            className="siaga-card-interactive group flex min-w-0 items-center justify-between gap-3 px-3 py-3"
           >
             <span className="min-w-0">
               <span className="block text-sm font-bold text-slate-800">{item.label}</span>

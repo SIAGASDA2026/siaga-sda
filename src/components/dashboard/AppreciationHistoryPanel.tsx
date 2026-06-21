@@ -8,7 +8,7 @@ type AppreciationHistoryPanelProps = {
 
 export function AppreciationHistoryPanel({ events }: AppreciationHistoryPanelProps) {
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+    <section className="siaga-card p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <div className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700">Riwayat Apresiasi</div>
@@ -18,13 +18,13 @@ export function AppreciationHistoryPanel({ events }: AppreciationHistoryPanelPro
       </div>
 
       {events.length === 0 ? (
-        <div className="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+        <div className="siaga-card-compact siaga-card-neutral mt-4 border-dashed p-4 text-sm text-slate-600">
           Belum ada riwayat apresiasi resmi. Riwayat akan tampil setelah aksi sukses terhubung ke workflow resmi.
         </div>
       ) : (
         <div className="mt-4 space-y-3">
           {events.slice(0, 5).map((event) => (
-            <article key={event.id} className="rounded-2xl border border-slate-100 bg-slate-50/70 p-3">
+            <article key={event.id} className="siaga-card-compact siaga-card-neutral p-3">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <div className="text-sm font-black text-slate-950">{event.title}</div>
@@ -48,4 +48,3 @@ export function AppreciationHistoryPanel({ events }: AppreciationHistoryPanelPro
     </section>
   )
 }
-

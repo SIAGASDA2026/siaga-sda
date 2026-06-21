@@ -1,10 +1,12 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { AlertTriangle, Bell, Bot, CalendarDays, Clock, HelpCircle, MessageSquareText, Target, X } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { canAccessPage } from '@/lib/rbac'
+import { buildProjectWarningSource, WARNING_FOLLOW_UP_STATUSES, type ProjectSystemWarning } from '@/lib/project-alerts'
 import { getProjectComputedStatus } from '@/lib/project-status'
 import type { Proyek } from '@/types'
 
@@ -44,6 +46,15 @@ type HaloWorkTimeView = {
   tone: string
   description: string
   sourceLabel: string
+}
+
+type HaloWarningFilter = 'personal' | 'warning' | 'critical' | 'recommendation'
+
+const HALO_WARNING_FILTER_LABELS: Record<HaloWarningFilter, string> = {
+  personal: 'Misi Pribadi',
+  warning: 'Peringatan Sistem',
+  critical: 'Terlambat/Kritis',
+  recommendation: 'Rekomendasi',
 }
 
 function getPageContext(pathname: string) {
@@ -92,6 +103,14 @@ function getHaloWorkTimeTone(status: HaloWorkTimeStatus) {
   return 'border-slate-200 bg-slate-50 text-slate-700'
 }
 
+function isCriticalOrLateWarning(warning: ProjectSystemWarning) {
+  return warning.status.isLate || warning.status.health === 'kritis' || warning.level === 'critical'
+}
+
+function hasFollowUpRecommendation(warning: ProjectSystemWarning) {
+  return isCriticalOrLateWarning(warning) || warning.recommendation.toLowerCase().includes('klarifikasi')
+}
+
 function getHaloVisibleProjects(
   projects: Proyek[],
   currentUser?: { id: string; role?: string; projectIds?: string[] } | null,
@@ -130,6 +149,28 @@ function getHaloWorkTimeView(
   const visibleProjects = getHaloVisibleProjects(projects, currentUser)
   const today = now ? new Date(now) : new Date()
   today.setHours(0, 0, 0, 0)
+  const priorityWarning = buildProjectWarningSource(visibleProjects, today).priorityWarning
+
+  if (priorityWarning?.status.targetDate) {
+    const startDate = parseHaloDate(priorityWarning.project.tanggalMulai)
+    const status: HaloWorkTimeStatus = priorityWarning.status.key === 'late'
+      ? 'Terlambat'
+      : priorityWarning.status.key === 'at_risk'
+        ? (priorityWarning.status.remainingDays ?? 99) <= 3 ? 'Mendesak' : 'Perlu Perhatian'
+        : getHaloWorkTimeStatus(priorityWarning.status.remainingDays ?? 99)
+
+    return {
+      hasSchedule: true,
+      packageName: priorityWarning.project.nama,
+      startLabel: startDate ? formatHaloDate(startDate) : undefined,
+      targetLabel: priorityWarning.targetLabel,
+      remainingLabel: priorityWarning.remainingLabel,
+      status,
+      tone: getHaloWorkTimeTone(status),
+      description: priorityWarning.status.reason,
+      sourceLabel: 'Sumber: prioritas Peringatan Sistem dari helper project-alerts dan project-status.',
+    }
+  }
 
   const scheduledProjects = visibleProjects
     .map((project) => {
@@ -621,6 +662,7 @@ export function ProjectAiAssistant() {
   const [open, setOpen] = useState(false)
   const [now, setNow] = useState<Date | null>(null)
   const [avatarAvailable, setAvatarAvailable] = useState(false)
+  const [activeWarningFilter, setActiveWarningFilter] = useState<HaloWarningFilter>('warning')
 
   useEffect(() => {
     const updateNow = () => setNow(new Date())
@@ -644,8 +686,16 @@ export function ProjectAiAssistant() {
       if (event.key === 'Escape') setOpen(false)
     }
 
+    const previousBodyOverflow = document.body.style.overflow
+    const previousHtmlOverflow = document.documentElement.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.documentElement.style.overflow = 'hidden'
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousBodyOverflow
+      document.documentElement.style.overflow = previousHtmlOverflow
+    }
   }, [open])
 
   const context = useMemo(() => getPageContext(pathname), [pathname])
@@ -719,10 +769,92 @@ export function ProjectAiAssistant() {
     ? `Halo, ${userDisplayName}. Anda masuk sebagai ${roleLabel}${userPosition ? ` - ${userPosition}` : ''}. Panduan ini disesuaikan dengan role, halaman aktif, dan menu yang boleh terlihat.`
     : `Halo, ${userDisplayName}. Panduan ini menunggu role akun terbaca agar menu dan arahan bisa disesuaikan.`
 
+  const haloVisibleProjects = useMemo(() => getHaloVisibleProjects(projects, currentUser), [projects, currentUser])
+  const haloWarningSource = useMemo(() => buildProjectWarningSource(haloVisibleProjects, now ?? new Date()), [haloVisibleProjects, now])
+  const hasPersonalTasks = haloWarningSource.personalTasks.length > 0
+  const haloSubtitle = hasPersonalTasks
+    ? 'Misi Harian Saya'
+    : haloWarningSource.warningSummary.total > 0
+      ? 'Peringatan Sistem & Kendali Waktu'
+      : 'Belum ada misi pribadi'
+  const criticalWarningCount = haloWarningSource.systemWarnings.filter(isCriticalOrLateWarning).length
+  const recommendationCount = haloWarningSource.systemWarnings.filter(hasFollowUpRecommendation).length
+  const filteredHaloWarnings = useMemo(() => {
+    if (activeWarningFilter === 'personal') return []
+    if (activeWarningFilter === 'critical') return haloWarningSource.systemWarnings.filter(isCriticalOrLateWarning)
+    if (activeWarningFilter === 'recommendation') return haloWarningSource.systemWarnings.filter(hasFollowUpRecommendation)
+    return haloWarningSource.systemWarnings
+  }, [activeWarningFilter, haloWarningSource.systemWarnings])
+  const visibleHaloWarnings = filteredHaloWarnings.slice(0, 10)
+  const activeWarningFilterLabel = HALO_WARNING_FILTER_LABELS[activeWarningFilter]
+  const warningSectionTitle = activeWarningFilter === 'personal'
+    ? 'Misi Pribadi'
+    : activeWarningFilter === 'critical'
+      ? 'Paket Terlambat/Kritis'
+      : activeWarningFilter === 'recommendation'
+        ? 'Paket dengan Rekomendasi Tindak Lanjut'
+        : 'Peringatan Sistem dalam scope Anda'
+  const warningSectionDescription = activeWarningFilter === 'personal'
+    ? 'Misi pribadi tetap dipisahkan dari peringatan sistem. Pada tahap ini data misi resmi belum terhubung.'
+    : activeWarningFilter === 'critical'
+      ? 'Daftar ini memfokuskan paket terlambat, health kritis, atau level critical dalam scope Anda.'
+      : activeWarningFilter === 'recommendation'
+        ? 'Daftar ini memfokuskan paket yang memiliki rekomendasi klarifikasi/teguran konseptual dan belum menjadi surat resmi.'
+        : 'Daftar ini bukan Tugas Saya, tetapi paket berisiko yang terlihat sesuai role dan assignment scope.'
+
+  const handleWarningFilterChange = (filter: HaloWarningFilter) => {
+    setActiveWarningFilter(filter)
+    window.setTimeout(() => {
+      document.getElementById('halo-peringatan-sistem')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
+  }
+
+  const warningSummaryCards: Array<{
+    filter: HaloWarningFilter
+    label: string
+    value: string
+    description: string
+    className: string
+    activeClassName: string
+  }> = [
+    {
+      filter: 'personal',
+      label: 'Misi Pribadi',
+      value: String(haloWarningSource.personalTasks.length),
+      description: 'Belum ada misi pribadi hari ini.',
+      className: 'siaga-card-info text-blue-900 shadow-blue-950/10',
+      activeClassName: 'border-blue-400 ring-blue-200',
+    },
+    {
+      filter: 'warning',
+      label: 'Peringatan Sistem',
+      value: String(haloWarningSource.warningSummary.total),
+      description: 'Paket berisiko dalam scope Anda.',
+      className: 'siaga-card-warning text-amber-950 shadow-amber-950/10',
+      activeClassName: 'border-amber-400 ring-amber-200',
+    },
+    {
+      filter: 'critical',
+      label: 'Terlambat/Kritis',
+      value: String(criticalWarningCount),
+      description: 'Butuh perhatian lebih cepat.',
+      className: 'siaga-card-critical text-red-950 shadow-red-950/10',
+      activeClassName: 'border-red-400 ring-red-200',
+    },
+    {
+      filter: 'recommendation',
+      label: 'Rekomendasi',
+      value: String(recommendationCount),
+      description: 'Teguran/klarifikasi konseptual.',
+      className: 'siaga-card-recommendation text-cyan-950 shadow-cyan-950/10',
+      activeClassName: 'border-cyan-400 ring-cyan-200',
+    },
+  ]
+
   const missionStats = [
     { label: 'Misi Aktif', value: '0', tone: 'text-blue-700 bg-blue-50 border-blue-100' },
     { label: 'Selesai', value: '0', tone: 'text-emerald-700 bg-emerald-50 border-emerald-100' },
-    { label: 'Perlu Perhatian', value: '0', tone: 'text-amber-700 bg-amber-50 border-amber-100' },
+    { label: 'Peringatan Sistem', value: String(haloWarningSource.warningSummary.total), tone: 'text-amber-700 bg-amber-50 border-amber-100' },
   ]
 
   const faqItems = useMemo(() => {
@@ -738,7 +870,6 @@ export function ProjectAiAssistant() {
   }, [currentUser?.role])
 
   const dataSourceLabel = dashboardDataSource === 'database' ? 'Database' : 'Data Demo/Fallback'
-  const workTimeView = useMemo(() => getHaloWorkTimeView(projects, currentUser, now), [projects, currentUser, now])
 
   return (
     <>
@@ -755,11 +886,11 @@ export function ProjectAiAssistant() {
 
       {open && (
         <div
-          className="fixed inset-0 z-[70] bg-slate-950/45 p-3 pt-10 md:flex md:items-end md:justify-end"
+          className="fixed inset-0 z-[70] bg-slate-950/45 p-3 pt-5 md:flex md:items-center md:justify-center md:p-6"
           onClick={() => setOpen(false)}
         >
           <div
-            className="mx-auto mt-auto flex max-h-[88dvh] w-[calc(100vw-1rem)] max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl shadow-slate-950/30 md:mb-5 md:mr-5 md:mt-0 md:max-h-[82dvh] md:w-[560px] md:rounded-3xl lg:w-[620px] lg:max-w-2xl"
+            className="mx-auto mt-auto flex max-h-[94dvh] w-[calc(100vw-24px)] max-w-lg flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl shadow-slate-950/30 md:mt-0 md:max-h-[92vh] md:w-[90vw] md:max-w-[1200px] md:rounded-3xl lg:w-[75vw] xl:max-w-[1280px]"
             role="dialog"
             aria-modal="true"
             aria-labelledby="halo-siaga-sda-title"
@@ -785,7 +916,7 @@ export function ProjectAiAssistant() {
                   <div className="min-w-0">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-cyan-100">Asisten Virtual</p>
                     <h2 id="halo-siaga-sda-title" className="text-lg font-black leading-tight">Halo SIAGA-SDA</h2>
-                    <p className="mt-1 text-sm font-semibold text-cyan-50">Misi Harian Saya</p>
+                    <p className="mt-1 text-sm font-semibold text-cyan-50">{haloSubtitle}</p>
                     <p className="text-xs text-cyan-100">Dibantu AI Analis SDA</p>
                   </div>
                 </div>
@@ -800,8 +931,8 @@ export function ProjectAiAssistant() {
               </div>
             </div>
 
-            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain bg-slate-50 p-4">
-              <section className="rounded-2xl border border-cyan-100 bg-white p-4 shadow-sm">
+            <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-slate-100/70 p-3 sm:p-4">
+              <section className="siaga-section-canvas p-4">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[11px] font-bold text-cyan-800">Belum Terhubung Data Resmi</span>
                   <span className="rounded-full border border-cyan-200 bg-white px-2.5 py-1 text-[11px] font-bold text-cyan-800">Mode Panduan Lokal</span>
@@ -810,7 +941,7 @@ export function ProjectAiAssistant() {
                 </div>
                 <p className="mt-3 text-sm font-semibold leading-relaxed text-slate-800">{roleSentence}</p>
                 {haloRoleSummary && (
-                  <p className="mt-2 rounded-2xl border border-cyan-100 bg-cyan-50 px-3 py-2 text-xs font-semibold leading-relaxed text-cyan-900">
+                  <p className="siaga-card-compact siaga-card-recommendation mt-2 px-3 py-2 text-xs font-semibold leading-relaxed text-cyan-900">
                     {haloRoleSummary}
                   </p>
                 )}
@@ -820,7 +951,7 @@ export function ProjectAiAssistant() {
               </section>
 
               <section className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="siaga-card-compact px-4 py-3">
                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
                     <Clock className="h-4 w-4 text-cyan-700" aria-hidden="true" />
                     Sisa waktu misi harian
@@ -829,7 +960,7 @@ export function ProjectAiAssistant() {
                   <p className="mt-1 text-xs text-slate-500">Menuju akhir hari kerja kalender lokal perangkat.</p>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:w-40">
+                <div className="siaga-card-compact px-4 py-3 sm:w-40">
                   <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
                     <CalendarDays className="h-4 w-4 text-blue-700" aria-hidden="true" />
                     Hari Ini
@@ -838,7 +969,7 @@ export function ProjectAiAssistant() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <section className="siaga-section-canvas-muted p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">
@@ -846,62 +977,176 @@ export function ProjectAiAssistant() {
                       Kendali Waktu Pekerjaan
                     </div>
                     <p className="mt-1 text-sm leading-relaxed text-slate-600">
-                      {workTimeView.description}
+                      {haloWarningSource.warningSummary.total > 0
+                        ? `${haloWarningSource.warningSummary.total} paket memerlukan perhatian dalam scope Anda. Detail paket dipusatkan pada Peringatan Sistem di bawah.`
+                        : 'Belum ada peringatan waktu pekerjaan pada scope Anda.'}
                     </p>
                   </div>
-                  <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${workTimeView.tone}`}>
-                    {workTimeView.status}
+                  <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-800">
+                    Ringkasan Agregat
                   </span>
                 </div>
 
-                {workTimeView.hasSchedule ? (
-                  <div className="mt-3 space-y-2 rounded-2xl border border-slate-100 bg-slate-50 p-3">
-                    <div>
-                      <p className="text-[11px] font-black uppercase tracking-[0.18em] text-slate-400">Paket</p>
-                      <p className="mt-1 text-sm font-extrabold leading-relaxed text-slate-900">{workTimeView.packageName}</p>
-                    </div>
-                    <div className="grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
-                      <div className="rounded-xl bg-white px-3 py-2">
-                        <p className="font-black uppercase tracking-[0.14em] text-slate-400">Mulai</p>
-                        <p className="mt-1 font-bold text-slate-800">{workTimeView.startLabel || '-'}</p>
-                      </div>
-                      <div className="rounded-xl bg-white px-3 py-2">
-                        <p className="font-black uppercase tracking-[0.14em] text-slate-400">Target selesai</p>
-                        <p className="mt-1 font-bold text-slate-800">{workTimeView.targetLabel}</p>
-                      </div>
-                      <div className="rounded-xl bg-white px-3 py-2">
-                        <p className="font-black uppercase tracking-[0.14em] text-slate-400">Sisa waktu</p>
-                        <p className="mt-1 font-bold text-slate-800">{workTimeView.remainingLabel}</p>
-                      </div>
-                    </div>
-                    <p className="text-[11px] leading-relaxed text-slate-500">{workTimeView.sourceLabel}</p>
-                  </div>
-                ) : (
-                  <div className="mt-3 rounded-2xl border border-dashed border-slate-200 bg-slate-50 p-3">
-                    <p className="text-sm font-extrabold text-slate-800">Jadwal pekerjaan belum tersedia.</p>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                      Data waktu akan mengikuti jadwal tugas atau kontrak jika sudah tersedia di sistem.
-                    </p>
-                  </div>
-                )}
+                <div className="mt-3 grid gap-2 text-xs sm:grid-cols-2 xl:grid-cols-4">
+                  {warningSummaryCards.map((card) => {
+                    const isActive = activeWarningFilter === card.filter
+
+                    return (
+                      <button
+                        key={card.filter}
+                        type="button"
+                        onClick={() => handleWarningFilterChange(card.filter)}
+                        aria-pressed={isActive}
+                        className={`siaga-card-interactive px-3 py-2.5 text-left ring-1 ring-white/80 focus:ring-4 ${card.className} ${isActive ? `${card.activeClassName} scale-[1.01] shadow-[0_18px_34px_rgba(15,23,42,0.14)]` : ''}`}
+                      >
+                        <span className="block font-black uppercase tracking-[0.14em] opacity-70">{card.label}</span>
+                        <span className="mt-1 block text-2xl font-black leading-none">{card.value}</span>
+                        <span className="mt-2 block text-[11px] font-semibold leading-relaxed opacity-80">{card.description}</span>
+                        <span className="mt-3 inline-flex rounded-full border border-white/70 bg-white/70 px-2 py-1 text-[10px] font-black uppercase tracking-[0.14em] opacity-80">
+                          {isActive ? 'Filter aktif' : 'Klik filter'}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="siaga-card-compact siaga-card-neutral mt-3 p-3">
+                  <p className="text-sm font-extrabold text-slate-900">
+                    {haloWarningSource.priorityWarning
+                      ? `Prioritas tertinggi: ${haloWarningSource.priorityWarning.title}`
+                      : 'Prioritas tertinggi belum tersedia.'}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                    Kendali Waktu hanya ringkasan. Buka daftar Peringatan Sistem untuk detail paket, pihak terkait, dan rekomendasi tindak lanjut.
+                  </p>
+                  {haloWarningSource.warningSummary.total > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => handleWarningFilterChange('warning')}
+                      className="mt-3 inline-flex rounded-xl border border-amber-200 bg-white px-3 py-2 text-xs font-black text-amber-800 shadow-sm transition hover:-translate-y-0.5 hover:bg-amber-50"
+                    >
+                      Lihat Peringatan Sistem
+                    </button>
+                  )}
+                </div>
               </section>
 
               <section className="grid grid-cols-3 gap-2">
                 {missionStats.map((item) => (
-                  <div key={item.label} className={`rounded-2xl border p-3 text-center ${item.tone}`}>
+                  <div key={item.label} className={`siaga-card-compact p-2.5 text-center ${item.tone}`}>
                     <div className="text-2xl font-black">{item.value}</div>
                     <div className="mt-1 text-[11px] font-bold leading-tight">{item.label}</div>
                   </div>
                 ))}
               </section>
 
-              <section className="rounded-2xl border border-dashed border-cyan-200 bg-cyan-50/70 p-4">
+              <section id="halo-peringatan-sistem" className="siaga-section-canvas siaga-card-warning p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-700 shadow-sm">
+                    <Bell className="h-5 w-5" aria-hidden="true" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="font-black text-slate-900">{warningSectionTitle}</h3>
+                      <span className="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-black text-amber-800">
+                        Filter: {activeWarningFilterLabel}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-sm leading-relaxed text-slate-700">
+                      {warningSectionDescription}
+                    </p>
+                    {activeWarningFilter !== 'personal' && haloWarningSource.warningSummary.total > 0 && (
+                      <p className="mt-2 text-[11px] font-bold text-slate-500">
+                        Menampilkan {visibleHaloWarnings.length} dari {filteredHaloWarnings.length} item pada filter aktif. Total peringatan sistem: {haloWarningSource.warningSummary.total}.
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                {visibleHaloWarnings.length === 0 ? (
+                  <div className="siaga-card-compact siaga-card-neutral mt-3 border-dashed p-3">
+                    <p className="text-sm font-extrabold text-slate-800">
+                      {activeWarningFilter === 'personal' ? 'Belum ada misi pribadi hari ini.' : 'Tidak ada item pada filter ini.'}
+                    </p>
+                    <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                      Halo tetap memisahkan misi pribadi dari peringatan sistem dan tidak membuka data di luar scope.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mt-3 max-h-[52dvh] space-y-3 overflow-y-auto pr-1 md:max-h-[56vh]">
+                    {visibleHaloWarnings.map((warning) => (
+                      <article key={warning.id} className="siaga-card-compact siaga-card-neutral p-3">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{warning.project.kode}</p>
+                            <h4 className="mt-1 line-clamp-2 text-sm font-black leading-snug text-slate-900">{warning.title}</h4>
+                          </div>
+                          <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${warning.level === 'critical' ? 'bg-red-50 text-red-700' : warning.level === 'warning' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}`}>
+                            {warning.statusLabel}
+                          </span>
+                        </div>
+
+                        <div className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
+                          <div className="siaga-card-compact px-3 py-2">
+                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Progress</p>
+                            <p className="mt-1 font-bold text-slate-800">{warning.progressFisik}% fisik / {warning.progressKeuangan}% keuangan</p>
+                          </div>
+                          <div className="siaga-card-compact px-3 py-2">
+                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Target</p>
+                            <p className="mt-1 font-bold text-slate-800">{warning.targetLabel}</p>
+                          </div>
+                          <div className="siaga-card-compact px-3 py-2">
+                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Status Waktu</p>
+                            <p className="mt-1 font-bold text-slate-800">{warning.remainingLabel}</p>
+                          </div>
+                        </div>
+
+                        <p className="mt-3 text-xs leading-relaxed text-slate-600">{warning.detail}</p>
+
+                        <div className="siaga-card-compact siaga-card-warning mt-3 px-3 py-2 text-xs leading-relaxed text-amber-950">
+                          <p className="font-black">{warning.recommendation}</p>
+                          <p className="mt-1">{warning.limitation}</p>
+                        </div>
+
+                        <div className="mt-3 grid gap-2 text-xs lg:grid-cols-2">
+                          <div className="siaga-card-compact px-3 py-2">
+                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Status Tindak Lanjut</p>
+                            <p className="mt-1 font-bold text-slate-800">{warning.followUpStatus}</p>
+                            <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                              Status ini konseptual dan belum menulis database.
+                            </p>
+                          </div>
+                          <div className="siaga-card-compact px-3 py-2">
+                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Pihak Terkait</p>
+                            <ul className="mt-1 space-y-1 text-slate-600">
+                              {warning.relatedParties.slice(0, 6).map((party) => (
+                                <li key={party}>- {party}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold text-slate-500">
+                            Status konseptual tersedia: {WARNING_FOLLOW_UP_STATUSES.length} tahap tindak lanjut.
+                          </span>
+                          <Link href={warning.href} className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white transition hover:bg-blue-700">
+                            Buka Paket
+                          </Link>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              <section className="siaga-section-canvas-muted siaga-card-recommendation border-dashed p-4">
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-cyan-700 shadow-sm">
                     <Target className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <div>
-                    <h3 className="font-black text-slate-900">Belum Ada Misi Harian</h3>
+                    <h3 className="font-black text-slate-900">Belum ada misi pribadi hari ini.</h3>
                     <p className="mt-1 text-sm leading-relaxed text-slate-700">
                       Akun Anda sudah aktif, tetapi saat ini belum ada misi harian yang terhubung dengan role dan assignment Anda. Misi baru akan muncul setelah admin atau pejabat berwenang memberikan penugasan.
                     </p>
@@ -912,7 +1157,7 @@ export function ProjectAiAssistant() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+              <section className="siaga-section-canvas-muted siaga-card-warning p-4">
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
                     <AlertTriangle className="h-5 w-5" aria-hidden="true" />
@@ -927,7 +1172,7 @@ export function ProjectAiAssistant() {
               </section>
 
               <section className="grid gap-3 lg:grid-cols-2">
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="siaga-card px-4 py-3">
                   <div className="flex items-center justify-between gap-3">
                     <h3 className="text-sm font-black text-slate-900">Panduan Role Saya</h3>
                     <span className="rounded-full border border-cyan-200 bg-cyan-50 px-2.5 py-1 text-[11px] font-black text-cyan-800">
@@ -963,7 +1208,7 @@ export function ProjectAiAssistant() {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="siaga-card px-4 py-3">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <h3 className="text-sm font-black text-slate-900">Panduan Halaman Aktif</h3>
                     <span className={`rounded-full border px-2.5 py-1 text-[11px] font-black ${pageAccessAllowed ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-amber-200 bg-amber-50 text-amber-800'}`}>
@@ -1001,21 +1246,21 @@ export function ProjectAiAssistant() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <section className="siaga-card px-4 py-3">
                 <h3 className="text-sm font-black text-slate-900">Mengapa Menu Tidak Muncul?</h3>
                 <p className="mt-1 text-xs leading-relaxed text-slate-500">
                   Halo hanya menjelaskan hasil guard frontend yang sedang aktif. Jika menu tidak tampil, biasanya role, permission, atau assignment belum membuka modul tersebut.
                 </p>
                 <div className="mt-3 space-y-2">
                   {menuAccessNotes.map((item) => (
-                    <p key={item} className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-semibold leading-relaxed text-slate-700">
+                    <p key={item} className="siaga-card-compact siaga-card-neutral px-3 py-2 text-xs font-semibold leading-relaxed text-slate-700">
                       {item}
                     </p>
                   ))}
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+              <section className="siaga-section-canvas-muted p-4">
                 <div className="mb-3 flex items-center gap-2 text-sm font-black text-slate-900">
                   <MessageSquareText className="h-5 w-5 text-blue-700" aria-hidden="true" />
                   Tanya Halo SIAGA-SDA
@@ -1032,7 +1277,7 @@ export function ProjectAiAssistant() {
 
                 <div className="mt-4 space-y-2">
                   {faqItems.map((item) => (
-                    <details key={item.question} className="rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2">
+                    <details key={item.question} className="siaga-card-compact siaga-card-neutral px-3 py-2">
                       <summary className="flex cursor-pointer list-none items-center gap-2 text-sm font-bold text-slate-800">
                         <HelpCircle className="h-4 w-4 text-cyan-700" aria-hidden="true" />
                         {item.question}
@@ -1043,7 +1288,7 @@ export function ProjectAiAssistant() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-blue-100 bg-blue-50 p-4">
+              <section className="siaga-section-canvas-muted siaga-card-info p-4">
                 <div className="flex items-start gap-3">
                   <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-blue-700 shadow-sm">
                     <Bell className="h-5 w-5" aria-hidden="true" />

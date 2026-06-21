@@ -43,7 +43,7 @@ const toneByName = {
 
 export function CommandCenterNavigation({ items, onSelect }: CommandCenterNavigationProps) {
   return (
-    <section className="rounded-2xl border border-sky-100 bg-white/95 p-1.5 shadow-sm">
+    <section className="siaga-section-canvas-muted p-1.5">
       <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3 xl:grid-cols-6">
         {items.map((item) => {
           const Icon = iconById[item.id]
@@ -59,7 +59,7 @@ export function CommandCenterNavigation({ items, onSelect }: CommandCenterNaviga
               key={item.id}
               type="button"
               onClick={() => onSelect(item)}
-              className="group flex min-h-[58px] min-w-0 items-center gap-2 rounded-xl border border-transparent px-2 py-1.5 text-left transition hover:border-cyan-200 hover:bg-cyan-50/70"
+              className="siaga-card-interactive group flex min-h-[56px] min-w-0 items-center gap-2 px-2 py-1.5 text-left"
             >
               <span className={`inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border ${toneByName[item.tone]}`}>
                 <Icon className="h-3.5 w-3.5" />

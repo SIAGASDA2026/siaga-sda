@@ -32,10 +32,10 @@ export function TaskCenterPanel({
 }: TaskCenterPanelProps) {
   const activeTasks = tasks.filter((task) => task.status !== 'done')
   const visibleTasks = activeTasks.slice(0, 3)
-  const visibleSystemWarnings = systemWarnings.slice(0, 4)
+  const visibleSystemWarnings = systemWarnings.slice(0, 10)
 
   return (
-    <section className="relative z-10 overflow-hidden rounded-[28px] border border-cyan-200/80 bg-gradient-to-br from-white via-sky-50/80 to-cyan-50/70 p-4 text-slate-900 shadow-[0_18px_50px_rgba(14,116,144,0.10)] sm:p-5">
+    <section className="siaga-section-canvas relative z-10 p-4 text-slate-900 sm:p-5">
       <div className="pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-cyan-200/40 blur-3xl" />
       <div className="pointer-events-none absolute -left-12 bottom-0 h-28 w-28 rounded-full bg-blue-200/30 blur-3xl" />
 
@@ -70,20 +70,25 @@ export function TaskCenterPanel({
           </div>
 
           <div className="space-y-4">
-            <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="siaga-card px-4 py-3">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700">Langkah Berikutnya</div>
-              <h3 className="mt-1 text-base font-black text-slate-950">Menunggu assignment resmi</h3>
+              <h3 className="mt-1 text-base font-black text-slate-950">Belum ada misi pribadi hari ini.</h3>
               <p className="mt-2 text-sm leading-6 text-slate-600">
-                Tugas baru akan muncul setelah admin atau pejabat berwenang menetapkan assignment. Panel ini tidak membuka data global saat assignment kosong.
+                Tugas baru akan muncul setelah admin atau pejabat berwenang menetapkan assignment. Peringatan sistem di bawah bukan tugas pribadi, tetapi risiko paket dalam scope yang boleh terlihat.
               </p>
             </section>
 
-            <section className="rounded-3xl border border-amber-100 bg-amber-50/70 p-4 shadow-sm">
+            <section className="siaga-card siaga-card-warning px-4 py-3">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">Peringatan Sistem</div>
-              <h3 className="mt-1 text-base font-black text-slate-950">Risiko terlihat dalam scope Anda</h3>
+              <h3 className="mt-1 text-base font-black text-slate-950">Peringatan Sistem dalam scope Anda</h3>
               <p className="mt-2 text-xs leading-5 text-amber-900">
                 Daftar ini bukan Tugas Saya. Ini adalah paket berisiko yang terlihat sesuai role dan assignment scope.
               </p>
+              {systemWarnings.length > 0 && (
+                <p className="mt-2 text-[11px] font-bold text-amber-900">
+                  Menampilkan {visibleSystemWarnings.length} dari {systemWarnings.length} peringatan sistem.
+                </p>
+              )}
               {visibleSystemWarnings.length === 0 ? (
                 <p className="mt-3 rounded-2xl bg-white/80 px-3 py-2 text-sm font-semibold text-slate-600">
                   Tidak ada peringatan sistem pada filter aktif.
@@ -91,7 +96,7 @@ export function TaskCenterPanel({
               ) : (
                 <div className="mt-3 space-y-2">
                   {visibleSystemWarnings.map((warning) => (
-                    <Link key={warning.id} href={warning.href} className="block rounded-2xl border border-white bg-white/90 px-3 py-2 text-sm shadow-sm transition hover:border-amber-200 hover:bg-white">
+                    <Link key={warning.id} href={warning.href} className="siaga-card-interactive block px-3 py-2 text-sm">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                           <div className="line-clamp-1 font-black text-slate-900">{warning.title}</div>
@@ -107,14 +112,14 @@ export function TaskCenterPanel({
               )}
             </section>
 
-            <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+            <section className="siaga-card px-4 py-3">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Tugas Selesai</div>
               {completedTasks.length === 0 ? (
                 <p className="mt-2 text-sm leading-6 text-slate-600">Belum ada tugas selesai yang terhubung ke workflow resmi.</p>
               ) : (
                 <div className="mt-3 space-y-2">
                   {completedTasks.slice(0, 3).map((task) => (
-                    <div key={task.id} className="rounded-2xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-900">
+                    <div key={task.id} className="siaga-card-compact siaga-card-success px-3 py-2 text-sm font-semibold text-emerald-900">
                       {task.title}
                     </div>
                   ))}
@@ -138,7 +143,7 @@ function SummaryMetric({ icon: Icon, label, value, tone }: { icon: typeof Clipbo
     : 'border-cyan-100 bg-cyan-50 text-cyan-800'
 
   return (
-    <div className={`rounded-2xl border p-3 ${toneClass}`}>
+    <div className={`siaga-card-compact p-2.5 ${toneClass}`}>
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0 text-[10px] font-black uppercase leading-4 tracking-[0.12em]">{label}</div>
         <Icon className="h-4 w-4" aria-hidden="true" />

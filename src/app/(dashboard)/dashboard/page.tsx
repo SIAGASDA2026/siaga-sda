@@ -17,6 +17,7 @@ import { TideDashboardPanel } from '@/components/dashboard/TideDashboardPanel'
 import { BRAND } from '@/lib/brand'
 import { canAccessPage, canViewAllProjects } from '@/lib/rbac'
 import { getScopedProjects } from '@/lib/dashboard-scope'
+import { buildProjectWarningSource } from '@/lib/project-alerts'
 import type { TaskCenterIdentity } from '@/lib/task-center-ui'
 import { filterProjectsByScope, getProjectBudgetYear, getProjectBudgetYears, getProjectCategoryLabel, getProjectPackageType, getProjectPackageTypeLabel, getProjectPrograms, getProjectSubKegiatan, getProjectWorkStage, getProjectWorkStageLabel } from '@/lib/reporting'
 import { formatCurrency, formatDateTime, getRoleLabel } from '@/lib/utils'
@@ -169,32 +170,9 @@ export default function DashboardPage() {
       .slice(0, 7)
   }, [auditLogs, currentRole, currentUser, scopedProjects])
   const approvalPending = approvalSummary.pending
-  const riskProjects = visibleProjects
-    .filter((project) => {
-      const status = getProjectComputedStatus(project)
-      return status.isLate || status.isAtRisk || status.health === 'kritis' || status.health === 'warning' || project.masalah.some((item) => item.status === 'open')
-    })
-    .sort((a, b) => {
-      const aStatus = getProjectComputedStatus(a)
-      const bStatus = getProjectComputedStatus(b)
-      const score = (status: ReturnType<typeof getProjectComputedStatus>) => status.warningLevel === 'critical' ? 2 : status.warningLevel === 'warning' ? 1 : 0
-      return score(bStatus) - score(aStatus)
-    })
-
-  const taskCenterSystemWarnings = useMemo(
-    () => riskProjects.slice(0, 4).map((project) => {
-      const status = getProjectComputedStatus(project)
-      const openIssues = project.masalah.filter((item) => item.status === 'open').length
-      return {
-        id: project.id,
-        title: project.nama,
-        detail: openIssues > 0 ? `${status.reason} Masalah open: ${openIssues}.` : status.reason,
-        href: `/proyek/${project.id}?from=dashboard`,
-        level: status.warningLevel === 'critical' ? 'critical' as const : 'warning' as const,
-      }
-    }),
-    [riskProjects],
-  )
+  const projectWarningSource = useMemo(() => buildProjectWarningSource(visibleProjects), [visibleProjects])
+  const taskCenterSystemWarnings = projectWarningSource.systemWarnings
+  const riskProjects = projectWarningSource.systemWarnings.map((warning) => warning.project)
 
   const activeYear = useMemo(() => {
     if (filterTahun !== 'all' && !Number.isNaN(Number(filterTahun))) {

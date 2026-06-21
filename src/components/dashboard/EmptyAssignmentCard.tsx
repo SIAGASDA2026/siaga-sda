@@ -9,7 +9,7 @@ export function EmptyAssignmentCard({ identity }: EmptyAssignmentCardProps) {
   const copy = getEmptyAssignmentCopy(identity)
 
   return (
-    <section className="rounded-3xl border border-dashed border-cyan-200 bg-gradient-to-br from-white via-cyan-50/70 to-blue-50/80 p-4 text-slate-900 shadow-sm sm:p-5">
+    <section className="siaga-section-canvas siaga-card-recommendation border-dashed p-4 text-slate-900 sm:p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-start">
         <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-cyan-100 text-cyan-800 sm:h-12 sm:w-12">
           <UserRound className="h-6 w-6" aria-hidden="true" />
@@ -23,21 +23,21 @@ export function EmptyAssignmentCard({ identity }: EmptyAssignmentCardProps) {
           <p className="mt-2 text-sm leading-6 text-slate-700">{copy.message}</p>
 
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
-            <div className="rounded-2xl border border-white/80 bg-white/85 p-3">
+            <div className="siaga-card-compact p-3">
               <div className="text-[11px] font-black uppercase tracking-[0.14em] text-slate-500">Identitas akun</div>
               <div className="mt-1 break-words text-sm font-bold leading-5 text-slate-900">{copy.identityLabel}</div>
             </div>
-            <div className="rounded-2xl border border-cyan-100 bg-white/80 p-3">
+            <div className="siaga-card-compact siaga-card-recommendation p-3">
               <div className="text-[11px] font-black uppercase tracking-[0.14em] text-cyan-700">Apa berikutnya</div>
               <p className="mt-1 text-sm leading-5 text-slate-700">{copy.nextStep}</p>
             </div>
           </div>
 
-          <div className="mt-3 rounded-2xl border border-emerald-100 bg-emerald-50/80 p-3 text-sm font-semibold leading-5 text-emerald-900">
+          <div className="siaga-card-compact siaga-card-success mt-3 p-3 text-sm font-semibold leading-5 text-emerald-900">
             {copy.notErrorNote}
           </div>
 
-          <div className="mt-3 flex items-start gap-2 rounded-2xl border border-amber-100 bg-amber-50/80 p-3 text-sm text-amber-950">
+          <div className="siaga-card-compact siaga-card-warning mt-3 flex items-start gap-2 p-3 text-sm text-amber-950">
             <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0" aria-hidden="true" />
             <p className="leading-5">{copy.guidance}</p>
           </div>

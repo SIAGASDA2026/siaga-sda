@@ -293,7 +293,7 @@ export function CommandCenterOverview({
   return (
     <div className="space-y-2.5">
       <div className="space-y-2.5">
-      <section className="overflow-hidden rounded-2xl border border-sky-200 bg-white shadow-[0_10px_30px_rgba(13,44,84,0.08)]">
+      <section className="siaga-section-canvas">
         <div className="flex flex-col gap-2 bg-gradient-to-r from-[#0d2c54] via-[#104b73] to-[#0f6b78] px-4 py-2.5 text-white lg:flex-row lg:items-center lg:justify-between">
           <div className="min-w-0">
             <div className="text-[10px] font-extrabold uppercase tracking-[0.24em] text-cyan-200">Dashboard Command Center SDA</div>
@@ -322,14 +322,14 @@ export function CommandCenterOverview({
       </section>
 
       {filterPanel && (
-        <section className="rounded-2xl border border-cyan-100 bg-white p-3 shadow-sm">
+        <section className="siaga-section-canvas-muted p-3">
           {filterPanel}
         </section>
       )}
 
       <CommandCenterNavigation items={navigationItems} onSelect={(item) => selectInspector(`navigation-${item.id}`)} />
 
-      <section className="grid grid-cols-2 gap-1.5 rounded-2xl border border-sky-100 bg-white p-2 shadow-sm sm:grid-cols-3 xl:grid-cols-5">
+      <section className="siaga-section-canvas-muted grid grid-cols-2 gap-1.5 p-2 sm:grid-cols-3 xl:grid-cols-5">
         {kpis.map((item) => {
           const Icon = kpiIcons[item.id as keyof typeof kpiIcons] || Gauge
           const style = toneStyles[item.tone]
@@ -338,7 +338,7 @@ export function CommandCenterOverview({
               type="button"
               key={item.id}
               onClick={() => selectInspector(`kpi-${item.id}`)}
-              className={`group min-w-0 rounded-xl border p-2.5 transition hover:-translate-y-0.5 hover:border-cyan-300 hover:bg-white ${style.card}`}
+              className={`siaga-card-interactive group p-2.5 ${style.card}`}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
@@ -358,7 +358,7 @@ export function CommandCenterOverview({
       {afterKpiContent}
 
       <section className="grid gap-2.5 xl:grid-cols-[1.08fr_0.92fr_0.92fr]">
-        <div className="rounded-2xl border border-cyan-100 bg-white p-3 shadow-sm">
+        <div className="siaga-card px-3 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-cyan-700">Command Brief</div>
@@ -368,7 +368,7 @@ export function CommandCenterOverview({
           </div>
           <div className="mt-2 space-y-1.5">
             {priorities.slice(0, 3).map((item) => (
-              <button type="button" key={item.id} onClick={() => selectInspector(`priority-${item.id}`)} className="flex w-full items-center gap-2 rounded-xl border border-slate-100 bg-slate-50/70 px-2.5 py-2 text-left transition hover:border-cyan-200 hover:bg-cyan-50/60">
+              <button type="button" key={item.id} onClick={() => selectInspector(`priority-${item.id}`)} className="siaga-card-interactive flex w-full items-center gap-2 px-2.5 py-2 text-left">
                 <span className={`h-2 w-2 shrink-0 rounded-full ${toneStyles[item.tone].dot}`} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[11px] font-extrabold text-slate-900">{item.label}</div>
@@ -380,7 +380,7 @@ export function CommandCenterOverview({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-sky-100 bg-white p-3 shadow-sm">
+        <div className="siaga-card px-3 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sky-700">Progress</div>
@@ -396,7 +396,7 @@ export function CommandCenterOverview({
           </div>
           <div className="mt-3 grid grid-cols-3 gap-1.5">
             {packageTypes.slice(0, 3).map((item) => (
-              <Link key={item.label} href={`/proyek?jenis_paket=${encodeURIComponent(item.label.toLowerCase())}&source_module=dashboard`} className="rounded-xl border border-slate-100 bg-slate-50 px-2 py-1.5 text-center transition hover:border-cyan-200">
+              <Link key={item.label} href={`/proyek?jenis_paket=${encodeURIComponent(item.label.toLowerCase())}&source_module=dashboard`} className="siaga-card-interactive px-2 py-1.5 text-center">
                 <div className="text-sm font-black text-slate-950">{item.count}</div>
                 <div className="truncate text-[9px] font-bold uppercase text-slate-500">{item.label}</div>
               </Link>
@@ -409,7 +409,7 @@ export function CommandCenterOverview({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-amber-100 bg-white p-3 shadow-sm">
+        <div className="siaga-card siaga-card-warning px-3 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-amber-700">Risk & Approval</div>
@@ -424,7 +424,7 @@ export function CommandCenterOverview({
               { label: 'Minta Revisi', value: risk.revision, href: '/approval?approval_status=REVISION&source_module=dashboard', tone: 'violet' as Tone },
               { label: 'Masalah Open', value: risk.openIssues, href: '/masalah?status=open&source_module=dashboard', tone: 'slate' as Tone },
             ].filter((item) => canViewApproval || !item.href.startsWith('/approval')).map((item) => (
-              <button type="button" key={item.label} onClick={() => selectInspector(item.href.startsWith('/approval') ? 'kpi-approval' : item.label.includes('Kritis') ? 'kpi-risk' : 'overview')} className={`rounded-xl border p-2 text-left transition hover:border-cyan-300 hover:bg-white ${toneStyles[item.tone].card}`}>
+              <button type="button" key={item.label} onClick={() => selectInspector(item.href.startsWith('/approval') ? 'kpi-approval' : item.label.includes('Kritis') ? 'kpi-risk' : 'overview')} className={`siaga-card-interactive p-2 text-left ${toneStyles[item.tone].card}`}>
                 <div className="text-lg font-black text-slate-950">{item.value}</div>
                 <div className="text-[10px] font-bold text-slate-600">{item.label}</div>
               </button>
@@ -437,7 +437,7 @@ export function CommandCenterOverview({
       </section>
 
       <section className="grid gap-2.5 lg:grid-cols-[1.08fr_0.92fr]">
-        <div className="rounded-2xl border border-cyan-100 bg-white p-3 shadow-sm">
+        <div className="siaga-card px-3 py-3">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-cyan-700">Akses & Aktivitas</div>
@@ -447,7 +447,7 @@ export function CommandCenterOverview({
           </div>
           <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
             {quickActions.slice(0, 4).map((action) => (
-              <Link key={action.label} href={action.href} className="relative min-w-[130px] rounded-full border border-slate-200 bg-slate-50 px-3 py-2 transition hover:border-cyan-300 hover:bg-cyan-50">
+              <Link key={action.label} href={action.href} className="siaga-card-interactive relative min-w-[130px] rounded-full px-3 py-2">
                 <div className="truncate text-[10px] font-extrabold text-slate-800">{action.label}</div>
                 {typeof action.badge === 'number' && action.badge > 0 && (
                   <span className="absolute -right-1 -top-1 rounded-full bg-slate-900 px-1.5 py-0.5 text-[8px] font-black text-white">{action.badge > 99 ? '99+' : action.badge}</span>
@@ -470,7 +470,7 @@ export function CommandCenterOverview({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-sky-100 bg-white p-3 shadow-sm">
+        <div className="siaga-card px-3 py-3">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-sky-700">Modul Pendukung</div>

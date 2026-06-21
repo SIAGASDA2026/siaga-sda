@@ -18,7 +18,7 @@ export function TaskCard({ task }: TaskCardProps) {
   const canAct = Boolean(task.canAct && task.actionHref)
 
   return (
-    <article className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-cyan-200 hover:shadow-md">
+    <article className="siaga-card-interactive p-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -38,7 +38,7 @@ export function TaskCard({ task }: TaskCardProps) {
         </div>
 
         {task.dueLabel && (
-          <div className="inline-flex w-fit items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700">
+          <div className="siaga-card-compact inline-flex w-fit items-center gap-2 px-3 py-2 text-xs font-bold text-slate-700">
             <Clock3 className="h-4 w-4 text-cyan-700" aria-hidden="true" />
             {task.dueLabel}
           </div>
@@ -46,11 +46,11 @@ export function TaskCard({ task }: TaskCardProps) {
       </div>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
-        <div className="rounded-2xl border border-cyan-100 bg-cyan-50/70 p-3">
+        <div className="siaga-card-compact siaga-card-recommendation p-3">
           <div className="text-[11px] font-black uppercase tracking-[0.16em] text-cyan-800">Langkah berikutnya</div>
           <p className="mt-1 text-sm leading-5 text-slate-700">{task.nextStep}</p>
         </div>
-        <div className="rounded-2xl border border-amber-100 bg-amber-50/70 p-3">
+        <div className="siaga-card-compact siaga-card-warning p-3">
           <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em] text-amber-800">
             <ShieldAlert className="h-4 w-4" aria-hidden="true" />
             Risiko jika terlewat
@@ -87,4 +87,3 @@ export function TaskCard({ task }: TaskCardProps) {
     </article>
   )
 }
-
