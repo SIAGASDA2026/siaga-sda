@@ -1,9 +1,18 @@
 import Link from 'next/link'
-import { CheckCircle2, ClipboardList, ShieldAlert } from 'lucide-react'
+import { ArrowRight, CheckCircle2, ClipboardList, ShieldAlert } from 'lucide-react'
 import { EmptyAssignmentCard } from './EmptyAssignmentCard'
 import { TaskCard } from './TaskCard'
 import { AppreciationHistoryPanel } from './AppreciationHistoryPanel'
 import type { AppreciationEvent, TaskCenterIdentity, TaskCenterItem } from '@/lib/task-center-ui'
+
+type TaskCenterWarningProject = {
+  kode?: string
+  nama?: string
+  ppk?: string
+  pptk?: string
+  konsultanPengawasan?: string
+  kontraktor?: string
+}
 
 export type TaskCenterSystemWarning = {
   id: string
@@ -11,6 +20,16 @@ export type TaskCenterSystemWarning = {
   detail: string
   href: string
   level: 'warning' | 'critical' | 'info'
+  project?: TaskCenterWarningProject
+  statusLabel?: string
+  progressFisik?: number
+  progressKeuangan?: number
+  targetLabel?: string
+  remainingLabel?: string
+  recommendation?: string
+  limitation?: string
+  followUpStatus?: string
+  relatedParties?: string[]
 }
 
 type TaskCenterPanelProps = {
@@ -32,7 +51,7 @@ export function TaskCenterPanel({
 }: TaskCenterPanelProps) {
   const activeTasks = tasks.filter((task) => task.status !== 'done')
   const visibleTasks = activeTasks.slice(0, 3)
-  const visibleSystemWarnings = systemWarnings.slice(0, 10)
+  const visibleSystemWarnings = systemWarnings
 
   return (
     <section className="siaga-section-canvas relative z-10 p-4 text-slate-900 sm:p-5">
@@ -60,16 +79,16 @@ export function TaskCenterPanel({
           <SummaryMetric icon={ShieldAlert} label="Peringatan Sistem" value={systemWarnings.length} tone="amber" />
         </div>
 
-        <div className="mt-5 grid gap-4 xl:grid-cols-[1.45fr_0.8fr]">
-          <div className="space-y-3">
-            {visibleTasks.length > 0 ? (
-              visibleTasks.map((task) => <TaskCard key={task.id} task={task} />)
-            ) : (
-              <EmptyAssignmentCard identity={identity} />
-            )}
-          </div>
+        <div className="mt-5 space-y-4">
+          <div className="grid gap-4 xl:grid-cols-[1.45fr_0.8fr]">
+            <div className="space-y-3">
+              {visibleTasks.length > 0 ? (
+                visibleTasks.map((task) => <TaskCard key={task.id} task={task} />)
+              ) : (
+                <EmptyAssignmentCard identity={identity} />
+              )}
+            </div>
 
-          <div className="space-y-4">
             <section className="siaga-card siaga-card-info px-4 py-3">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-700">Langkah Berikutnya</div>
               <h3 className="mt-1 text-base font-black text-slate-950">Belum ada misi pribadi hari ini.</h3>
@@ -77,8 +96,9 @@ export function TaskCenterPanel({
                 Tugas baru akan muncul setelah admin atau pejabat berwenang menetapkan assignment. Peringatan sistem di bawah bukan tugas pribadi, tetapi risiko paket dalam scope yang boleh terlihat.
               </p>
             </section>
+          </div>
 
-            <section className="siaga-card siaga-card-warning px-4 py-3">
+          <section className="siaga-card siaga-card-warning w-full px-4 py-3">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-700">Peringatan Sistem</div>
               <h3 className="mt-1 text-base font-black text-slate-950">Peringatan Sistem dalam scope Anda</h3>
               <p className="mt-2 text-xs leading-5 text-amber-900">
@@ -94,24 +114,77 @@ export function TaskCenterPanel({
                   Tidak ada peringatan sistem pada filter aktif.
                 </p>
               ) : (
-                <div className="mt-3 space-y-2">
+                <div className="mt-3 space-y-3">
                   {visibleSystemWarnings.map((warning) => (
-                    <Link key={warning.id} href={warning.href} className={`siaga-card-interactive block px-3 py-2 text-sm ${warning.level === 'critical' ? 'siaga-card-critical' : warning.level === 'warning' ? 'siaga-card-warning' : 'siaga-card-info'}`}>
-                      <div className="flex items-start justify-between gap-3">
+                    <article key={warning.id} className={`siaga-card-compact p-3 text-sm ${warning.level === 'critical' ? 'siaga-card-critical' : warning.level === 'warning' ? 'siaga-card-warning' : 'siaga-card-info'}`}>
+                      <div className="flex flex-wrap items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="line-clamp-1 font-black text-slate-900">{warning.title}</div>
+                          <div className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-500">{warning.project?.kode || 'Kode paket belum tersedia'}</div>
+                          <div className="mt-1 line-clamp-2 font-black text-slate-900">{warning.title}</div>
                           <div className="mt-1 line-clamp-2 text-xs leading-5 text-slate-600">{warning.detail}</div>
                         </div>
                         <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black ${warning.level === 'critical' ? 'bg-red-50 text-red-700' : 'bg-amber-100 text-amber-800'}`}>
-                          {warning.level === 'critical' ? 'Kritis' : 'Risiko'}
+                          {warning.statusLabel || (warning.level === 'critical' ? 'Kritis' : 'Risiko')}
                         </span>
                       </div>
-                    </Link>
+
+                      <div className="mt-3 grid gap-2 text-xs md:grid-cols-3">
+                        <div className="siaga-card-compact bg-white/60 px-3 py-2">
+                          <div className="font-black uppercase tracking-[0.14em] text-slate-500">Progress</div>
+                          <div className="mt-1 font-bold text-slate-900">{warning.progressFisik ?? 0}% fisik / {warning.progressKeuangan ?? 0}% keuangan</div>
+                        </div>
+                        <div className="siaga-card-compact bg-white/60 px-3 py-2">
+                          <div className="font-black uppercase tracking-[0.14em] text-slate-500">Target</div>
+                          <div className="mt-1 font-bold text-slate-900">{warning.targetLabel || 'Target belum tersedia'}</div>
+                        </div>
+                        <div className="siaga-card-compact bg-white/60 px-3 py-2">
+                          <div className="font-black uppercase tracking-[0.14em] text-slate-500">Status Waktu</div>
+                          <div className="mt-1 font-bold text-slate-900">{warning.remainingLabel || 'Status waktu belum tersedia'}</div>
+                        </div>
+                      </div>
+
+                      <div className="siaga-card-compact siaga-card-warning mt-3 px-3 py-2 text-xs leading-relaxed text-amber-950">
+                        <p className="font-black">{warning.recommendation || 'Pantau progres dan lakukan klarifikasi teknis bila risiko meningkat.'}</p>
+                        <p className="mt-1">{warning.limitation || 'Rekomendasi belum menjadi surat resmi. Perlu verifikasi teknis dan persetujuan pejabat berwenang.'}</p>
+                      </div>
+
+                      <div className="mt-3 grid gap-2 text-xs lg:grid-cols-2">
+                        <div className="siaga-card-compact bg-white/60 px-3 py-2">
+                          <div className="font-black uppercase tracking-[0.14em] text-slate-500">Status Tindak Lanjut</div>
+                          <div className="mt-1 font-bold text-slate-900">{warning.followUpStatus || 'Belum Ada Tindak Lanjut'}</div>
+                          <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
+                            Status ini konseptual dan belum menulis database.
+                          </p>
+                        </div>
+                        <div className="siaga-card-compact bg-white/60 px-3 py-2">
+                          <div className="font-black uppercase tracking-[0.14em] text-slate-500">Pihak Terkait</div>
+                          <ul className="mt-1 space-y-1 text-slate-700">
+                            {(warning.relatedParties || [
+                              `PPK: ${warning.project?.ppk || 'belum tersedia'}`,
+                              `PPTK: ${warning.project?.pptk || 'belum tersedia'}`,
+                              'Direksi Teknis: sesuai assignment paket',
+                              warning.project?.konsultanPengawasan ? `Konsultan Pengawas: ${warning.project.konsultanPengawasan}` : 'Konsultan Pengawas: jika tercantum pada paket',
+                              `Kontraktor: ${warning.project?.kontraktor || 'belum tersedia'}`,
+                              'Kabid/Pimpinan: monitoring sesuai scope',
+                            ]).slice(0, 6).map((party) => (
+                              <li key={party}>- {party}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="mt-3 flex justify-end">
+                        <Link href={warning.href} className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white transition hover:bg-blue-700">
+                          Buka Paket <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </article>
                   ))}
                 </div>
               )}
             </section>
 
+          <div className="grid gap-4 xl:grid-cols-2">
             <section className="siaga-card siaga-card-success px-4 py-3">
               <div className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">Tugas Selesai</div>
               {completedTasks.length === 0 ? (

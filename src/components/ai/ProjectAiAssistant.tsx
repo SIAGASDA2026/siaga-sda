@@ -3,10 +3,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { AlertTriangle, Bell, Bot, CalendarDays, Clock, HelpCircle, MessageSquareText, Target, X } from 'lucide-react'
+import { Bell, Bot, CalendarDays, Clock, HelpCircle, MessageSquareText, Target, X } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { canAccessPage } from '@/lib/rbac'
-import { buildProjectWarningSource, WARNING_FOLLOW_UP_STATUSES, type ProjectSystemWarning } from '@/lib/project-alerts'
+import { buildProjectWarningSource, type ProjectSystemWarning } from '@/lib/project-alerts'
 import { getProjectComputedStatus } from '@/lib/project-status'
 import type { Proyek } from '@/types'
 
@@ -785,7 +785,7 @@ export function ProjectAiAssistant() {
     if (activeWarningFilter === 'recommendation') return haloWarningSource.systemWarnings.filter(hasFollowUpRecommendation)
     return haloWarningSource.systemWarnings
   }, [activeWarningFilter, haloWarningSource.systemWarnings])
-  const visibleHaloWarnings = filteredHaloWarnings.slice(0, 10)
+  const visibleHaloWarnings = filteredHaloWarnings
   const activeWarningFilterLabel = HALO_WARNING_FILTER_LABELS[activeWarningFilter]
   const warningSectionTitle = activeWarningFilter === 'personal'
     ? 'Misi Pribadi'
@@ -1017,7 +1017,7 @@ export function ProjectAiAssistant() {
                       : 'Prioritas tertinggi belum tersedia.'}
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                    Kendali Waktu hanya ringkasan. Buka daftar Peringatan Sistem untuk detail paket, pihak terkait, dan rekomendasi tindak lanjut.
+                    Kendali Waktu hanya ringkasan. Detail paket, pihak terkait, dan rekomendasi tindak lanjut tersedia di Dashboard.
                   </p>
                   {haloWarningSource.warningSummary.total > 0 && (
                     <button
@@ -1073,62 +1073,24 @@ export function ProjectAiAssistant() {
                     </p>
                   </div>
                 ) : (
-                  <div className="mt-3 max-h-[52dvh] space-y-3 overflow-y-auto pr-1 md:max-h-[56vh]">
+                  <div className="mt-3 space-y-2">
                     {visibleHaloWarnings.map((warning) => (
-                      <article key={warning.id} className="siaga-card-compact siaga-card-neutral p-3">
+                      <article key={warning.id} className={`siaga-card-compact p-3 ${warning.level === 'critical' ? 'siaga-card-critical' : warning.level === 'warning' ? 'siaga-card-warning' : 'siaga-card-info'}`}>
                         <div className="flex flex-wrap items-start justify-between gap-2">
                           <div className="min-w-0">
                             <p className="text-[11px] font-black uppercase tracking-[0.16em] text-slate-400">{warning.project.kode}</p>
                             <h4 className="mt-1 line-clamp-2 text-sm font-black leading-snug text-slate-900">{warning.title}</h4>
                           </div>
                           <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${warning.level === 'critical' ? 'bg-red-50 text-red-700' : warning.level === 'warning' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'}`}>
-                            {warning.statusLabel}
+                            {warning.level === 'critical' ? 'Kritis' : warning.level === 'warning' ? 'Warning' : 'Risiko'}
                           </span>
                         </div>
 
-                        <div className="mt-3 grid gap-2 text-xs text-slate-600 sm:grid-cols-3">
-                          <div className="siaga-card-compact px-3 py-2">
-                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Progress</p>
-                            <p className="mt-1 font-bold text-slate-800">{warning.progressFisik}% fisik / {warning.progressKeuangan}% keuangan</p>
-                          </div>
-                          <div className="siaga-card-compact px-3 py-2">
-                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Target</p>
-                            <p className="mt-1 font-bold text-slate-800">{warning.targetLabel}</p>
-                          </div>
-                          <div className="siaga-card-compact px-3 py-2">
-                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Status Waktu</p>
-                            <p className="mt-1 font-bold text-slate-800">{warning.remainingLabel}</p>
-                          </div>
-                        </div>
+                        <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-slate-700">{warning.detail}</p>
 
-                        <p className="mt-3 text-xs leading-relaxed text-slate-600">{warning.detail}</p>
-
-                        <div className="siaga-card-compact siaga-card-warning mt-3 px-3 py-2 text-xs leading-relaxed text-amber-950">
-                          <p className="font-black">{warning.recommendation}</p>
-                          <p className="mt-1">{warning.limitation}</p>
-                        </div>
-
-                        <div className="mt-3 grid gap-2 text-xs lg:grid-cols-2">
-                          <div className="siaga-card-compact px-3 py-2">
-                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Status Tindak Lanjut</p>
-                            <p className="mt-1 font-bold text-slate-800">{warning.followUpStatus}</p>
-                            <p className="mt-1 text-[11px] leading-relaxed text-slate-500">
-                              Status ini konseptual dan belum menulis database.
-                            </p>
-                          </div>
-                          <div className="siaga-card-compact px-3 py-2">
-                            <p className="font-black uppercase tracking-[0.14em] text-slate-400">Pihak Terkait</p>
-                            <ul className="mt-1 space-y-1 text-slate-600">
-                              {warning.relatedParties.slice(0, 6).map((party) => (
-                                <li key={party}>- {party}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-
-                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-                          <span className="text-[11px] font-semibold text-slate-500">
-                            Status konseptual tersedia: {WARNING_FOLLOW_UP_STATUSES.length} tahap tindak lanjut.
+                        <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-white/60 pt-2">
+                          <span className="text-[11px] font-semibold text-slate-600">
+                            {warning.remainingLabel}
                           </span>
                           <Link href={warning.href} className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white transition hover:bg-blue-700">
                             Buka Paket
@@ -1137,6 +1099,15 @@ export function ProjectAiAssistant() {
                       </article>
                     ))}
                   </div>
+                )}
+
+                {activeWarningFilter !== 'personal' && haloWarningSource.warningSummary.total > 0 && (
+                  <Link
+                    href="/dashboard"
+                    className="mt-3 inline-flex w-full items-center justify-center rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white shadow-sm transition hover:bg-blue-700 sm:w-auto"
+                  >
+                    Lihat Detail di Dashboard
+                  </Link>
                 )}
               </section>
 
@@ -1152,20 +1123,6 @@ export function ProjectAiAssistant() {
                     </p>
                     <p className="mt-2 text-xs leading-relaxed text-slate-500">
                       Ini bukan error. Halo SIAGA-SDA masih berjalan dalam mode panduan lokal dan belum membaca data misi resmi.
-                    </p>
-                  </div>
-                </div>
-              </section>
-
-              <section className="siaga-section-canvas-muted siaga-card-warning p-4">
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white text-amber-700 shadow-sm">
-                    <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-                  </div>
-                  <div>
-                    <h3 className="font-black text-amber-950">Deviasi Paket dan Draft Surat Teguran</h3>
-                    <p className="mt-1 text-sm leading-relaxed text-amber-900">
-                      Jika paket pekerjaan melewati batas deviasi, sistem dapat menyiapkan peringatan dan draft surat teguran untuk direview pejabat berwenang. Draft surat teguran bukan surat resmi sampai direview dan disahkan oleh pejabat berwenang.
                     </p>
                   </div>
                 </div>
